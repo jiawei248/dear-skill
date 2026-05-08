@@ -5,39 +5,90 @@ import argparse
 import base64
 import io
 import json
-import re
-import shutil
+import os
 import time
-import zipfile
+from dataclasses import dataclass
 from pathlib import Path
-import xml.etree.ElementTree as ET
+from typing import Any
 
 import requests
-import urllib3
-from PIL import Image, ImageOps
+from PIL import Image, ImageDraw, ImageOps
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DOCX = Path("/Users/liujiawei/Desktop/资源交付.docx")
-OUT = ROOT / "story_cards" / "generated"
-OUT.mkdir(parents=True, exist_ok=True)
-
-MODEL = "gemini-3.1-flash-image-preview"
 TARGET_SIZE = (1024, 720)
-W_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}t"
+DEFAULT_PROMPTS = ROOT / "story_cards" / "prompts" / "story_card_image_prompts.json"
+DEFAULT_OUTDIR = ROOT / "story_cards" / "generated"
 
 
-def litellm_config() -> tuple[str, str]:
-    root = ET.fromstring(zipfile.ZipFile(DOCX).read("word/document.xml"))
-    texts = [el.text or "" for el in root.iter(W_NS)]
-    base_url = texts[texts.index("BaseUrl：") + 1].rstrip("/")
-    key_line = next(text for text in texts if text.startswith("Api key"))
-    api_key = re.split("[：:]", key_line, 1)[1].strip()
-    return base_url, api_key
+class StoryCardError(Exception):
+    pass
 
 
-def data_url(rel_path: str, max_dim: int = 820) -> str:
-    path = ROOT / rel_path
+@dataclass(frozen=True)
+class ProviderConfig:
+    name: str
+    model: str
+    base_url: str | None = None
+    api_key: str | None = None
+
+
+def default_model_for_provider(provider: str) -> str:
+    if provider == "gemini":
+        return os.environ.get("GEMINI_IMAGE_MODEL", "gemini-3.1-flash-image-preview")
+    if provider == "litellm":
+        return os.environ.get("LITELLM_IMAGE_MODEL", "gemini-3.1-flash-image-preview")
+    if provider == "openrouter":
+        return os.environ.get("OPENROUTER_IMAGE_MODEL", "google/gemini-3.1-flash-image-preview")
+    if provider == "draft":
+        return "draft"
+    raise StoryCardError(f"unknown provider: {provider}")
+
+
+def choose_provider(provider: str, env: dict[str, str] | None = None) -> ProviderConfig:
+    env = env or os.environ
+    if provider == "auto":
+        if env.get("GEMINI_API_KEY"):
+            provider = "gemini"
+        elif env.get("LITELLM_API_KEY") and env.get("LITELLM_BASE_URL"):
+            provider = "litellm"
+        elif env.get("OPENROUTER_API_KEY"):
+            provider = "openrouter"
+        else:
+            provider = "draft"
+
+    if provider == "gemini":
+        api_key = env.get("GEMINI_API_KEY")
+        if not api_key:
+            raise StoryCardError("GEMINI_API_KEY is required for --provider gemini")
+        return ProviderConfig("gemini", default_model_for_provider("gemini"), api_key=api_key)
+    if provider == "litellm":
+        api_key = env.get("LITELLM_API_KEY")
+        base_url = env.get("LITELLM_BASE_URL")
+        if not api_key or not base_url:
+            raise StoryCardError("LITELLM_API_KEY and LITELLM_BASE_URL are required for --provider litellm")
+        return ProviderConfig("litellm", default_model_for_provider("litellm"), base_url=base_url.rstrip("/"), api_key=api_key)
+    if provider == "openrouter":
+        api_key = env.get("OPENROUTER_API_KEY")
+        if not api_key:
+            raise StoryCardError("OPENROUTER_API_KEY is required for --provider openrouter")
+        base_url = env.get("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1").rstrip("/")
+        return ProviderConfig("openrouter", default_model_for_provider("openrouter"), base_url=base_url, api_key=api_key)
+    if provider == "draft":
+        return ProviderConfig("draft", default_model_for_provider("draft"))
+    raise StoryCardError(f"unknown provider: {provider}")
+
+
+def resolve_path(path: str, workdir: Path) -> Path:
+    candidate = Path(path)
+    if candidate.is_absolute():
+        return candidate
+    return workdir / candidate
+
+
+def data_url(path: Path, max_dim: int = 820) -> str:
+    if not path.exists():
+        raise StoryCardError(f"input image does not exist: {path}")
     img = Image.open(path).convert("RGBA")
     if max(img.size) > max_dim:
         img.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
@@ -53,7 +104,22 @@ def data_url(rel_path: str, max_dim: int = 820) -> str:
     return f"data:{mime};base64,{base64.b64encode(buf.getvalue()).decode('ascii')}"
 
 
-def extract_image_b64(payload: dict) -> str:
+def load_cards(prompts_path: Path) -> list[dict[str, Any]]:
+    payload = json.loads(prompts_path.read_text(encoding="utf-8"))
+    cards = payload.get("cards") if isinstance(payload, dict) else None
+    if not isinstance(cards, list) or not cards:
+        raise StoryCardError(f"prompt file must contain a non-empty cards array: {prompts_path}")
+    for card in cards:
+        if not isinstance(card, dict):
+            raise StoryCardError("each card entry must be an object")
+        if not card.get("id"):
+            raise StoryCardError("each card entry must include id")
+        if not card.get("prompt"):
+            raise StoryCardError(f"card {card.get('id')} must include prompt")
+    return cards
+
+
+def extract_image_b64(payload: dict[str, Any]) -> str:
     if payload.get("data"):
         item = payload["data"][0]
         if item.get("b64_json"):
@@ -67,7 +133,14 @@ def extract_image_b64(payload: dict) -> str:
         url = image.get("image_url", {}).get("url", "")
         if url.startswith("data:image"):
             return url.split(",", 1)[1]
-    raise RuntimeError("No image payload returned from litellm response.")
+    content = message.get("content")
+    if isinstance(content, list):
+        for part in content:
+            image_url = part.get("image_url", {}) if isinstance(part, dict) else {}
+            url = image_url.get("url", "")
+            if url.startswith("data:image"):
+                return url.split(",", 1)[1]
+    raise StoryCardError("No image payload returned from image provider response.")
 
 
 def normalize_image(raw: bytes) -> Image.Image:
@@ -75,10 +148,105 @@ def normalize_image(raw: bytes) -> Image.Image:
     return ImageOps.fit(img, TARGET_SIZE, method=Image.Resampling.LANCZOS, centering=(0.5, 0.47))
 
 
-def save_contact_sheet(cards: list[dict]) -> None:
+def request_openai_compatible_card(config: ProviderConfig, card: dict[str, Any], workdir: Path, verify_tls: bool) -> bytes:
+    content: list[dict[str, Any]] = [{"type": "text", "text": card["prompt"].strip()}]
+    for image in card.get("input_images", []):
+        rel_path = image.get("path")
+        if not rel_path:
+            continue
+        role = image.get("role", "reference image")
+        content.append({"type": "text", "text": f"Reference image role: {role}."})
+        content.append({"type": "image_url", "image_url": {"url": data_url(resolve_path(rel_path, workdir))}})
+
+    body = {
+        "model": config.model,
+        "messages": [{"role": "user", "content": content}],
+    }
+    response = requests.post(
+        f"{config.base_url}/v1/chat/completions",
+        headers={"Authorization": f"Bearer {config.api_key}"},
+        json=body,
+        timeout=240,
+        verify=verify_tls,
+    )
+    if response.status_code >= 400:
+        raise StoryCardError(f"{card['id']} failed: {response.status_code} {response.text[:800]}")
+    return base64.b64decode(extract_image_b64(response.json()))
+
+
+def gemini_part_from_path(path: Path) -> dict[str, Any]:
+    uri = data_url(path)
+    header, encoded = uri.split(",", 1)
+    mime = header.split(";", 1)[0].removeprefix("data:")
+    return {"inline_data": {"mime_type": mime, "data": encoded}}
+
+
+def request_gemini_card(config: ProviderConfig, card: dict[str, Any], workdir: Path, verify_tls: bool) -> bytes:
+    parts: list[dict[str, Any]] = [{"text": card["prompt"].strip()}]
+    for image in card.get("input_images", []):
+        rel_path = image.get("path")
+        if not rel_path:
+            continue
+        role = image.get("role", "reference image")
+        parts.append({"text": f"Reference image role: {role}."})
+        parts.append(gemini_part_from_path(resolve_path(rel_path, workdir)))
+
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/{config.model}:generateContent"
+    response = requests.post(
+        url,
+        params={"key": config.api_key},
+        json={"contents": [{"role": "user", "parts": parts}]},
+        timeout=240,
+        verify=verify_tls,
+    )
+    if response.status_code >= 400:
+        raise StoryCardError(f"{card['id']} failed: {response.status_code} {response.text[:800]}")
+    payload = response.json()
+    for candidate in payload.get("candidates", []):
+        for part in candidate.get("content", {}).get("parts", []):
+            inline_data = part.get("inlineData") or part.get("inline_data")
+            if inline_data and inline_data.get("data"):
+                return base64.b64decode(inline_data["data"])
+    raise StoryCardError("No image payload returned from Gemini response.")
+
+
+def make_draft_card(card: dict[str, Any]) -> Image.Image:
+    img = Image.new("RGB", TARGET_SIZE, "#f5ead7")
+    draw = ImageDraw.Draw(img)
+    draw.rectangle((28, 28, TARGET_SIZE[0] - 28, TARGET_SIZE[1] - 28), outline="#d6b98f", width=4)
+    draw.rectangle((72, 86, 626, 590), fill="#ead3ad", outline="#c9a978", width=3)
+    draw.rectangle((668, 118, 940, 558), fill="#fff7e9", outline="#d6b98f", width=2)
+    draw.text((96, 112), "draft story card", fill="#6d4b30")
+    draw.text((96, 152), str(card["id"]), fill="#6d4b30")
+    draw.text((696, 146), "image provider", fill="#8a6742")
+    draw.text((696, 178), "not configured", fill="#8a6742")
+    return img
+
+
+def generate_card(config: ProviderConfig, card: dict[str, Any], workdir: Path, verify_tls: bool) -> Image.Image:
+    if config.name == "draft":
+        return make_draft_card(card)
+    if config.name == "gemini":
+        return normalize_image(request_gemini_card(config, card, workdir, verify_tls))
+    return normalize_image(request_openai_compatible_card(config, card, workdir, verify_tls))
+
+
+def output_path_for_card(card: dict[str, Any], workdir: Path, outdir: Path) -> Path:
+    target = card.get("target_output")
+    if target:
+        path = Path(target)
+        if path.is_absolute():
+            return path
+        try:
+            return resolve_path(target, workdir)
+        except StoryCardError:
+            pass
+    return outdir / f"{card['id']}.png"
+
+
+def save_contact_sheet(cards: list[dict[str, Any]], out_paths: list[Path], outdir: Path) -> None:
     thumbs = []
-    for card in cards:
-        path = OUT / f"{card['id']}.png"
+    for card, path in zip(cards, out_paths):
         if path.exists():
             thumbs.append((card["id"], Image.open(path).resize((384, 270), Image.Resampling.LANCZOS)))
     if not thumbs:
@@ -89,151 +257,64 @@ def save_contact_sheet(cards: list[dict]) -> None:
         x = (i % 2) * 384
         y = (i // 2) * 304
         sheet.paste(thumb, (x, y))
-        # Pillow's default font is enough for this private contact sheet.
-        Image.Image.getbbox
-        from PIL import ImageDraw
-
         ImageDraw.Draw(sheet).text((x + 12, y + 276), label, fill=(70, 48, 40))
-    sheet.save(OUT / "contact-sheet.jpg", quality=88)
+    outdir.mkdir(parents=True, exist_ok=True)
+    sheet.save(outdir / "contact-sheet.jpg", quality=88)
 
 
-CARDS = [
-    {
-        "id": "kitchen-fridge",
-        "images": [
-            ("ref_boy.jpg", "boyfriend identity reference"),
-            ("ref_girl.jpg", "girlfriend identity reference"),
-            ("scene_kitchen.jpg", "warm orange kitchen room mood"),
-            ("kitchen/4.png", "cream fridge sticker, main object"),
-            ("stickers/food/sticker_25.png", "heart cookie sticker accent"),
-        ],
-        "prompt": """
-Use case: identity-preserve, compositing.
-Create a real AI-generated handmade Instagram-style romantic story card image.
-Use the first two images only as identity references for the boyfriend and girlfriend; keep their faces, age, and gentle couple feeling recognizable, but do not paste the reference photos flatly.
-Scene: a cozy warm orange kitchen. The couple is beside a cream vintage fridge and the girlfriend is opening the main fridge door while the boyfriend smiles as if he found her little secret. The fridge door must obey real-world physics: one single solid door panel, hinged on one vertical edge of the fridge body, swung open outward about 60 degrees. The hinge side must remain attached to the main fridge cabinet. Do not create a folded door, split door, detached panel, accordion door, or two overlapping fridge doors. If the open door is hard, show it only slightly ajar but physically attached.
-Inside the fridge are a small cake, a drink, and one tiny blank paper slip. The paper slip must be blank with no readable writing.
-Key object: the cream fridge from the reference sticker.
-Style: tactile scrapbook photo collage, soft paper grain, washi tape, warm kitchen light, subtle sticker accents, handmade but still photographic and scene-based.
-Composition: left image-heavy scene with generous blank paper space on the right and lower edge for a handwritten Chinese note overlay.
-Avoid: any readable generated text, letters, captions, handwriting, brand names, watermark, logo, extra people, empty frames, stiff studio portrait, impossible fridge door geometry.
-""",
-    },
-    {
-        "id": "rooftop-suitcase",
-        "images": [
-            ("ref_boy.jpg", "boyfriend identity reference"),
-            ("ref_girl.jpg", "girlfriend identity reference"),
-            ("scene_rooftop.jpg", "rainy rooftop room mood"),
-            ("rooftop/1.png", "blue suitcase sticker, main object"),
-            ("stickers/decorations/sticker_103.png", "travel ticket sticker accent"),
-        ],
-        "prompt": """
-Use case: identity-preserve, compositing.
-Create a real AI-generated handmade Instagram-style romantic story card image.
-Use the first two images only as identity references for the boyfriend and girlfriend; keep them recognizable and natural.
-Scene: after-rain rooftop at night, the couple is sharing one umbrella beside blue suitcases, as if they are leaving on a tiny spontaneous trip. A travel ticket and ribbon-like scrapbook details sit around the scene.
-Key object: the blue suitcases from the reference sticker.
-Style: cool blue-gray paper collage, tender rain glow, instant-photo border, handmade tape and soft shadows, romantic but not fantasy.
-Composition: clear left-right layout, the couple and suitcase on the left, airy blank paper note space on the right.
-Avoid: readable generated text, watermark, logo, extra people, empty frames.
-""",
-    },
-    {
-        "id": "karaoke-camera",
-        "images": [
-            ("ref_boy.jpg", "boyfriend identity reference"),
-            ("ref_girl.jpg", "girlfriend identity reference"),
-            ("scene_karaoke_1.jpg", "pink karaoke room mood"),
-            ("scene_karaoke_2.jpg", "small photo to appear inside the camera screen"),
-            ("karaoke/3.png", "CCD camera frame sticker, must contain a visible little photo inside"),
-            ("stickers/household_goods/sticker_75.png", "pink camera sticker accent"),
-        ],
-        "prompt": """
-Use case: identity-preserve, compositing.
-Create a real AI-generated handmade Instagram-style romantic story card image.
-Use the first two images only as identity references for the boyfriend and girlfriend; keep them recognizable, smiling, and candid.
-Scene: playful pink karaoke room. The couple is holding microphones and laughing mid-song, like a candid snapshot from a night out.
-Key object: the CCD camera frame sticker. Important: it must not be empty; put a tiny visible photo of the couple or karaoke scene inside its screen, like the camera is displaying the captured moment.
-Add the pink camera sticker as a small supporting scrapbook element.
-Style: lively Instagram scrapbook, instant-photo layers, paper grain, washi tape, music-night warmth.
-Composition: asymmetrical diagonal layout with the main scene and camera frame overlapping, plus a clean blank paper area for handwritten Chinese note overlay.
-Avoid: readable generated text, watermark, logo, extra people, empty camera screen, standalone empty frame.
-""",
-    },
-    {
-        "id": "couch-chess",
-        "images": [
-            ("ref_boy.jpg", "boyfriend identity reference"),
-            ("ref_girl.jpg", "girlfriend identity reference"),
-            ("scene_couch.jpg", "soft lavender sofa room mood"),
-            ("couch/6.png", "chessboard sticker, main object"),
-            ("stickers/decorations/sticker_102.png", "notebook sticker accent"),
-        ],
-        "prompt": """
-Use case: identity-preserve, compositing.
-Create a real AI-generated handmade Instagram-style romantic story card image.
-Use the first two images only as identity references for the boyfriend and girlfriend; keep them recognizable and gentle.
-Scene: quiet sofa-room evening in a lavender-toned room. The couple sits close together with a chessboard between them; the boyfriend is explaining one move and the girlfriend is smiling at him more than at the board.
-Key object: the chessboard from the reference sticker.
-Style: cozy lamplight, soft paper collage, notebook and stamp-like scrapbook accents, tactile handmade Instagram mood.
-Composition: triangular collage layout, image cluster on the right and lower area, generous blank note space on the left.
-Avoid: readable generated text, watermark, logo, extra people, empty frames.
-""",
-    },
-]
-
-
-def request_card(base_url: str, api_key: str, card: dict) -> bytes:
-    content = [{"type": "text", "text": card["prompt"].strip()}]
-    for rel_path, role in card["images"]:
-        content.append({"type": "text", "text": f"Reference image role: {role}."})
-        content.append({"type": "image_url", "image_url": {"url": data_url(rel_path)}})
-
-    body = {
-        "model": MODEL,
-        "messages": [{"role": "user", "content": content}],
-    }
-    response = requests.post(
-        f"{base_url}/v1/chat/completions",
-        headers={"Authorization": f"Bearer {api_key}"},
-        json=body,
-        timeout=240,
-        verify=False,
-    )
-    if response.status_code >= 400:
-        raise RuntimeError(f"{card['id']} failed: {response.status_code} {response.text[:800]}")
-    image_b64 = extract_image_b64(response.json())
-    return base64.b64decode(image_b64)
-
-
-def main() -> None:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--only", choices=[card["id"] for card in CARDS])
+    parser.add_argument("--prompts", type=Path, default=DEFAULT_PROMPTS)
+    parser.add_argument("--workdir", type=Path, default=ROOT)
+    parser.add_argument("--outdir", type=Path, default=DEFAULT_OUTDIR)
+    parser.add_argument("--provider", choices=["auto", "gemini", "litellm", "openrouter", "draft"], default="auto")
+    parser.add_argument("--only")
     parser.add_argument("--force", action="store_true")
-    args = parser.parse_args()
+    parser.add_argument("--strict", action="store_true")
+    parser.add_argument("--insecure-skip-verify", action="store_true")
+    return parser.parse_args()
 
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-    base_url, api_key = litellm_config()
-    cards = [card for card in CARDS if args.only in (None, card["id"])]
 
+def main() -> int:
+    args = parse_args()
+    workdir = args.workdir.resolve()
+    outdir = args.outdir.resolve()
+    try:
+        cards = load_cards(args.prompts.resolve())
+        if args.only:
+            cards = [card for card in cards if card["id"] == args.only]
+            if not cards:
+                raise StoryCardError(f"card id not found in prompt file: {args.only}")
+        config = choose_provider(args.provider)
+    except StoryCardError as exc:
+        print(f"story-card generation error: {exc}", flush=True)
+        return 1
+
+    out_paths: list[Path] = []
+    verify_tls = not args.insecure_skip_verify
     for card in cards:
-        out_path = OUT / f"{card['id']}.png"
+        out_path = output_path_for_card(card, workdir, outdir)
+        out_paths.append(out_path)
         if out_path.exists() and not args.force:
             print(f"skip {out_path}")
             continue
-        print(f"generating {card['id']} with {MODEL}...")
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"generating {card['id']} with {config.name}:{config.model}...")
         started = time.time()
-        raw = request_card(base_url, api_key, card)
-        normalized = normalize_image(raw)
-        normalized.save(out_path)
-        raw_dir = OUT / "raw"
-        raw_dir.mkdir(parents=True, exist_ok=True)
-        normalized.save(raw_dir / out_path.name)
+        try:
+            image = generate_card(config, card, workdir, verify_tls)
+        except Exception as exc:
+            if args.strict:
+                print(f"story-card generation error: {exc}", flush=True)
+                return 1
+            print(f"provider failed for {card['id']}; writing draft fallback: {exc}")
+            image = make_draft_card(card)
+        image.save(out_path)
         print(f"wrote {out_path} in {time.time() - started:.1f}s")
 
-    save_contact_sheet(CARDS)
+    save_contact_sheet(cards, out_paths, outdir)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

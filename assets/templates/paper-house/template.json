@@ -254,8 +254,14 @@
         "rate_limit": "~20 requests / minute per IP (best-effort; use sparingly)"
       },
       "image_generation": {
-        "model_hint": "gemini-3.1-flash-image-preview via litellm (as used in template-source/scripts/generate_story_cards_litellm.py)",
-        "config_source": "The existing script expects litellm BaseUrl + Api key in a docx at /Users/liujiawei/Desktop/资源交付.docx. For re-use in the skill, the agent should either (a) read the same docx on macOS locally, or (b) pass LITELLM_BASE_URL + LITELLM_API_KEY env vars. See SPEC.md § Dependencies for fallback paths including direct Gemini API and OpenRouter."
+        "script": "template-source/scripts/generate_story_cards_litellm.py",
+        "provider_order": ["gemini", "litellm", "openrouter", "draft"],
+        "env": {
+          "gemini": ["GEMINI_API_KEY", "GEMINI_IMAGE_MODEL (optional, default gemini-3.1-flash-image-preview)"],
+          "litellm": ["LITELLM_BASE_URL", "LITELLM_API_KEY", "LITELLM_IMAGE_MODEL (optional, default gemini-3.1-flash-image-preview)"],
+          "openrouter": ["OPENROUTER_API_KEY", "OPENROUTER_BASE_URL (optional)", "OPENROUTER_IMAGE_MODEL (optional, default google/gemini-3.1-flash-image-preview)"]
+        },
+        "fallback": "If no image API is configured, or if a provider fails outside --strict mode, the script writes 1024x720 draft story-card placeholders so the gift can still build."
       }
     }
   },

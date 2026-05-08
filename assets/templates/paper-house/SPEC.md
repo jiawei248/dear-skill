@@ -455,7 +455,15 @@ scripts/fetch-asset-bundle.sh --template paper-house
 
 **7. Generate figure sprites + story cards** (Rules 2, 4). 
 - For figure sprites: either (a) use a user photo run through `scripts/stylize-character.sh` or (b) generate an AI composition preserving the user-photo identity.
-- For story cards: copy `template-source/story_cards/prompts/story_card_image_prompts.json`, rewrite each card's prompt with the per-gift hero object, room palette, protagonist identity, and 2-3 supporting sticker references, then run the generation pipeline.
+- For story cards: copy `template-source/story_cards/prompts/story_card_image_prompts.json` to `paper-house-work/story_cards/prompts/story_card_image_prompts.json`, rewrite each card's prompt with the per-gift hero object, room palette, protagonist identity, and 2-3 supporting sticker references, then run:
+  ```
+  python3 assets/templates/paper-house/template-source/scripts/generate_story_cards_litellm.py \
+    --prompts ./gifts/<slug>/paper-house-work/story_cards/prompts/story_card_image_prompts.json \
+    --workdir ./gifts/<slug>/paper-house-work \
+    --outdir ./gifts/<slug>/paper-house-work/story_cards/generated \
+    --provider auto
+  ```
+  Provider auto-selection prefers `GEMINI_API_KEY` with `GEMINI_IMAGE_MODEL` (default `gemini-3.1-flash-image-preview`), then `LITELLM_BASE_URL` + `LITELLM_API_KEY` with `LITELLM_IMAGE_MODEL` (default `gemini-3.1-flash-image-preview`), then `OPENROUTER_API_KEY` with `OPENROUTER_IMAGE_MODEL` (default `google/gemini-3.1-flash-image-preview`). If no provider is configured, or if generation fails without `--strict`, the script writes 1024x720 draft story-card placeholders so the gift can still build. Only use `--insecure-skip-verify` when the user explicitly accepts skipping TLS verification.
 
 **8. Compose card text + decals** (Rule 1, Content Principles 2.4-2.9, and `references/gifting-ethics.md`). Per card: title, kicker, paper/accent hex colors matching the room palette, 3-4 overlay decals (stickers with x/y/w/r positioning), and a handwritten memory text of 60-110 CJK chars (or the equivalent in the user's language) grounded in a specific detail from the user's intake. At least one card or lyric must contain an identity-confirmation point (nickname, catchphrase, inside joke, exact phrase, specific object/place) when the user supplied one. Pick ONE layout per card from the four options (note / split / diagonal / triangle).
 
@@ -501,7 +509,7 @@ Dependency groups:
 | When | Install |
 |---|---|
 | First cutout of a user photo | `rembg onnxruntime Pillow opencv-python numpy` |
-| First story-card generation | `requests urllib3 Pillow` |
+| First story-card generation | `requests Pillow` |
 | White-outline post-process | `Pillow` (usually already present) |
 
 The isnet-general-use rembg model (~170MB) downloads automatically on first call. Tell the user to expect a ~1 min delay the first time.
@@ -513,6 +521,7 @@ The isnet-general-use rembg model (~170MB) downloads automatically on first call
 - **No reference photo of the recipient**: generate 4 consistent-but-non-specific figures across all rooms. Document this explicitly to the user in the fill preview.
 - **iTunes search fails for a chosen song**: fall back to the user's specified song, or if they specified nothing, AI picks a different song with the same mood and re-queries.
 - **Image generation fails mid-flight**: retry once with a slightly relaxed prompt, then fall back to a lightweight composition — never deliver a gift with a missing wall/floor/story-card.
+- **Story-card image API unavailable**: run `generate_story_cards_litellm.py --provider auto`; it will write draft story-card placeholders when no Gemini, LiteLLM, or OpenRouter credentials are configured. Use `--strict` only when missing/generated placeholders should block the build.
 - **Hero sticker user-suggested has no physical fit with the canonical layout slot**: keep the user's sticker choice but re-place it at a reasonable coordinate within the DECOR_LAYOUT schema rather than forcing a bad slot.
 - **User's lyric request would require large copyrighted quotation**: respond honestly — offer the same emotional beat written as original text with a ≤12-char quoted phrase, or offer a different song whose already-quotable phrase matches.
 
