@@ -26,7 +26,7 @@ Available templates live in `{baseDir}/assets/templates/<template-id>/`. Each su
 
 To list available templates, scan that directory and read each `template.json`'s `name`, `description`, and `best_for` fields.
 
-When the user says "有什么模板" / "list templates" / "show me templates", the skill responds with a brief list:
+When the user asks for templates (e.g. "list templates", "show me templates", or the same intent in another language), the skill responds with a brief list:
 
 ```
 Available templates:
@@ -47,22 +47,22 @@ Three triggers, all valid:
 ### Explicit
 ```
 /dear --template paper-house ~/Desktop/for-mia/
-/dear 用 paper-house 模板给 Mia 做 ~/Desktop/for-mia/
+/dear use the paper-house template for Mia with ~/Desktop/for-mia/
 ```
 Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
 
 ### Browse → Pick
 ```
-/dear 有什么模板可以用？
+/dear show me templates
   → skill lists templates
-  → user: 用 paper-house
-  → skill: 把素材放进一个文件夹然后告诉我路径，或者直接贴在这里
+  → user: use paper-house
+  → skill: Put your material in a folder and send me the path, or paste/attach it here.
 ```
 
 ### Implicit Recommendation (Optional)
 During a normal creative-path run, at Format Selection the skill scans the template registry. If a template's `best_for` and `tone` strongly match the locked concept, the skill may say:
 
-> 我刚发现 paper-house 模板基本就是你这个想法 — 4 个房间 + 点击回忆。要不直接用那个？比从头做更稳，素材也更完整。
+> I just realized paper-house is almost exactly this idea: four small rooms with clickable memories. Want to use that? It'll be more stable than building from scratch, and it already has a rich sticker/room system.
 
 If the user says yes, switch to template mode. If no, continue the creative path.
 
@@ -204,13 +204,13 @@ Clickable interactive zones inside a scene, each tied to a memory popup.
   "type": "hotspot_map",
   "scenes": {
     "kitchen": [
-      {"hotspot_id": "stove", "label": "灶台"},
-      {"hotspot_id": "fridge", "label": "冰箱"},
-      {"hotspot_id": "mug", "label": "马克杯"}
+      {"hotspot_id": "stove", "label": "stove"},
+      {"hotspot_id": "fridge", "label": "fridge"},
+      {"hotspot_id": "mug", "label": "mug"}
     ],
     "rooftop": [
-      {"hotspot_id": "telescope", "label": "望远镜"},
-      {"hotspot_id": "fence", "label": "栏杆"}
+      {"hotspot_id": "telescope", "label": "telescope"},
+      {"hotspot_id": "fence", "label": "fence"}
     ]
   },
   "popup_contract": {
@@ -275,7 +275,7 @@ Show the user a "fill preview" — markdown-formatted list of every filled slot 
    ↓
 Enter the natural-language edit loop (see below)
    ↓
-On user "可以" / "ok" / "go" → run template build_script
+On user "ok" / "yes" / "go" / equivalent in the user's language → run template build_script
 ```
 
 ### The Fill Preview
@@ -283,31 +283,32 @@ On user "可以" / "ok" / "go" → run template build_script
 Show the user a clear, scannable preview before building. Example:
 
 ```
-我准备这样填 paper-house 给 Mia：
+I'm planning to fill paper-house for Mia like this:
 
 🍳 kitchen
-   主图：会重新生成（painterly nighttime apartment kitchen）
-   贴纸：bowl, steam-cloud, plant, blue-mug, pot, oven-mitt（6 个，从 food/plants/ 里选的）
-   歌词：「fall back into place, tender is the night」
-        「falling through the atmosphere, it was just you and me」
-   点击物品：
-     · stove → "我给你做的第一锅番茄意面你吃了三碗"
-     · fridge → "你看到过期酸奶笑了好久"
-     · mug → "蓝色那个被你顺走了"
+   Main scene: regenerated (painterly nighttime apartment kitchen)
+   Stickers: bowl, steam-cloud, plant, blue-mug, pot, oven-mitt (6 picked from food/plants/)
+   Lyric-prose:
+     "fall back into place, tender is the night"
+     "falling through the atmosphere, it was just you and me"
+   Clickable items:
+     · stove → "the first tomato pasta I cooked for you, and you somehow ate three bowls"
+     · fridge → "you saw the expired yogurt and laughed for way too long"
+     · mug → "the blue mug you quietly stole from me"
 
 🌆 rooftop
    ...
 
-人物：mia-IMG_2341.jpg → 抠图 + 白描边
+Character: mia-IMG_2341.jpg → cutout + white outline
 
 ---
-要我就这么开始做？还是想调整哪里？
+Should I start building from this, or do you want to adjust anything?
 ```
 
 ### The Natural-Language Edit Loop
 
 Accept any of:
-- "可以" / "ok" / "开始做" → proceed to build
+- "ok" / "yes" / "go" / equivalent in the user's language → proceed to build
 - Anything that mentions a specific slot to change → re-fill that slot, show updated preview, ask again
 - Anything ambiguous → ask one short clarifying question
 
@@ -315,12 +316,12 @@ Examples and how to interpret:
 
 | User says | Skill interprets |
 |---|---|
-| "kitchen 的歌词换一首" | re-fill `kitchen_lyrics` slot, possibly with a different song or original composition |
-| "把 stove 那条改成 ___" | replace specific hotspot popup text |
-| "我不想用这首歌" | mark `user_provided_song_lyrics` as cleared, regenerate all `ai_text` slots that depend on it |
-| "Mia 的照片用 0087 那张" | switch `character_portrait` source, re-run pipeline |
-| "rooftop 的贴纸太少了" | re-pick `rooftop_decorations` with higher count |
-| "整体感觉太冷了" | broader feedback — adjust style hints across multiple slots |
+| "change the kitchen lyrics" | re-fill `kitchen_lyrics` slot, possibly with a different song or original composition |
+| "replace the stove memory with ___" | replace specific hotspot popup text |
+| "I don't want to use this song" | mark `user_provided_song_lyrics` as cleared, regenerate all `ai_text` slots that depend on it |
+| "use Mia's 0087 photo instead" | switch `character_portrait` source, re-run pipeline |
+| "the rooftop stickers feel too sparse" | re-pick `rooftop_decorations` with higher count |
+| "the whole thing feels too cold" | broader feedback — adjust style hints across multiple slots |
 
 After every edit, re-show only the changed slots in the preview, not the whole thing.
 
@@ -338,7 +339,7 @@ Each template provides a `build.py` (or whatever script its `build_script` field
   "kitchen_wall_left": {"resolved_path": "/tmp/dear-build-x/kitchen_wall_left.png"},
   "kitchen_decorations": {"resolved_paths": ["...stove.png", "...pot.png", ...]},
   "kitchen_lyrics": {"lines": ["fall back into place...", "falling through..."]},
-  "scene_hotspots": {"kitchen": [{"hotspot_id": "stove", "popup": "我给你做..."}, ...]},
+  "scene_hotspots": {"kitchen": [{"hotspot_id": "stove", "popup": "the first dinner we cooked..."}, ...]},
   ...
 }
 ```
@@ -384,8 +385,8 @@ A WebGL scroll-through diorama of four small rooms that share a central corner. 
 
 Canonical authored HTML: `{baseDir}/assets/templates/paper-house/template-source/night-four-the-turn.html`.
 
-Production spec (8 rules, asset manifest, per-gift checklist, failure modes): `{baseDir}/assets/templates/paper-house/SPEC.md`. **Read this before attempting to produce a paper-house gift.**
+Production + content spec (8 production rules, content organization principles, asset manifest, per-gift checklist, failure modes): `{baseDir}/assets/templates/paper-house/SPEC.md`. **Read this end-to-end before attempting to produce a paper-house gift.** The content principles are what keep the gift specific, factual, matched to the user's language style, and not over-romanticized.
 
-Asset bundle: ~170 MB of stickers, fonts, and reference examples, fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. The bundle URL lives in `template.json.asset_bundle.url` — see `{baseDir}/assets/templates/paper-house/RELEASE.md` for how to build and publish it on GitHub Releases.
+Asset bundle: ~149 MB zip / ~156 MB extracted: stickers, fonts, and reference examples, fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
-Format: `h5`. Status: ready once the asset bundle URL is populated.
+Format: `h5`. Status: ready.

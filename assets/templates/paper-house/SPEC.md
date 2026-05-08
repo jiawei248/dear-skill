@@ -91,8 +91,8 @@ Horizontal layout:
 - Left-right symmetry is NOT required — the line should feel layered and asymmetric, not centered like a banner.
 
 Falling words (the confetti):
-- Each word is a **complete meaningful short phrase**, 2-6 CJK characters typically (up to ~10). Never a broken chunk of a longer thought ("低头切菜" is good; "切菜的时" is forbidden).
-- Roughly 60% of the words must be concrete specifics drawn from the user's memories ("番茄香气", "你回头", "递过碗"). Roughly 40% can be general mood tokens ("很轻很久", "再靠近一点").
+- Each word is a **complete meaningful short phrase**, usually 1-4 words in English or 2-6 CJK characters when the user's language is Chinese. Never a broken chunk of a longer thought ("chopping vegetables" is good; "chopping veget" is forbidden).
+- Roughly 60% of the words must be concrete specifics drawn from the user's memories ("tomato steam", "you turned back", "passed the bowl"). Roughly 40% can be general mood tokens ("soft for a long time", "a little closer").
 - Rotation per word: **random angle in [-20°, +20°]**. Never 0°. Never beyond ±20°. Rotation is per-word and may be regenerated on reload.
 - Drift speed/direction: use the canonical HTML's existing physics. Do not modify.
 
@@ -140,7 +140,7 @@ Per-room song selection:
 Copyright safety:
 - Only the Apple-hosted 30-second preview URL is embedded. Do NOT download-and-rehost that audio.
 - Lyrics written into the HTML are NOT the song's original lyrics. They are the user's own narrator-voice reflections composed by the AI.
-- A single short phrase (**up to ~12 CJK chars**) MAY be lightly quoted from the song in the form: `[Artist]《[Song Title]》里那句「quoted phrase」`. This is a fair-use-sized quotation; the rest of the sentence (~95%) must be original text grounded in the user's memories.
+- A single short phrase (**up to ~12 CJK chars or ~5 English words**) MAY be lightly quoted from the song in a form like: `[Artist]'s "[Song Title]" has that tiny phrase, "quoted phrase"`. This is a fair-use-sized quotation; the rest of the sentence (~95%) must be original text grounded in the user's memories.
 - NEVER generate full verses, full choruses, or paraphrase multiple consecutive lines of any copyrighted song. NEVER output anything that reads as a translation or close paraphrase of a copyrighted lyric block.
 - The two sentences per scene should each be ~80-140 CJK chars (proportional in other languages). They should feel like the user speaking about the moment, not like song lyrics reprinted.
 
@@ -177,7 +177,166 @@ Tell the user what's about to be installed (one brief line) before running pip, 
 
 ---
 
-## 2. Asset Manifest
+## 2. Content Organization Principles
+
+These rules govern the **content layer**: activation, intake, lyrics, falling words, story cards, and how much emotional interpretation is allowed. They are as important as the visual rules above.
+
+### 2.1 Activation copy is a reference, not a fixed script
+
+When the user activates `paper-house`, the agent may show a lively, warm prompt explaining what material works best. The wording below is a **style reference** only — adapt it to the user's language, energy, and normal speaking style. Do not paste it mechanically.
+
+Reference shape:
+
+> 🏠 We're going to turn this into a little paper house: four small rooms, each holding one memory of the recipient. Every room gets a 30-second song preview, one or two lines written in your voice, falling words, and a clickable object that opens a memory card.
+>
+> Lowest-friction version: put anything you have into one folder — photos, chat screenshots, a few story fragments, song names, voice notes transcribed into text — and send me the path. I'll sort through it.
+>
+> If you want the strongest version, add: 3+ clear photos of the recipient, around 4 concrete story fragments, music/artists/lyrics that matter to you both, and any catchphrases, nicknames, or inside jokes. If you don't have all that, no problem; we can start from what you have.
+
+Rules:
+- Tone may include emoji / kaomoji when it matches the user, but must not feel like a fixed marketing blurb.
+- Keep the user moving. The activation message should reduce anxiety, not become a long questionnaire.
+- Always offer the lowest-friction path: "put everything into one folder and send me the path".
+
+### 2.2 Recommended material for best results
+
+The template can start from very little, but the agent should know what "enough" looks like.
+
+**Minimum viable material**:
+- 1 recipient identity / relationship description
+- 1-2 usable photos OR enough text context to generate non-specific figures
+- 4 small story fragments (one per room), even if each is only one sentence
+
+**Strong material**:
+- 7-10 images total:
+  - 3-5 clear recipient face / body references
+  - 2-4 scene / object / shared-memory photos
+  - optionally 1-2 photos of the user if both people appear in the gift
+- 8-12 small stories or fragments:
+  - 4 become room anchors
+  - 4 become clickable card memories / falling words / background callbacks
+- 1-4 music hints:
+  - favorite artists
+  - songs with shared meaning
+  - genre/mood preferences
+  - one short lyric phrase that matters (optional)
+- 1-3 identity-confirmation details:
+  - nickname
+  - catchphrase / distinctive phrase
+  - inside joke
+  - repeated small habit
+  - a phrase TA actually said
+
+The agent should not demand all of this upfront. It should present it as "more material makes the gift better" while preserving the option to start immediately.
+
+### 2.3 Clarifying questions: max 2, then proceed
+
+If material is missing, ask at most **two** clarifying questions before slot matching. The exact wording is flexible.
+
+Useful triggers:
+
+| Missing / weak material | Ask, adapted to user's tone |
+|---|---|
+| Recipient photos < 2 | "The recipient photos are a bit thin. Want to add a few clear face / half-body shots? It helps keep them looking like the same person across all four rooms. Totally fine if not." |
+| Fewer than 4 concrete story fragments | "This template works best when each room has its own small memory. Do you have around four little moments — one or two sentences each? If not, I can split what you already gave me." |
+| No music clue | "Each room gets a 30-second song preview. Is there a song, artist, or genre that feels like them / like the two of you? If not, I'll choose." |
+| No language habit / inside joke | "Do they have a catchphrase, nickname, or tiny inside joke only you two understand? Those details make the gift feel unmistakably theirs. No pressure if nothing comes to mind." |
+
+Never ask a third intake question. After two questions, proceed to fill preview.
+
+### 2.4 Match the user's normal language style
+
+All written content should sound like an amplified version of the user's own way of expressing care, not like a generic romantic writer.
+
+Check the user's intake:
+- Do they write casually with "lol", "haha", slang, emoji, or short fragments? Use a casual register.
+- Do they write quietly and minimally? Keep the gift restrained.
+- Do they mix Chinese and English? Use the same mix only where natural.
+- Do they call the recipient "mom", "mama", "Xiao A", "Ren", "baby", a nickname, or an inside-joke name? Use the user's actual address form consistently.
+
+If the user's natural style is plain, do not force ornate metaphors. If the user's material is playful, do not over-solemnize it.
+
+### 2.5 Factuality: no invented facts
+
+This template is allowed to **describe atmosphere**, not invent facts.
+
+Allowed:
+- Expand a true detail with sensory texture: user said "we cooked tomato pasta" → write about steam, tomato smell, warm kitchen light.
+- Infer a light emotional reading from visible evidence: user said the recipient laughed in a karaoke room → "the second you laughed mid-song".
+- Use a scene object as metaphor when grounded in the memory.
+
+Forbidden:
+- Invent dates, places, songs, nicknames, medical facts, family history, personality traits, relationship milestones, or exact quotes.
+- Put words in the recipient's mouth unless the user provided them.
+- Create a story-card around an event that never appeared in the intake.
+- Overstate certainty: "you must have been exhausted", "mom will definitely understand", "that was the most important night of your relationship".
+
+When uncertain, use softer language or shrink the claim. A small true card beats a lush false one.
+
+### 2.6 No emotional over-rendering
+
+Do not make the gift more dramatic, romantic, or tearful than the material supports.
+
+Avoid:
+- Excessive vows, forever-language, destiny-language, or "the whole world disappeared and only we remained" unless the user's own style already talks like this.
+- Calling every minor moment "the most precious thing", "unforgettable for a lifetime", or "destined".
+- Making a parent/friend/coworker gift sound like a love confession.
+- Turning ordinary warmth into melodrama.
+
+The best paper-house writing often feels like: **specific, low voice, emotionally accurate**. It can be tender without becoming sticky or melodramatic.
+
+### 2.7 Identity-confirmation point
+
+Each gift should include at least one detail that makes the recipient think: "oh, this was made for me, not for anyone else."
+
+Good identity-confirmation details:
+- A real nickname
+- A real catchphrase
+- An inside joke
+- A tiny repeated habit
+- A detail from a photo only this person would recognize
+- A specific object or place the recipient knows
+- A user's exact remembered phrasing
+
+Place at least one such point in either:
+- one of the 4 story-card texts, or
+- the first room's lyric-prose, or
+- a falling-word cluster that repeats visually.
+
+If none exists in the material, ask one of the two allowed clarifying questions. If the user doesn't provide one, proceed with a lighter gift and do not invent.
+
+### 2.8 Rhythm and density
+
+Paper-house is a slow-reading gift. The viewer needs room to look around.
+
+Rules:
+- One room should not carry all the emotional weight. Spread meaning across the 4 rooms.
+- Each room should have one core memory, not three competing memories.
+- Card text: usually 60-110 CJK chars. If the true material is thin, 30-50 chars is acceptable. Do not pad.
+- Lyric-prose: 2 long sentences per room, but not every sentence must max out. Let lines breathe.
+- Falling words: enough to feel rich, not enough to become visual noise.
+
+If a room feels crowded, remove content before adding polish.
+
+### 2.9 One memory, one layer
+
+The same memory should not be repeated in every text layer.
+
+Each room has three text layers:
+1. lyric-prose
+2. falling words
+3. clickable card text
+
+A memory can dominate ONE layer and echo lightly in another, but it should not be fully retold in all three.
+
+Example:
+- If "tomato pasta" is the kitchen card's main story, the lyric-prose may mention "warm kitchen light" and "you turned back to ask if it was salty enough", while the falling words include "passed the bowl" — but don't repeat "tomato pasta" everywhere.
+
+This creates discovery: the recipient sees a new detail at every depth.
+
+---
+
+## 3. Asset Manifest
 
 What exists where, and what is new per gift.
 
@@ -210,7 +369,7 @@ Fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. Cached 
 | `base/stickers/pets/*.png` | ~24 pet stickers (cats, dogs, small animals) |
 | `base/stickers/plants/*.png` | ~14 plant stickers (potted plants, flowers, branches) |
 | `base/stickers/transportation/*.png` | ~5 transportation stickers (suitcases, bikes, trains) |
-| `base/fonts/*.ttf` | 3 handwritten CJK fonts: 荷塘月色手写体, 我爱万伟伟手写体, 张穸洛浮生楷体 |
+| `base/fonts/*.ttf` | 3 handwritten CJK fonts (file names include Chinese font names; keep the original filenames): 荷塘月色手写体, 我爱万伟伟手写体, 张穸洛浮生楷体 |
 | `base/reference/scene_*.{jpg,png}` | Example scene backgrounds (mood & palette reference) |
 | `base/reference/{room}_{left,right,floor}.jpg` | Example wall/floor textures (physical-constraint reference for AI-generated walls) |
 | `base/reference/{room}/{1..6}.png, player.png` | Example room sprite sets (the original characters placed in the canonical HTML) |
@@ -234,9 +393,9 @@ Produced fresh every time. Written to `./gifts/<YYYY-MM-DD>-<recipient-slug>/`.
 
 ---
 
-## 3. Per-Gift Production Checklist
+## 4. Per-Gift Production Checklist
 
-When the user picks `paper-house`, walk through these steps in order. Slot Matching (Stage 0.5 in the main flow) covers steps 2-7.
+When the user picks `paper-house`, walk through these steps in order. Slot Matching (Stage 0.5 in the main flow) covers steps 2-8. Read both **Production Rules** and **Content Organization Principles** before writing the fill preview.
 
 **1. Ensure `base/` is present.** If missing, run:
 ```
@@ -247,7 +406,7 @@ scripts/fetch-asset-bundle.sh --template paper-house
 
 **3. Resolve 4 songs** (Rule 6). For each scene, choose a song (user-provided or AI-picked), query iTunes Search API, grab `previewUrl`, `trackName`, `artistName`.
 
-**4. Compose lyrics + falling words** (Rules 3, 6). Per scene: 2 narrator-voice sentences (~80-140 CJK chars each), each containing at most one short (~12 char) song-quote, each grounded in a specific user memory. Then 22-28 falling-word phrases, 60% specific and 40% mood, each a complete short phrase.
+**4. Compose lyrics + falling words** (Rules 3, 6; Content Principles 2.4-2.9). Per scene: 2 narrator-voice sentences, each containing at most one short (~12 char) song-quote and grounded in specific user material. Then 22-28 falling-word phrases, 60% specific and 40% mood, each a complete short phrase. Match the user's normal language style; do not invent facts or over-romanticize thin material.
 
 **5. Pick hero items + decoration stickers** (Rule 4). Per scene: exactly 1 hero sticker (kitchen_4 fridge, rooftop_1 suitcase, karaoke_3 camera, couch_6 chess are the canonical slots — pick different sticker numbers or different categories if user memories clearly point elsewhere). Then 5-7 supporting decoration stickers, occlusion-friendly, picked from appropriate categories based on the room's theme and user context.
 
@@ -257,7 +416,7 @@ scripts/fetch-asset-bundle.sh --template paper-house
 - For figure sprites: either (a) use a user photo run through `scripts/stylize-character.sh` or (b) generate an AI composition preserving the user-photo identity.
 - For story cards: copy `template-source/story_cards/prompts/story_card_image_prompts.json`, rewrite each card's prompt with the per-gift hero object, room palette, protagonist identity, and 2-3 supporting sticker references, then run the generation pipeline.
 
-**8. Compose card text + decals** (Rule 1, see also `references/gifting-ethics.md`). Per card: title, kicker, paper/accent hex colors matching the room palette, 3-4 overlay decals (stickers with x/y/w/r positioning), and a handwritten memory text of 60-110 CJK chars grounded in a specific detail from the user's intake. Pick ONE layout per card from the four options (note / split / diagonal / triangle).
+**8. Compose card text + decals** (Rule 1, Content Principles 2.4-2.9, and `references/gifting-ethics.md`). Per card: title, kicker, paper/accent hex colors matching the room palette, 3-4 overlay decals (stickers with x/y/w/r positioning), and a handwritten memory text of 60-110 CJK chars (or the equivalent in the user's language) grounded in a specific detail from the user's intake. At least one card or lyric must contain an identity-confirmation point (nickname, catchphrase, inside joke, exact phrase, specific object/place) when the user supplied one. Pick ONE layout per card from the four options (note / split / diagonal / triangle).
 
 **9. Assemble `filled-slots.json` + run `build.py`**. The build script reads filled-slots.json, assembles the final HTML with all assets base64-inlined, and writes it to the gift folder.
 
@@ -265,11 +424,11 @@ scripts/fetch-asset-bundle.sh --template paper-house
 
 ---
 
-## 4. Dependencies — Installation on Demand
+## 5. Dependencies — Installation on Demand
 
 The agent should NOT pre-install anything. When a step needs a dependency:
 
-1. Tell the user in one brief line: `需要安装一下 rembg 做人像抠图 (~180MB with model)，装完继续`.
+1. Tell the user in one brief line: `I need to install rembg for character cutout (~180MB model), then I'll continue`.
 2. Create (or activate) a local venv scoped to this gift: `python3 -m venv ./gifts/<slug>/.venv && source ./gifts/<slug>/.venv/bin/activate`.
 3. `pip install <packages>`.
 4. Run the step.
@@ -286,7 +445,7 @@ The isnet-general-use rembg model (~170MB) downloads automatically on first call
 
 ---
 
-## 5. Failure Modes and Fallbacks
+## 6. Failure Modes and Fallbacks
 
 - **No reference photo of the recipient**: generate 4 consistent-but-non-specific figures across all rooms. Document this explicitly to the user in the fill preview.
 - **iTunes search fails for a chosen song**: fall back to the user's specified song, or if they specified nothing, AI picks a different song with the same mood and re-queries.
@@ -296,7 +455,7 @@ The isnet-general-use rembg model (~170MB) downloads automatically on first call
 
 ---
 
-## 6. What NOT to Do
+## 7. What NOT to Do
 
 - Do not modify `template-source/night-four-the-turn.html` or any of the `patch_*.py` files. They are frozen golden references.
 - Do not bundle generated user content (photos, memories, names) into the skill — it always stays in the user's gift folder, locally.
