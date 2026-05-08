@@ -6,7 +6,7 @@ It implements a `borrowed-media` + `interactive-object` pattern: the conceit is 
 
 ## Reference Use
 
-Treat as reference. Hermes should change ALL text content, profile fields, evidence cards, tags, photos, and decorative details. The core idea: a "being seen" gift disguised as an official dossier — someone cataloged your quiet impact and filed it as evidence.
+Treat as reference. the skill should change ALL text content, profile fields, evidence cards, tags, photos, and decorative details. The core idea: a "being seen" gift disguised as an official dossier — someone cataloged your quiet impact and filed it as evidence.
 
 ## What To Change Per Use
 

@@ -6,7 +6,7 @@ It is a concrete implementation of the broader `tension-release` pattern: calmin
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the drag-to-calm mechanic, the left-to-right stabilization logic, the tactile pacing, or the visual contrast between disorder and order, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the drag-to-calm mechanic, the left-to-right stabilization logic, the tactile pacing, or the visual contrast between disorder and order, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

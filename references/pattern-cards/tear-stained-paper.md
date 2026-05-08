@@ -25,7 +25,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only part of the mechanic or atmosphere, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits. Do not copy the sample text or scene literally.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only part of the mechanic or atmosphere, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits. Do not copy the sample text or scene literally.
 
 ## Reference Images
 
@@ -129,7 +129,7 @@ the skill should adapt:
 Good source text options:
 
 - selected user phrases from the day
-- a short handwritten-feeling monologue from Hermes
+- a short handwritten-feeling monologue from the user
 - a lightly referential literary texture if it genuinely fits the user
 
 Avoid treating every sad moment as if it needs classical poetic gravity.

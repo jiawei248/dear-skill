@@ -101,7 +101,7 @@ Fallback order:
 3. If neither path is available, continue without music rather than blocking the gift, but note briefly in delivery that background music was intended and could not be included in this run
 
 Do not normalize permanent no-music behavior from a missing token alone. If multiple gifts in a row wanted scene-specific music but could only use presets or silence because Freesound is not configured, the Deferred Freesound Setup mechanism should eventually trigger again according to its cooldown rules instead of being silently skipped forever.
-- Do not ask the user to choose a gift style during setup. Gift style should be inferred later from `soul.md`, user interaction patterns, memory, and the actual day.
+- Do not ask the user to choose a gift style during setup. Gift style should be inferred later from the recipient brief, user interaction patterns, memory, and the actual day.
 - Final H5 gifts must follow the self-contained output rules in `{baseDir}/references/html-spec.md`.
 - Treat pattern cards and templates as references, not fixed scripts. Borrow their logic, mechanics, pacing, or surface treatment as needed, but keep adapting them to the actual user, day, and relationship context.
 - A usable pattern does not need to have a reusable template. Reference-only pattern cards and example images are valid inputs when they provide enough expressive guidance.

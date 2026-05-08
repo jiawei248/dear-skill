@@ -6,7 +6,7 @@ It implements a `gifted-data-viz` pattern: structured data presented as a styliz
 
 ## Reference Use
 
-Treat as reference. Hermes may change the data to personal stats, relationship metrics, weekly reviews, or any structured data. The core idea: make data feel like a physical artifact you can hold.
+Treat as reference. the skill may change the data to personal stats, relationship metrics, weekly reviews, or any structured data. The core idea: make data feel like a physical artifact you can hold.
 
 ## What To Change Per Use
 

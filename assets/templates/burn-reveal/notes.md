@@ -6,7 +6,7 @@ It is best used for catharsis, reset, reframing, or symbolic renewal, not for de
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the reveal logic, the edge treatment, the before-and-after structure, or the pacing of transformation, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the reveal logic, the edge treatment, the before-and-after structure, or the pacing of transformation, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

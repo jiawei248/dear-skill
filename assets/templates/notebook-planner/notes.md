@@ -6,7 +6,7 @@ It implements a `gifted-data-viz` / `memory-shelf` hybrid pattern: structured pe
 
 ## Reference Use
 
-Treat as reference. Hermes may change the schedule to a relationship timeline, the checklist to achievements, or the journal to memories. The core idea: structured information in a warm, planner-like format that feels personal and handmade.
+Treat as reference. the skill may change the schedule to a relationship timeline, the checklist to achievements, or the journal to memories. The core idea: structured information in a warm, planner-like format that feels personal and handmade.
 
 ## What To Change Per Use
 

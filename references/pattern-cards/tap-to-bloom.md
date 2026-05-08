@@ -37,7 +37,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only the growth mechanic, the touch-triggered bounce, the plant language, the color system, or the overall feeling of vitality, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only the growth mechanic, the touch-triggered bounce, the plant language, the color system, or the overall feeling of vitality, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits.
 
 the skill should not assume that every use of this pattern must literally feature flowers on text. The deeper logic is that attention, touch, or play makes latent life visibly emerge.
 
@@ -237,7 +237,7 @@ Avoid:
 
 - "Something joyful happened and I want the page itself to come alive."
 - "The user feels a little more alive again, and the gift should visibly bloom with them."
-- "Hermes wants to celebrate creativity, tenderness, or spring-like change."
+- "the user wants to celebrate creativity, tenderness, or spring-like change."
 - "A line of text deserves to feel touched into life."
 
 ## Risks

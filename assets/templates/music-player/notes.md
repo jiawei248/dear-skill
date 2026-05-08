@@ -6,7 +6,7 @@ It implements a new `music-dedication` pattern: a gift built around songs and mu
 
 ## Reference Use
 
-Treat as reference. Hermes may change the album art, track list, colors, and player style. The core idea: a beautiful music player interface presenting a curated playlist or song dedication.
+Treat as reference. the skill may change the album art, track list, colors, and player style. The core idea: a beautiful music player interface presenting a curated playlist or song dedication.
 
 ## What To Change Per Use
 

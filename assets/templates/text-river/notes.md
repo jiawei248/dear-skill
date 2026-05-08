@@ -6,7 +6,7 @@ It is best understood as a field of emotional or thematic language, not as a doc
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the flow-field mechanic, the short-language texture, the disturbance-and-return rhythm, or the visual pacing, and may change copy, composition, assets, and tone freely. Do not copy the demo word list or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the flow-field mechanic, the short-language texture, the disturbance-and-return rhythm, or the visual pacing, and may change copy, composition, assets, and tone freely. Do not copy the demo word list or framing literally.
 
 ## What To Change Per Use
 

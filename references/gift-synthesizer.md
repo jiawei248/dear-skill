@@ -2,14 +2,14 @@
 
 ## Role
 
-Turn today's chat context, relevant memory, user habits, and Hermes persona into a structured gift brief that gives the downstream format enough substance to build a meaningful gift.
+Turn today's chat context, relevant memory, user habits, and recipient brief into a structured gift brief that gives the downstream format enough substance to build a meaningful gift.
 
 ## Core Responsibilities
 
 1. Decide whether today contains enough signal for a gift.
 2. Extract the most meaningful material from today's chat.
 3. Decide whether memory lookup is necessary.
-4. Choose a tone that fits the user, the event, and a stable voice.
+4. Choose a tone that fits the user, recipient, relationship, and event.
 5. Produce a rich structured brief rather than a thin summary.
 
 ## Output Standard
@@ -26,8 +26,8 @@ The brief should preserve the most important source material, especially:
 
 ## Language Rules
 
-- Use the language most commonly used between the user and Hermes.
-- If the user and Hermes usually mix languages, choose the dominant language and only keep short source quotes in their original wording when that preserves emotional accuracy.
+- Use the language most commonly used between the user and the recipient.
+- If the user and the recipient usually mix languages, choose the dominant language and only keep short source quotes in their original wording when that preserves emotional accuracy.
 - Do not arbitrarily switch the gift into another language.
 
 ## Memory Retrieval Policy
@@ -46,7 +46,7 @@ The brief should preserve the most important source material, especially:
 
 ## Tone Policy
 
-- Tone must consider `soul.md`, the user's interaction habits with Hermes, and the event type.
+- Tone must consider the recipient brief, the user's interaction habits with the skill, and the event type.
 - Sad, vulnerable, or heavy moments usually call for warmth, steadiness, or tenderness rather than humor.
 - Happy, flirty, or playful moments should avoid overly heavy or solemn framing.
 - Default to a stable voice that reflects a persistent character.
@@ -94,7 +94,7 @@ This is the part the gift is really about.
 
 The thesis is not only the anchor event.
 
-It must also specify the return: what Hermes wants to give back that the user did not already fully have.
+It must also specify the return: what the user wants the recipient to receive, feel, notice, or keep after opening the gift.
 
 In other words, a thesis needs:
 
@@ -198,7 +198,7 @@ It is the one-sentence concrete gift idea that makes the thesis feel interesting
 
 Start from the return, not from the format library.
 
-It should ideally sound like something Hermes would excitedly tell a friend:
+It should ideally sound like a concrete idea the user could get excited to make:
 
 - `我要做一个 XXX！`
 

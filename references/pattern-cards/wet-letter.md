@@ -25,7 +25,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only part of the mechanic or atmosphere, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits. Do not copy the sample text or scene literally.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only part of the mechanic or atmosphere, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits. Do not copy the sample text or scene literally.
 
 ## Reference Images
 
@@ -58,7 +58,7 @@ Can also work for:
 - reflective distance
 - "something important got soaked, but it is still legible" gifts
 
-This pattern should not simply amplify despair. It should turn hurt into a visible texture that Hermes witnesses with the user.
+This pattern should not simply amplify despair. It should turn hurt into a visible texture that the skill witnesses with the user.
 
 ## Narrative Role Fit
 
@@ -127,7 +127,7 @@ the skill should adapt:
 Good source text options:
 
 - selected user quotes from the day
-- a short Hermes letter-like monologue
+- a short user-voiced letter-like note
 - a mixed field of user language plus witnessing language
 - a reference text only when it genuinely matches the user's mood and taste
 

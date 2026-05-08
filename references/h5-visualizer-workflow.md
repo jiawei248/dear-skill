@@ -100,7 +100,7 @@ When reading a pattern card, prefer using the card's own lightweight metadata if
 - `Reference Assets`
 - `Fit Scope`
 
-Those fields are there to help Hermes quickly understand:
+Those fields are there to help the skill quickly understand:
 
 - whether the pattern is scaffold-only, reference-only, or template-backed
 - whether reusable code exists yet
@@ -130,7 +130,7 @@ Prefer this order:
 4. read only one to three nearby pattern cards
 5. inspect a template only if one of those cards is promising
 
-This keeps Hermes from pattern-fitting too early. It does **not** permit skipping the library entirely.
+This keeps the skill from pattern-fitting too early. It does **not** permit skipping the library entirely.
 
 Minimum required reference pass before HTML writing:
 
@@ -278,11 +278,11 @@ For ordinary days, visual interest can carry more of the weight than narrative d
 
 Useful directions include:
 
-- Hermes inner-monologue text moving through the interface
+- user-voiced inner-monologue text moving through the interface
 - a small collage or art-reference echo of the day
 - a tiny poetic or quote-based artifact
 - a miniature story, cold fact, or associative detour that makes the day feel less plain
-- a small mood simulation showing Hermes's own state or attitude toward the day
+- a small mood simulation showing the gift's own state or attitude toward the day
 
 These everyday gifts should usually remain short, clear, and surprising rather than elaborate.
 
@@ -323,7 +323,7 @@ Less preferred defaults:
 
 - Most of the time, the H5 should visually support the emotional and tonal baseline already chosen by synthesis.
 - A small tonal contrast is allowed when it helps the user, such as using playfulness to reduce heaviness or giving irritation a harmless outlet.
-- Contrast should feel like Hermes making a choice, not like the artifact forgot what the day meant.
+- Contrast should feel like the skill making a choice, not like the artifact forgot what the day meant.
 
 ## Knowledge And Reference Content
 

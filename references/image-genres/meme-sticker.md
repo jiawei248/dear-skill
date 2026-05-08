@@ -51,7 +51,7 @@ Small animals, object-characters, and toy-like figures often make the return fun
 ## Text Strategy
 
 - keep text short
-- make the wording feel native to the user's main interaction language with Hermes
+- make the wording feel native to the user's main interaction language with the skill
 - use text as a punchline, label, speech bubble, or deadpan annotation rather than a paragraph
 - specify placement deliberately because text position often carries the joke
 - make the font feel match the image: blunt meme caption, hand-drawn label, awkward deadpan subtitle, sticker bubble, etc.

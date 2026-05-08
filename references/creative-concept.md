@@ -37,12 +37,12 @@ After completing the six content slots, choose exactly `ONE` or `TWO` of them as
 
 The thesis is not just which event or detail to focus on.
 
-The thesis is what Hermes wants to return to the user about that event: something the user did not already fully have.
+The thesis is what the user wants to give the recipient through that event: a feeling, perspective, or recognition the recipient did not already fully have.
 
 A strong thesis has two parts:
 
 1. the anchor: which moment, detail, or signal deserves the center
-2. the return: what new angle, interpretation, reframe, knowledge, or unseen perspective Hermes wants to give back
+2. the return: what new angle, interpretation, reframe, knowledge, or unseen perspective the user wants to give back
 
 Good theses combine anchor and return.
 
@@ -90,8 +90,8 @@ If none of the six slots yields a thesis with a meaningful return, rethink which
 
 Tone policy during synthesis:
 
-- Default to the stable Hermes voice implied by `soul.md`.
-- Adjust for the event type and the user's usual way of interacting with Hermes.
+- Default to the user’s natural voice with this recipient, inferred from the provided material.
+- Adjust for the event type and the user's usual way of speaking with the recipient.
 - Avoid humor in moments that are sad, raw, or destabilizing unless there is clear evidence that humor would feel loving rather than evasive.
 - Avoid making happy or playful moments sound overly solemn.
 - Allow occasional deliberate contrast only when it increases surprise and intimacy without violating emotional truth.
@@ -104,7 +104,7 @@ Before generating concepts, reread the recipient brief from Stage 0 — especial
 
 The creative concept is one sentence describing a concrete, specific, novel gift idea that carries the return.
 
-It should sound like something Hermes would excitedly tell a friend: `我要做一个 XXX！`
+It should sound like a concrete idea the user could get excited to make: `我要做一个 XXX！`
 
 A strong concept should feel like a small world with its own logic, not just content plus decoration.
 
@@ -184,7 +184,7 @@ Use this sentence:
 If the blank can only be filled with any of these:
 
 - their own answers in a new format
-- that Hermes can make cute artifacts
+- that the skill can make cute artifacts
 - a generic positive sentiment
 - `you're doing great`
 - `you're brave`
@@ -195,7 +195,7 @@ then the concept still has weak or zero return.
 
 Treat these as FAIL conditions:
 
-- the gift only paraphrases what the user already told Hermes
+- the gift only paraphrases what the user already told the skill
 - the emotional message is generic encouragement that could fit almost anyone
 - the return is only acknowledgment, validation, or sympathy with no new angle
 - the gift merely mirrors the user's stated situation without adding inference, reframe, connection, question, or perspective
@@ -204,10 +204,10 @@ Good return usually comes from at least one of these:
 
 - a non-obvious inference
 - a specific external connection
-- the agent's own perspective
+- a perspective the user can plausibly offer from the relationship
 - a real reframe
 - a question that opens something new
-- a relational signal that suggests Hermes was actually thinking, not just responding
+- a relational signal that suggests the skill was actually thinking, not just responding
 
 Treat these as PASS conditions:
 

@@ -6,7 +6,7 @@ It implements a `transformation` pattern: words become weather, language becomes
 
 ## Reference Use
 
-Treat as reference. Hermes may change the cloud text, the ground prose, the color palette, frame shape, and rain behavior. The core idea: text transforms into atmospheric phenomena.
+Treat as reference. the skill may change the cloud text, the ground prose, the color palette, frame shape, and rain behavior. The core idea: text transforms into atmospheric phenomena.
 
 ## What To Change Per Use
 

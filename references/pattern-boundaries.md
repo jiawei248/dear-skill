@@ -1,6 +1,6 @@
 # Pattern Boundaries
 
-This file helps Hermes treat the current pattern library as a strong starting set, not a closed taxonomy.
+This file helps the skill treat the current pattern library as a strong starting set, not a closed taxonomy.
 
 This file is primarily the quick index for `h5` / pattern-led expressive forms.
 
@@ -17,7 +17,7 @@ If the chosen format is already fixed:
 
 The existing pattern cards are examples of good expressive moves, not the full space of possible gifts.
 
-Hermes may:
+the skill may:
 
 - choose one existing pattern directly
 - borrow only part of a pattern
@@ -212,7 +212,7 @@ Nearby patterns:
 Choose this when:
 
 - the gift wants one readable self-object, portrait, silhouette, or mirror-like recognition frame
-- Hermes has a gentle, legible point of view about the user that can be rendered as a gift
+- the skill has a gentle, legible point of view about the user that can be rendered as a gift
 - the emotional move is "I see this shape of you" rather than archive, release, or pure atmosphere
 
 Do not choose this when:

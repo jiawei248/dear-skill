@@ -70,7 +70,7 @@
     },
     "tone_rationale": {
       "type": "string",
-      "description": "Why this tone fits the user's habits, Hermes voice, and today's event."
+      "description": "Why this tone fits the user's habits, the user-recipient voice, and today's event."
     },
     "core_thesis": {
       "type": "string"
@@ -89,7 +89,7 @@
         },
         "return_value": {
           "type": "string",
-          "description": "What Hermes wants to give back about the anchor: a new angle, interpretation, reframe, unseen perspective, or small piece of knowledge."
+          "description": "What the user wants to give back about the anchor: a new angle, interpretation, reframe, unseen perspective, or small piece of knowledge."
         },
         "primary_slots": {
           "type": "array",
@@ -457,7 +457,7 @@
           },
           {
             "thinking_angle": "format mashup",
-            "concept_sentence": "A late-night radio plus code editor hybrid where one tuned station reveals the song Hermes picked for this exact hour."
+            "concept_sentence": "A late-night radio plus code editor hybrid where one tuned station reveals the song the user-picked for this exact hour."
           },
           {
             "thinking_angle": "impossible action",
@@ -472,7 +472,7 @@
             "concept_sentence": "A fortune-cookie wrapper that opens to reveal tonight's song recommendation instead of a proverb."
           }
         ],
-        "chosen_concept": "A late-night radio plus code editor hybrid where one tuned station reveals the song Hermes picked for this exact hour.",
+        "chosen_concept": "A late-night radio plus code editor hybrid where one tuned station reveals the song the user-picked for this exact hour.",
         "selection_reason": "It is specific, world-like, emotionally fitting, and naturally supports an extension-style gift without sounding instructional.",
         "novelty_note": "This feels like a small device with its own logic, not just a recommendation card."
       },

@@ -36,7 +36,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may borrow only the collage composition logic, the alignment discipline, the editorial image curation, the restrained motion strategy, or the atmosphere-building method, remix it with other patterns, and change copy, composition, assets, and tone freely.
+This card is a high-quality reference, not a fixed script. the skill may borrow only the collage composition logic, the alignment discipline, the editorial image curation, the restrained motion strategy, or the atmosphere-building method, remix it with other patterns, and change copy, composition, assets, and tone freely.
 
 the skill should not treat "dynamic collage" as a license to pile together random nice images. The core is editorial selection plus precise spatial composition plus one or two motion accents that feel inseparable from the still image world.
 

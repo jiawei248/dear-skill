@@ -6,7 +6,7 @@ It implements a `kinetic-collage` pattern: style-first editorial composition wit
 
 ## Reference Use
 
-Treat as reference. Hermes may change the cards to represent chapters, memories, people, or any triptych concept. The core idea: multiple tall, beautifully designed cards side by side, each with distinct visual identity.
+Treat as reference. the skill may change the cards to represent chapters, memories, people, or any triptych concept. The core idea: multiple tall, beautifully designed cards side by side, each with distinct visual identity.
 
 ## What To Change Per Use
 

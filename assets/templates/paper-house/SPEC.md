@@ -439,7 +439,21 @@ All per-gift working assets live under a single staging directory. The final sha
 
 When the user picks `paper-house`, walk through these steps in order. Slot Matching (Stage 0.5 in the main flow) covers steps 2-8. Read both **Production Rules** and **Content Organization Principles** before writing the fill preview.
 
-**1. Ensure `base/` is present.** If missing, run:
+### Activation disclosure
+
+Before fetching assets, installing dependencies, querying music, or generating images, tell the user briefly:
+
+> 这个模板效果会比较完整，但第一次会下载约 150MB 素材；如果要生成专属人物/故事卡，还需要图片生成能力。没有也能做轻量版。
+
+Offer exactly these choices:
+
+1. **full version** — download the asset bundle, use available image generation for walls / figures / story cards, resolve songs through iTunes Search, and build the complete interactive H5.
+2. **lightweight draft version** — use cached or draft assets where possible, allow story-card placeholders, skip missing image APIs without blocking, and still produce a previewable H5.
+3. **text/image fallback** — skip the heavy H5 path and make a sendable image or text gift from the same recipient brief.
+
+Only proceed with the heavy steps after the user accepts full version or lightweight draft version. If they choose text/image fallback, leave `paper-house` template mode and use the normal image/text path.
+
+**1. Ensure `base/` is present.** If missing and the user chose full version or lightweight draft version, run:
 ```
 scripts/fetch-asset-bundle.sh --template paper-house
 ```

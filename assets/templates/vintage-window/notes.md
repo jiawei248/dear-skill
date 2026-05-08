@@ -6,7 +6,7 @@ It implements a `borrowed-media` pattern: the gift appears as a discovered piece
 
 ## Reference Use
 
-Treat as reference. Hermes may change window titles, content, the pixel art character, terminal commands, sidebar icons, and the single theme color. The core idea: personal content presented as a multi-window retro OS desktop.
+Treat as reference. the skill may change window titles, content, the pixel art character, terminal commands, sidebar icons, and the single theme color. The core idea: personal content presented as a multi-window retro OS desktop.
 
 ## What To Change Per Use
 

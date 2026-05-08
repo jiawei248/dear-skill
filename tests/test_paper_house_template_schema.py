@@ -69,3 +69,39 @@ def test_room_walls_and_floor_has_common_generation_metadata():
             "floor": "paper-house-work/floors/{scene_id}_floor.jpg",
         }
     }
+
+
+def test_template_preview_path_exists():
+    manifest = json.loads(TEMPLATE.read_text(encoding="utf-8"))
+    preview = manifest["preview"]
+
+    assert (TEMPLATE.parent / preview).is_file()
+
+
+def test_paper_house_activation_disclosure_sets_expectations():
+    manifest = json.loads(TEMPLATE.read_text(encoding="utf-8"))
+    disclosure = manifest["activation_disclosure"]
+
+    message = disclosure["message"]
+    assert "150MB" in message
+    assert "图片生成" in message
+    assert "轻量版" in message
+
+    options = disclosure["options"]
+    assert [option["id"] for option in options] == [
+        "full",
+        "lightweight_draft",
+        "text_image_fallback",
+    ]
+    assert any("rembg" in item for item in disclosure["cost_notes"])
+    assert any("iTunes" in item for item in disclosure["cost_notes"])
+
+
+def test_paper_house_spec_documents_activation_choices():
+    spec = (TEMPLATE.parent / "SPEC.md").read_text(encoding="utf-8")
+
+    assert "Activation disclosure" in spec
+    assert "第一次会下载约 150MB 素材" in spec
+    assert "full version" in spec
+    assert "lightweight draft version" in spec
+    assert "text/image fallback" in spec

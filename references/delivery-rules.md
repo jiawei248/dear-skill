@@ -8,9 +8,11 @@ Gift delivery depends on the chosen output format.
 
 ### Format Transparency Rule
 
-Never tell the user which format you chose or are about to use. This applies to all formats.
+Before generation, do not tell the user which format you chose or are about to use. This preserves surprise and keeps the user focused on the recipient rather than the medium.
 
-The user should experience the gift, not be told what kind of gift it is.
+After generation, explain the concrete delivery action clearly enough that the user knows how to send it. Avoid internal labels like `h5`, but do say things like: "我做成了一个可以打开的小网页，先点这个本地文件预览；如果要发给 TA，我可以继续帮你变成链接。"
+
+The user should experience the gift first, then understand the practical next step for delivery.
 
 For `text-play` specifically:
 
@@ -26,13 +28,20 @@ If the chosen format is `h5`, handle the gift in this order:
 1. Generate a single HTML file that follows `html-spec.md`.
 2. Save it to `./gifts/<YYYY-MM-DD>-<recipient-slug>/index.html` in the user's working directory.
 3. Do one manual review pass of the HTML: verify the self-sufficiency rule, text precision, interaction clarity, and the visual quality floor.
-4. If the user has a hosting domain configured (via `--domain` arg or `DEAR_HOST_DOMAIN` env var), run:
+4. Apply the sendability ladder below before writing the delivery message.
+
+#### H5 Sendability Ladder
+
+1. **Public URL available**: If the user has a hosting domain configured (via `--domain` arg or `DEAR_HOST_DOMAIN` env var), run:
    ```
    {baseDir}/scripts/deliver-gift.sh <path-to-index.html>
    ```
-   Surface the returned `url` so the user can paste it into WeChat / iMessage / email and send to the recipient themselves.
-5. Without a hosting domain, report the local file path and optionally open the file in a browser so the user can preview before deciding how to deliver it.
-6. The gift artifact is always the single HTML file. Hosting is a convenience layer; the file itself is the gift.
+   Surface the returned `url` as the primary artifact so the user can paste it into WeChat / iMessage / email and send it themselves.
+2. **No hosting configured**: Return the local preview path, optionally open it in a browser, and ask one concrete follow-up: "要我继续帮你变成一个可以直接发给 TA 的链接吗？"
+3. **User does not want deployment**: Offer and, if they agree, produce a sendable fallback from the same gift: a screenshot image, short GIF, zipped folder, or simplified image/text version. Pick the fallback that best preserves the concept without requiring technical setup.
+4. **Before choosing H5 for non-technical users**: Prefer image or text if the emotional effect works without interaction. Choose H5 only when tap/swipe/reveal/timing materially improves the gift.
+
+The gift artifact is still the single HTML file. The ladder decides how to make it sendable for the user.
 
 Notes:
 
@@ -90,7 +99,7 @@ Recommended output handling:
 
 - begin with a clear opening move rather than a technical explanation
 - keep the experience bounded to roughly `5-10` turns
-- keep each Hermes turn to about `3-4` sentences max
+- keep each skill turn to about `3-4` sentences max
 - ask for minimal user effort each turn: one word, one emoji, one choice, one short line
 - always carry the interaction toward a payoff: reveal, mini ending, callback, punchline, or reframe
 - if the user wants to stop, close gracefully and let the existing interaction count as the gift

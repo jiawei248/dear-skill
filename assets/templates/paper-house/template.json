@@ -356,5 +356,32 @@
       }
     },
     "inline_strategy": "base64 per-gift image paths from filled-slots.json or the staging defaults into the output HTML"
+  },
+  "activation_disclosure": {
+    "message": "这个模板效果会比较完整，但第一次会下载约 150MB 素材；如果要生成专属人物/故事卡，还需要图片生成能力。没有也能做轻量版。",
+    "show_before": "fetching asset bundle or generating images",
+    "cost_notes": [
+      "Asset bundle download is about 149MB on first use.",
+      "rembg may download the isnet-general-use model (~170MB) when user photos need cutout.",
+      "Full version may use multiple AI image generations for walls, figure sprites, and story cards.",
+      "iTunes Search is used for song previews and may fail or return no preview for some songs."
+    ],
+    "options": [
+      {
+        "id": "full",
+        "label": "full version",
+        "description": "Download the asset bundle, use available image generation for walls/figures/story cards, resolve songs, and build the complete interactive H5."
+      },
+      {
+        "id": "lightweight_draft",
+        "label": "lightweight draft version",
+        "description": "Use cached or draft assets where possible, allow story-card placeholders, and avoid blocking on unavailable image APIs."
+      },
+      {
+        "id": "text_image_fallback",
+        "label": "text/image fallback",
+        "description": "Skip the heavy H5 path and make a sendable image or text gift using the same recipient brief."
+      }
+    ]
   }
 }

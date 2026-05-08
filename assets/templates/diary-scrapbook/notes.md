@@ -6,7 +6,7 @@ It implements a `memory-shelf` pattern: keepsake browsing through personal artif
 
 ## Reference Use
 
-Treat as reference. Hermes may change the photos, stickers, text, and color theme. The core idea: an intimate scrapbook diary that feels handmade, personal, and warm.
+Treat as reference. the skill may change the photos, stickers, text, and color theme. The core idea: an intimate scrapbook diary that feels handmade, personal, and warm.
 
 ## What To Change Per Use
 

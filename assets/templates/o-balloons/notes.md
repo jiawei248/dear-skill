@@ -6,7 +6,7 @@ It is a concrete implementation of the broader `lift-away` pattern: gentle relea
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the lift-away rhythm, the page deformation, the carrier mechanic, or the disappearing-page logic, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the lift-away rhythm, the page deformation, the carrier mechanic, or the disappearing-page logic, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

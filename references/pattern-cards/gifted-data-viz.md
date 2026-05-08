@@ -34,7 +34,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only the legend system, the mapping logic, the object feeling, the color logic, or the overall pacing, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only the legend system, the mapping logic, the object feeling, the color logic, or the overall pacing, remix it with other patterns, and change the surface treatment as long as the deeper emotional logic still fits.
 
 the skill should not treat "data visualization" as permission to become corporate, clinical, or textbook-like. The point is not formal charting for its own sake. The point is to turn repetition, relationship structure, memory, or complexity into something legible, beautiful, and gift-like.
 

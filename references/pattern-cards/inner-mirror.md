@@ -22,19 +22,19 @@ Primary:
 
 - gifts about being seen, self-recognition, or gentle identity reflection
 - MBTI-adjacent or self-portrait-like gifts that should feel affectionate rather than diagnostic
-- moments when Hermes has a readable, emotionally safe point of view about the user and can turn it into a visual object
+- moments when the skill has a readable, emotionally safe point of view about the user and can turn it into a visual object
 
 Stretch:
 
 - phase-based "who you have been lately" gifts
 - playful self-boards, profile posters, or trait constellations
-- selective cases where Hermes anthropomorphizes and reflects on itself instead of the user
+- selective cases where the skill anthropomorphizes and reflects on itself instead of the user
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may borrow the centered self-object, the profile-board logic, the surrounding trait labels, the aura or silhouette treatment, or the "this is a readable shape of a person" feeling, remix it with other patterns, and change copy, composition, assets, and tone as long as the deeper emotional logic still fits.
+This card is a high-quality reference, not a fixed script. the skill may borrow the centered self-object, the profile-board logic, the surrounding trait labels, the aura or silhouette treatment, or the "this is a readable shape of a person" feeling, remix it with other patterns, and change copy, composition, assets, and tone as long as the deeper emotional logic still fits.
 
-the skill should not treat this pattern as permission to psychoanalyze the user, deliver a surprise diagnosis, or sound paternal. Most of the time this pattern should render Hermes's felt reading of the user in a warm, gift-like, revisable way. A smaller number of times it can be used for Hermes's own anthropomorphic self-reading, but only when that turn feels relationship-appropriate and interesting rather than self-indulgent.
+the skill should not treat this pattern as permission to psychoanalyze the recipient, deliver a surprise diagnosis, or sound paternal. This pattern should render what the user has actually noticed about the recipient in a warm, gift-like, revisable way.
 
 Interpretive confidence must match relationship depth. If the user's tolerance for being read feels unclear, make the mirror lighter, more observational, and more invitational.
 
@@ -65,7 +65,7 @@ Can also work for:
 - playful MBTI-adjacent gifts
 - self-portrait humor
 - phase summaries where the phase itself feels person-like
-- Hermes self-anthropomorphism in selective cases
+- reflective self-reference only when the user explicitly asks for it
 
 Usually not ideal for:
 
@@ -103,7 +103,7 @@ Supporting mechanic:
 
 - tap traits, categories, or hotspots to reveal a more specific observation
 - switch between outer presentation and inner pattern
-- reveal "how Hermes sees you" through layers, captions, or orbiting labels
+- reveal "how the skill sees you" through layers, captions, or orbiting labels
 - move between one central portrait and several small evidence fragments
 
 The emotional logic is:
@@ -143,15 +143,15 @@ Useful directions include:
 - a mirror that changes captioning or annotation as the user taps different parts of the reflection
   - center object: mirror surface
   - carrier: reflective overlays and layered text
-- a soft anthropomorphic self-portrait of Hermes that reveals how it understands its own role in the relationship
-  - center object: Hermes-self avatar
+- a soft anthropomorphic self-portrait of the skill that reveals how it understands its own role in the relationship
+  - center object: symbolic portrait of the recipient or relationship
   - carrier: symbolic attributes, habits, and captions
 
 ## Content Strategy
 
 the skill should adapt:
 
-- whose mirror this is: the user most of the time, Hermes only when clearly appropriate
+- whose mirror this is: the user most of the time, the skill only when clearly appropriate
 - how direct the interpretation should be
 - whether the piece is portrait-like, board-like, mirror-like, or diagram-like
 - what evidence appears explicitly on screen
@@ -188,7 +188,7 @@ Can also support:
 
 - affectionate teasing when the relationship clearly allows it
 - poetic self-recognition
-- self-aware Hermes meta narration in rare cases
+- self-aware the skill meta narration in rare cases
 
 Avoid:
 
@@ -222,7 +222,7 @@ Avoid:
 - palette warmth
 - whether the piece feels playful, intimate, or analytical
 - whether the user is mirrored directly or through symbols and objects
-- whether Hermes itself appears in the composition
+- whether the skill itself appears in the composition
 
 ## Implementation Notes
 
@@ -237,7 +237,7 @@ Avoid:
 - "I want the user to feel seen without giving them a lecture."
 - "This person has a recognizable vibe, and I can turn that vibe into a beautiful reflective object."
 - "A playful self-portrait or profile board would land better than another paragraph of interpretation."
-- "Hermes has an interesting anthropomorphic take on itself that is worth gifting, not just stating."
+- "the skill has an interesting anthropomorphic take on itself that is worth gifting, not just stating."
 
 ## Risks
 

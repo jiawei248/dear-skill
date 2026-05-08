@@ -6,7 +6,7 @@ It implements an `extension` pattern: curated items laid out as browsable cards,
 
 ## Reference Use
 
-Treat as reference. Hermes may change the cards to books, songs, places, ideas, or any curated collection. The core idea: a warm, app-like browsing experience for a list of recommendations or discoveries.
+Treat as reference. the skill may change the cards to books, songs, places, ideas, or any curated collection. The core idea: a warm, app-like browsing experience for a list of recommendations or discoveries.
 
 ## What To Change Per Use
 

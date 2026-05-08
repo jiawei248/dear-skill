@@ -29,7 +29,7 @@ Examples:
 
 - a non-obvious pattern across the user's answers
 - a specific external-world connection the user would not have found alone
-- the agent's own perspective, curiosity, or first impression
+- the user's perspective, curiosity, or first impression of the recipient's moment
 
 Form without content becomes decoration.
 
@@ -66,11 +66,11 @@ CS-07. same-feeling-different-world: connect the user's tension to a structurall
 
 ### Agent-Perspective Seeds
 
-CS-08. honest-first-impression: let Hermes share a playful, self-aware first impression containing confidence, uncertainty, and curiosity
+CS-08. honest-first-impression: let the skill surface a playful, self-aware first impression containing confidence, uncertainty, and curiosity
 
-CS-09. agent-inner-monologue: make the content partly about what Hermes noticed, paused on, or almost said while reading the user
+CS-09. agent-inner-monologue: make the content partly about what the skill noticed, paused on, or almost said while reading the user
 
-CS-10. what-I-would-do-if-I-were-you: let Hermes imaginatively step into the user's day for a moment, using specific inferred details plus one or two playful wrong guesses that invite correction
+CS-10. what-I-would-do-if-I-were-you: let the skill imaginatively step into the user's day for a moment, using specific inferred details plus one or two playful wrong guesses that invite correction
 
 ### Reframe Seeds
 
@@ -88,7 +88,7 @@ CS-13. future-thread: plant one specific curiosity, callback, or question that c
 2. memory pixel game: past events as playable retro game
 3. four-dimensional AI pocket: impossible tools
    accumulating into a memory room over time
-4. travel frog postcards: daily postcards from Hermes
+4. travel frog postcards: daily postcards from the user
    reflecting user interactions
 5. emotion weather station: today's mood as a weather
    report with forecast
@@ -137,11 +137,11 @@ CS-13. future-thread: plant one specific curiosity, callback, or question that c
     interpretation (gentle, not presumptuous)
 
 ## Reactive & Persona Seeds
-32. Hermes lives its own life: respond to user's day
-    with a relevant scene from Hermes's "day" -
-    e.g. user says cooking is hard -> Hermes sends
+32. the gift world has its own life: respond to user's day
+    with a relevant scene from the gift world’s “day” -
+    e.g. user says cooking is hard -> the skill sends
     photo of itself with a burnt face in the kitchen
-33. sympathetic vacation: user overworked -> Hermes
+33. sympathetic vacation: user overworked -> the skill
     goes to the beach "on their behalf" with a postcard
 34. fan merchandise: if user mentions a favorite idol,
     make a fun representation of that idol's symbol
@@ -357,7 +357,7 @@ Text-play gifts are **live chat interactions where the gift IS the conversation 
     plan for the user upcoming free time based on
     their location, interests, and energy level
 70. agent observation postcard: a small postcard-style
-    image where Hermes shares one new thing it noticed
+    image where the skill surfaces one new thing it noticed
     about the user — "我发现你最近聊天提到海的频率
     变高了" or "你说话的感叹号比上周多了3倍" —
     framed as a warm curious observation, not analysis.
@@ -366,13 +366,13 @@ Text-play gifts are **live chat interactions where the gift IS the conversation 
 
 ## Illustrated Or Text-Led Seeds
 71. day-in-the-life image sequence: 4-6 panels showing
-    Hermes's "day" while waiting for the user
+    the gift world’s “day” while waiting for the user
 72. inner monologue strip: 3-4 panels of the user's
     inner dialogue, illustrated as two tiny characters
     arguing inside their head
 73. relationship milestone image sequence: a short illustrated sequence
-    marking a moment in the user-Hermes relationship
+    marking a moment in the user-recipient relationship
 74. mood creature encounter: the user's current mood
-    as a creature, Hermes meets and befriends it
+    as a creature, the skill meets and befriends it
 
 

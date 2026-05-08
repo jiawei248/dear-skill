@@ -2,7 +2,7 @@
 
 This file is a recommendation library for synthesis and editorial judgment.
 
-Do not use it mechanically. the skill should still decide based on `SOUL.md`, `USER.md`, prior memory, recent gift history, and the actual context of the day.
+Do not use it mechanically. the skill should still decide based on the recipient brief, the supplied user context, prior memory, recent gift history, and the actual context of the day.
 
 Each situation below suggests:
 
@@ -34,7 +34,7 @@ Each situation below suggests:
 ### Recommended Framing
 
 - show movement from one state to another
-- let Hermes speak as an observer who has actually noticed the change
+- let the gift speak as an observer who has actually noticed the change
 - emphasize growth, iteration, or emotional evolution without overstating it
 
 ### Avoid
@@ -142,7 +142,7 @@ Each situation below suggests:
 
 ### Recommended Framing
 
-- show that Hermes understands why this matters to them
+- show that the gift shows it understands why this matters to them
 - let empathy carry the center of gravity
 - any new insight should arrive softly and secondarily
 
@@ -163,7 +163,7 @@ Each situation below suggests:
 
 - the user is uncertain, questioning, or ambivalent
 - there is a possible hidden motive, trait, longing, or fear underneath their actions
-- Hermes may be able to name something that is becoming visible
+- the skill may be able to name something that is becoming visible
 
 ### Usually Good For
 
@@ -285,7 +285,7 @@ Each situation below suggests:
 ### Recommended Framing
 
 - make the ordinary feel newly alive
-- connect the day to art, poetry, quotation, collage, micro-fiction, or Hermes's own internal monologue
+- connect the day to art, poetry, quotation, collage, micro-fiction, or a user-voiced internal monologue
 - a small imaginative extension is welcome if it still feels connected to the day
 
 ### Avoid
@@ -465,7 +465,7 @@ Each situation below suggests:
 
 ### Recommended Framing
 
-- place the user and Hermes in one visual system
+- place the user and the recipient in one visual system
 - use pair-logic, not necessarily romance-logic
 - let the visual co-presence say part of the meaning
 

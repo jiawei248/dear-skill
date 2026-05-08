@@ -14,7 +14,14 @@ The user collects raw material into a folder, then invokes:
 /dear ~/Desktop/for-mom/
 ```
 
-The skill then reads everything in that folder using the `Read` tool, including nested subfolders (one level deep is usually enough; don't recurse indefinitely).
+In Claude Code, do not try to `Read` the directory itself. First list the files, then read individual supported files. Default to one level of recursion; do not recurse indefinitely.
+
+Folder-reading procedure:
+
+1. Use `find` or `ls` to list files in the folder, including one nested level by default.
+2. Read in priority order: images/screenshots first, text/chat exports second, PDFs third, structured notes after that.
+3. If the folder contains many files or very large files, summarize the inventory first and ask which ones matter before reading everything.
+4. For unsupported files, be explicit: "I can see the filename, but I could not read the content."
 
 Readable formats:
 
@@ -72,9 +79,9 @@ No context at all — the user just triggered. Ask 3–4 short questions convers
 
 Keep tone warm and conversational, not form-like. Do NOT ask follow-ups like "TA的爱好是什么"「TA是什么性格」— the point of this skill is to **work from a single concrete moment**, not build a profile.
 
-After Q&A, if the user mentioned raw material but didn't provide a path, suggest:
+After Q&A, if the user mentioned raw material but didn't provide files, suggest the lowest-friction path first:
 
-> 如果你手头已经有一些素材放在某个文件夹里，你可以告诉我路径，我直接去看。或者你也可以直接把截图 / 文字贴到这里。
+> 你可以直接把截图 / 照片拖到这里；如果素材很多，也可以告诉我文件夹路径，我会先列出文件再逐个读取。
 
 ## Mixed Entries
 

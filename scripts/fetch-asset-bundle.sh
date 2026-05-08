@@ -15,16 +15,21 @@ set -euo pipefail
 #       and extracts into assets/templates/<id>/base/.
 #       Example: fetch-asset-bundle.sh --template paper-house
 #
+#   fetch-asset-bundle.sh --refresh-template <template-id> [base-dir]
+#       ↑ same as --template, but refreshes even when cached assets exist.
+#
 # Prints the extracted target directory on success.
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 
 # --- Template mode -----------------------------------------------------------
-if [ "${1:-}" = "--template" ]; then
+if [ "${1:-}" = "--template" ] || [ "${1:-}" = "--refresh-template" ]; then
+  TEMPLATE_MODE="${1:-}"
   TEMPLATE_ID="${2:-}"
   BASE_DIR="${3:-}"
   if [ -z "$TEMPLATE_ID" ]; then
     echo "Usage: fetch-asset-bundle.sh --template <template-id> [base-dir]" >&2
+    echo "       fetch-asset-bundle.sh --refresh-template <template-id> [base-dir]" >&2
     exit 1
   fi
 
@@ -40,7 +45,6 @@ if [ "${1:-}" = "--template" ]; then
     exit 1
   fi
 
-  # Read asset_bundle fields from template.json.
   read_field() {
     python3 - "$TEMPLATE_JSON" "$1" <<'PY'
 import json, sys
@@ -59,6 +63,7 @@ PY
   fi
 
   TARGET_DIR="$TEMPLATE_DIR/${BUNDLE_LOCAL_PATH%/}"
+  MARKER_PATH="$TARGET_DIR/.bundle-sha256"
 
   if [ -z "$BUNDLE_URL" ]; then
     echo "template '$TEMPLATE_ID' has no asset_bundle.url set in template.json." >&2
@@ -66,16 +71,25 @@ PY
     exit 1
   fi
 
-  # Skip if target already has content.
-  if [ -d "$TARGET_DIR" ] && [ -n "$(ls -A "$TARGET_DIR" 2>/dev/null || true)" ]; then
-    printf '%s\n' "$TARGET_DIR"
-    exit 0
+  if [ "$TEMPLATE_MODE" = "--template" ] && [ -d "$TARGET_DIR" ] && [ -n "$(ls -A "$TARGET_DIR" 2>/dev/null || true)" ]; then
+    if [ -n "$BUNDLE_SHA256" ] && [ -f "$MARKER_PATH" ] && [ "$(tr -d '[:space:]' < "$MARKER_PATH")" = "$BUNDLE_SHA256" ]; then
+      printf '%s
+' "$TARGET_DIR"
+      exit 0
+    fi
+    if [ -z "$BUNDLE_SHA256" ]; then
+      printf '%s
+' "$TARGET_DIR"
+      exit 0
+    fi
+    echo "refreshing $TEMPLATE_ID asset bundle because cached marker is missing or stale" >&2
   fi
 
-  mkdir -p "$TARGET_DIR"
   tmpdir="$(mktemp -d)"
   trap 'rm -rf "$tmpdir"' EXIT
   zip_path="$tmpdir/bundle.zip"
+  extract_dir="$tmpdir/extracted"
+  mkdir -p "$extract_dir"
 
   echo "fetching $TEMPLATE_ID asset bundle from $BUNDLE_URL..." >&2
   case "$BUNDLE_URL" in
@@ -87,7 +101,6 @@ PY
       ;;
   esac
 
-  # Optional sha256 verification.
   if [ -n "$BUNDLE_SHA256" ]; then
     if command -v shasum >/dev/null 2>&1; then
       actual="$(shasum -a 256 "$zip_path" | awk '{print $1}')"
@@ -102,8 +115,16 @@ PY
     fi
   fi
 
-  unzip -oq "$zip_path" -d "$TARGET_DIR"
-  printf '%s\n' "$TARGET_DIR"
+  unzip -oq "$zip_path" -d "$extract_dir"
+  rm -rf "$TARGET_DIR"
+  mkdir -p "$(dirname "$TARGET_DIR")"
+  mv "$extract_dir" "$TARGET_DIR"
+  if [ -n "$BUNDLE_SHA256" ]; then
+    printf '%s
+' "$BUNDLE_SHA256" > "$MARKER_PATH"
+  fi
+  printf '%s
+' "$TARGET_DIR"
   exit 0
 fi
 
@@ -116,6 +137,7 @@ if [ -z "$BUNDLE_KEY" ]; then
   echo "Usage:" >&2
   echo "  fetch-asset-bundle.sh <bundle-key> [base-dir] [manifest-path]" >&2
   echo "  fetch-asset-bundle.sh --template <template-id> [base-dir]" >&2
+  echo "  fetch-asset-bundle.sh --refresh-template <template-id> [base-dir]" >&2
   exit 1
 fi
 

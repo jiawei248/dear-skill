@@ -6,7 +6,7 @@ It implements a `borrowed-media` pattern: the gift appears as if being typed on 
 
 ## Reference Use
 
-Treat as reference. Hermes may change the ghost text, side panel content, computer colors, OS interface, menu items, and typing speed. The core idea: a message being typed out on a charming retro machine.
+Treat as reference. the skill may change the ghost text, side panel content, computer colors, OS interface, menu items, and typing speed. The core idea: a message being typed out on a charming retro machine.
 
 ## What To Change Per Use
 

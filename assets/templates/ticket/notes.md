@@ -6,7 +6,7 @@ It is a concrete implementation of the `borrowed-media` pattern: loading persona
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may change the event metaphor, field labels, color scheme, and visual density freely. The core idea is: structured data fields + decorative generative art panel in a card format.
+Treat this template as a reference implementation, not a fixed output. the skill may change the event metaphor, field labels, color scheme, and visual density freely. The core idea is: structured data fields + decorative generative art panel in a card format.
 
 ## What To Change Per Use
 

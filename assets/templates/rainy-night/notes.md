@@ -8,7 +8,7 @@ Pinned CDN delivery for p5.js is acceptable if the final artifact keeps images a
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the reveal mechanic, the pacing, the layering idea, or the atmosphere, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the reveal mechanic, the pacing, the layering idea, or the atmosphere, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

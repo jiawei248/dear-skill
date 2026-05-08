@@ -6,7 +6,7 @@ It implements a `reveal` interaction pattern: the gift content is hidden until t
 
 ## Reference Use
 
-Treat this as a reference. Hermes may change what is being revealed (not just stars - could be text, illustrations, hidden messages), the frame decoration, colors, and the dragging mechanic. The core idea: drag to reveal hidden beauty.
+Treat this as a reference. the skill may change what is being revealed (not just stars - could be text, illustrations, hidden messages), the frame decoration, colors, and the dragging mechanic. The core idea: drag to reveal hidden beauty.
 
 ## What To Change Per Use
 

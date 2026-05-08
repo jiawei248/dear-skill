@@ -6,7 +6,7 @@ It is a concrete implementation of the broader `tap-to-bloom` pattern: vitality 
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the bounce-to-growth rhythm, the plant vocabulary, the particle treatment, or the living-text idea, and may change copy, composition, assets, and tone freely. Do not copy the sample poem or floral styling literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the bounce-to-growth rhythm, the plant vocabulary, the particle treatment, or the living-text idea, and may change copy, composition, assets, and tone freely. Do not copy the sample poem or floral styling literally.
 
 ## What To Change Per Use
 

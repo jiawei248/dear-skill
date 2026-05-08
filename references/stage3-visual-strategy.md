@@ -28,7 +28,7 @@ The image brief should be concrete about:
 If text is used inside the image, specify:
 
 - the exact wording
-- the language, which should match the user's dominant interaction language with Hermes
+- the language, which should match the user's dominant interaction language with the skill
 - the placement
 - the approximate size
 - the font feel or styling direction
@@ -83,12 +83,12 @@ The stored `user_portrait.description` may be injected into prompts or briefs as
 
 ### Character Identity in Generated Images
 
-When the gift concept involves the user or Hermes as characters in a scene:
+When the gift concept involves the user or the skill as characters in a scene:
 
-1. Read `./user-portrait/` metadata and any OC definitions from `SOUL.md`, `USER.md`, `./setup-state.json`, or `./user-taste-profile.json` when those fields exist.
+1. Read `./user-portrait/` metadata and any OC definitions from the recipient brief, the supplied user context, `./setup-state.json`, or `./user-taste-profile.json` when those fields exist.
 2. Use the established character forms rather than improvising generic stand-ins:
    - the user's `human_form` and or `nonhuman_form`
-   - Hermes's `human_form` and or `nonhuman_form`
+   - the skill's `human_form` and or `nonhuman_form`
 3. Carry specific character identity details into the image brief and final prompt:
    - species
    - color
@@ -99,8 +99,8 @@ When the gift concept involves the user or Hermes as characters in a scene:
 Examples:
 
 - if the user is established as a golden-colored puppy, do not replace them with an arbitrary dog
-- if Hermes is established as a red fox, do not silently swap in another animal form
-- if the concept is `Hermes watching the user`, compose from Hermes's watching perspective or another composition that clearly preserves that relationship, rather than an unrelated overhead scene
+- if the skill is established as a red fox, do not silently swap in another animal form
+- if the concept is `the user noticing the recipient`, compose from the user's caring perspective or another composition that clearly preserves that relationship, rather than an unrelated overhead scene
 
 Do not generate generic animals or people when established character identities already exist. Users will notice if their character form changes from gift to gift.
 

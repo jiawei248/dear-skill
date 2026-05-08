@@ -11,7 +11,7 @@ Compared with `wet-letter`, this one is:
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the damp-paper metaphor, the reveal pacing, the handwriting feel, or the stain behavior, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the damp-paper metaphor, the reveal pacing, the handwriting feel, or the stain behavior, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

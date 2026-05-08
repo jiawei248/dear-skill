@@ -32,7 +32,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only the storage metaphor, the browsing rhythm, the object framing, the layered keepsake feeling, or the categorization logic, remix it with other patterns, and change copy, composition, imagery, and tone as long as the deeper emotional logic still fits.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only the storage metaphor, the browsing rhythm, the object framing, the layered keepsake feeling, or the categorization logic, remix it with other patterns, and change copy, composition, imagery, and tone as long as the deeper emotional logic still fits.
 
 the skill should not treat "archive" as permission to become static, dusty, or museum-like. The point is not filing memories away coldly. The point is to make memory feel touchable, revisit-able, curated, and emotionally alive.
 

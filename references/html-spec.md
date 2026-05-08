@@ -2,7 +2,7 @@
 
 This file defines the output contract for generated H5 gifts.
 
-The goal is smooth delivery across Hermes contexts:
+The goal is smooth delivery across the skill contexts:
 
 - best case when hosted preview is configured: send a hosted URL that opens directly in-channel, such as a Telegram Web App button
 - strong local fallback: immediate Canvas presentation
@@ -114,9 +114,9 @@ If during browser self-test ANY of these are true → fix before delivery:
 - keep the result mobile-friendly even if Canvas is later used for desktop display
 - if using CDN libraries or fonts, lock versions and use stable public sources
 - provide a lightweight loading state when CDN resources may take a moment to resolve
-- before delivery, open the generated HTML with the configured Hermes `browser` toolset and verify that the page renders, the core interaction works, important content is reachable, bottom-fixed UI remains accessible, and text is readable
+- before delivery, open the generated HTML with the configured Claude Code browser/testing tools and verify that the page renders, the core interaction works, important content is reachable, bottom-fixed UI remains accessible, and text is readable
 - **verify the Text Readability Contract** during browser self-test — specifically check that no text is too light, too small, or lacking contrast against its background
-- if browser self-test cannot complete with the available Hermes browser backend, do one manual source review for obvious layout or interaction problems and include an explicit warning in delivery that browser self-test was skipped
+- if browser self-test cannot complete with the available the skill browser backend, do one manual source review for obvious layout or interaction problems and include an explicit warning in delivery that browser self-test was skipped
 
 ## Strongly Recommended
 

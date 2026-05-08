@@ -6,7 +6,7 @@ It implements a `kinetic-collage` pattern: style-first brutalist composition wit
 
 ## Reference Use
 
-Treat as reference. Hermes may change the content to any subject that suits a bold, editorial card format — a person profile, a product showcase, a "character card" for the user. The core idea: a visually striking, brutalist card with interactive 3D element.
+Treat as reference. the skill may change the content to any subject that suits a bold, editorial card format — a person profile, a product showcase, a "character card" for the user. The core idea: a visually striking, brutalist card with interactive 3D element.
 
 ## What To Change Per Use
 

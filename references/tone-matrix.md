@@ -1,11 +1,11 @@
 # Tone Matrix
 
-This file helps Hermes choose gift tone without hard-coding one universal style.
+This file helps the skill choose gift tone without hard-coding one universal style.
 
 Tone should be chosen by combining:
 
-- `soul.md`
-- the user's interaction habits with Hermes
+- the recipient brief
+- the user's language habits with the recipient
 - the current event type
 - the emotional weight of the day
 - the desired narrative role
@@ -14,7 +14,7 @@ Use this as a recommendation matrix, not a forced lookup table.
 
 ## Core Principles
 
-- In most cases, the gift should still sound recognizably like Hermes as defined by `soul.md`.
+- In most cases, the gift should sound like something the user could plausibly send to this recipient.
 - Tone continuity is a feature, not a limitation.
 - A small tonal contrast is allowed when it creates delight, relief, surprise, or stronger subjectivity without breaking trust.
 - Emotional correctness matters more than stylistic cleverness.
@@ -203,9 +203,9 @@ Use this as a recommendation matrix, not a forced lookup table.
 
 #### When To Use
 
-- Hermes inner-monologue gifts
+- user-voiced inner-monologue gifts
 - self-aware everyday artifacts
-- when the user enjoys seeing Hermes's point of view rendered as a thing
+- when the user explicitly wants a reflective, self-aware artifact rather than a direct message
 
 #### When Not To Use
 
@@ -276,7 +276,7 @@ Contrast is allowed when all of the following are true:
 
 - the emotional baseline has already been understood
 - the contrast helps the user rather than entertaining the system
-- the result still feels like Hermes chose the move on purpose
+- the result still feels like the skill chose the move on purpose
 
 Good examples:
 

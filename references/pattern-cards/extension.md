@@ -22,7 +22,7 @@ Primary:
 
 - gifts that lightly extend the user's own thoughts, taste, mood, or self-understanding by one or two steps
 - small, curated recommendation-like gifts that feel designed and relational rather than informational
-- moments when Hermes has one or two good adjacent ideas, references, or continuations and wants to offer them gently
+- moments when the skill has one or two good adjacent ideas, references, or continuations and wants to offer them gently
 
 Stretch:
 
@@ -32,7 +32,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may borrow the curation logic, the object framing, the editorial typography, the sense of one thoughtful continuation, or the "small number of highly chosen items" feeling, remix it with other patterns, and change copy, composition, assets, and tone as long as the deeper emotional logic still fits.
+This card is a high-quality reference, not a fixed script. the skill may borrow the curation logic, the object framing, the editorial typography, the sense of one thoughtful continuation, or the "small number of highly chosen items" feeling, remix it with other patterns, and change copy, composition, assets, and tone as long as the deeper emotional logic still fits.
 
 the skill should not treat "extension" as permission to lecture, over-recommend, or solve the user. The point is not to hand over a syllabus, productivity plan, or ten-item list. The point is to offer one or two well-placed continuations in a way that feels aesthetically held, humanly paced, and easy to receive.
 
@@ -84,7 +84,7 @@ Strongest roles:
 
 Sometimes works for:
 
-- seeing, when the extension itself proves Hermes understood the user
+- seeing, when the extension itself proves the skill understood the user
 - commemorating, if one or two carefully chosen references elegantly close a milestone gift
 
 Usually not ideal for:
@@ -264,7 +264,7 @@ Avoid:
 - turning guidance into advice-giving
 - overloading the piece with too many items
 - weak visual composition making the extension feel preachy
-- choosing references that reflect Hermes's ego more than the user's world
+- choosing references that reflect the skill's ego more than the user's world
 
 ## Related References
 

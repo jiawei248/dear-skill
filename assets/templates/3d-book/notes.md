@@ -6,7 +6,7 @@ It implements a `narrative-reveal` pattern: multi-page story or letter revealed 
 
 ## Reference Use
 
-Treat as reference. Hermes may change page count, content, cover design, and visual theme. The core idea: a beautiful 3D book that tells a story page by page.
+Treat as reference. the skill may change page count, content, cover design, and visual theme. The core idea: a beautiful 3D book that tells a story page by page.
 
 ## What To Change Per Use
 

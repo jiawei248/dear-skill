@@ -6,7 +6,7 @@ It feels less like "rain on a window" and more like "rain soaking a letter or a 
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the dispersion mechanic, the page texture, the pacing, or the overall emotional handling, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the dispersion mechanic, the page texture, the pacing, or the overall emotional handling, and may change copy, composition, assets, and tone freely. Do not copy the demo text or framing literally.
 
 ## What To Change Per Use
 

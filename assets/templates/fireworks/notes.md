@@ -6,7 +6,7 @@ It implements an `interactive-object` pattern: the user physically ignites spark
 
 ## Reference Use
 
-Treat as reference. Hermes may change the spark characters (could spell words or emoji), colors, number of sparklers, burn speed, and overall scene. The core idea: ignite something and watch it burst with character-particles.
+Treat as reference. the skill may change the spark characters (could spell words or emoji), colors, number of sparklers, burn speed, and overall scene. The core idea: ignite something and watch it burst with character-particles.
 
 ## What To Change Per Use
 

@@ -138,7 +138,7 @@ Use H5 for what digital does well:
 
 Strong named candidate:
 
-- `inner-mirror` when the gift should reveal a warm, non-diagnostic reading of the user or a selective anthropomorphic self-reading of Hermes
+- `inner-mirror` when the gift should reveal a warm, non-diagnostic reading of the user or a selective anthropomorphic self-reading of the skill
 
 ## Drag Or Pull To Uncover
 

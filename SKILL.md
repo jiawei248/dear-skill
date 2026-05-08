@@ -160,15 +160,17 @@ Output folder layout (created in the user's current working directory):
 └── brief.json           # internal record of concept + direction
 ```
 
-For H5, if the user configured a hosting domain, the skill also returns a public URL the user can paste directly into chat:
+For H5, make delivery sendable rather than merely saved:
 
-```bash
-./scripts/deliver-gift.sh ./gifts/2026-05-06-mom/index.html --domain mygift.surge.sh
-```
+1. If `--domain` or `DEAR_HOST_DOMAIN` is configured, return the public URL as the primary artifact:
+   ```bash
+   ./scripts/deliver-gift.sh ./gifts/2026-05-06-mom/index.html --domain mygift.surge.sh
+   ```
+2. If no hosting is configured, return the local preview path and ask: "要我继续帮你变成一个可以直接发给 TA 的链接吗？"
+3. If the user does not want deployment, offer a sendable fallback such as screenshot, GIF, zip, or simplified image/text version.
+4. For non-technical users, prefer image/text unless H5 interaction is essential to the concept.
 
-Or via env: `DEAR_HOST_DOMAIN=mygift.surge.sh`.
-
-Without `--domain` or env, the script just returns the local file path — fine for offline viewing or manual upload.
+Before generation, keep the format choice private. After delivery, explain the user action clearly without internal jargon: "我做成了一个可以打开的小网页，先点这个本地文件预览；如果要发给 TA，我可以继续帮你变成链接。"
 
 Read `{baseDir}/references/delivery-rules.md` for complete delivery guidance across formats.
 

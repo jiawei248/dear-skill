@@ -35,7 +35,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may borrow only the outward-scattering motion, the radial text arrangement, the drifting carrier metaphor, the poster-like composition, or the overall feeling of release and propagation, remix it with other patterns, and change copy, composition, assets, and tone freely.
+This card is a high-quality reference, not a fixed script. the skill may borrow only the outward-scattering motion, the radial text arrangement, the drifting carrier metaphor, the poster-like composition, or the overall feeling of release and propagation, remix it with other patterns, and change copy, composition, assets, and tone freely.
 
 the skill should not assume that every use of this pattern must literally be a dandelion. The deeper logic is that language, feeling, or life detaches from a held center and travels outward with air, lightness, and continuation.
 

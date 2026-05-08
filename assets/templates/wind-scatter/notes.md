@@ -6,7 +6,7 @@ It is a concrete implementation of the broader `wind-scatter` pattern: release w
 
 ## Reference Use
 
-Treat this template as a reference implementation, not a fixed output. Hermes may borrow only the radial cluster, the scattering rhythm, the carrier metaphor, the trailing-line treatment, or the airy poster composition, and may change copy, composition, assets, and tone freely. Do not copy the sample line, the exact blue sky treatment, or the literal dandelion look if another carrier form fits better.
+Treat this template as a reference implementation, not a fixed output. the skill may borrow only the radial cluster, the scattering rhythm, the carrier metaphor, the trailing-line treatment, or the airy poster composition, and may change copy, composition, assets, and tone freely. Do not copy the sample line, the exact blue sky treatment, or the literal dandelion look if another carrier form fits better.
 
 ## What To Change Per Use
 

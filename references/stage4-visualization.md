@@ -311,7 +311,7 @@ Requirements:
 - if the chosen format is `h5`, generate the final deliverable as a single HTML file
 - if the chosen format is `h5`, follow the external-resource policy in `html-spec.md`
 - if the chosen format is `h5`, keep images and custom assets embedded inline even when libraries or fonts are loaded from CDN
-- if the chosen format is `h5`, run a browser-based functional self-test on the generated HTML with the Hermes `browser` toolset before delivering it
+- if the chosen format is `h5`, run a browser-based functional self-test on the generated HTML with the Claude Code browser/testing tools before delivering it
 - if the chosen format is `image`, follow `{baseDir}/references/image-integration.md`
 - do not let a template's sample wording, sample assets, or sample composition override the actual brief
 - use higher-fidelity visual treatment when the concept benefits from it, including carefully chosen typography, texture, depth, atmospheric elements, or visual libraries such as `three.js`, `p5.js`, or `GSAP`
@@ -389,7 +389,7 @@ When the chosen format is `image`, do not generate HTML. Instead, follow:
 At a minimum, the image path should:
 
 1. Prepare a brief JSON that includes `user_input`, `scene_description`, `image_genre`, `style_hint`, `aspect_ratio_hint`, `characters`, and `pov`. Add `text_overlay_spec` when text should appear inside the image.
-2. Prefer a built-in Hermes image generation tool when one is available in the runtime.
+2. Prefer a built-in image generation tool when one is available in the runtime.
 3. Otherwise run `{baseDir}/scripts/render-image.sh <brief-json-file>`.
    - the runtime bridge should first detect the provider path from setup state and available key sources
    - then dispatch internally to a path such as `gemini-direct` or `openrouter`
@@ -417,8 +417,8 @@ At a minimum, the text-play path should:
 
 1. Open with the first move itself so the play feels legible immediately, without a prefatory explanation.
 2. Keep the interaction bounded to the planned `turn_limit`, usually `5-10` turns.
-3. Keep each Hermes turn concise, usually `3-4` sentences max.
-4. Ask for tiny user inputs and let Hermes do most of the imaginative work.
+3. Keep each skill turn concise, usually `3-4` sentences max.
+4. Ask for tiny user inputs and let the skill do most of the imaginative work.
 5. Carry the exchange toward a payoff: reveal, callback, punchline, mini ending, or emotional reframe.
 6. If the user exits or stops early, close gracefully instead of treating it as a failure.
 
@@ -441,8 +441,8 @@ Before returning the gift, check:
 
 - Is this worth sending today
 - Is the language correct for this user relationship
-- Did I actually consult `soul.md`, user habit, and event type before choosing tone
-- Does the result still feel like Hermes in this user's world
+- Did I actually consult the recipient brief, user habit, and event type before choosing tone
+- Does the result still feel like something the user could send in this recipient relationship
 - If I used tonal contrast, is it a controlled exception rather than drift
 - Is the gift specific rather than generic
 - Is there one clear gift thesis rather than many equal fragments
@@ -476,21 +476,45 @@ This is not about copying the template. It's about ensuring the craft level is c
 
 ### Functional Self-Test
 
-Before delivering any `h5` gift, open the generated HTML file in the browser tool and verify:
+Before delivering any `h5` gift, verify it with a Claude Code-executable browser flow. Start with the helper script:
 
-When using the browser tool for self-testing, use the official Hermes `browser` toolset flow: navigate to the local HTML file with `browser_navigate`, inspect the page with `browser_snapshot`, and check console errors with `browser_console` when available. Do not pass a `profile` argument to browser tools; browser profile and backend selection are configured in Hermes runtime settings, not per tool call.
+```bash
+scripts/verify-h5.sh <index.html>
+```
+
+The script performs lightweight static checks and prints the exact local server URL to use. Then run the browser validation in Claude Code / Playwright:
+
+1. Start `python3 -m http.server` for the generated gift directory, or use the command printed by `scripts/verify-h5.sh`.
+2. Use browser tooling to `browser_navigate` to the local URL.
+3. Capture `browser_snapshot` after load so the visible state is inspectable.
+4. Check browser console output for JavaScript errors, failed asset loads, or blocked media.
+5. Exercise the core interaction: tap, click, scroll, drag, reveal, or whatever the gift depends on.
+6. Test a mobile viewport such as `390x844`; most recipients will open the gift on a phone.
+
+Generic H5 checklist:
 
 1. The page renders without errors.
 2. The core interaction works, such as tap, click, scroll, drag, reveal, or other primary interaction.
 3. All important content is reachable and nothing essential is cut off, trapped, or hidden.
 4. The bottom of the page and any fixed UI, such as buttons, action bars, or input-like affordances, remain accessible.
 5. Text is readable and not overlapping, clipped, or obscured.
+6. Console output has no uncaught errors or missing required assets.
+
+Paper-house checklist:
+
+1. The page opens and the 3D room scene appears.
+2. The four rooms scroll or switch normally, and each room can be reached.
+3. At least one hero item in each room can be clicked or tapped.
+4. The opened card is readable: title, kicker, image, decals, and handwritten text are not clipped.
+5. The music preview can play when browser policy allows it, or the silent fallback is clear and non-blocking.
+6. A mobile viewport does not crop the room, card, close button, or bottom controls.
+7. The console has no JavaScript errors during initial load, room navigation, hero item open/close, and audio attempt.
 
 If any check fails, fix the HTML before delivering.
 
 If the browser tool is unavailable or the self-test cannot complete, do not silently skip and deliver anyway. Instead:
 
-1. Attempt the test once with the configured Hermes `browser` toolset.
+1. Attempt the test once with Claude Code / Playwright browser tooling.
 2. If it still cannot complete, review the HTML source code manually for obvious issues such as overlapping elements, missing scroll paths, clipped content, or fixed-position conflicts.
 3. Log a warning in the gift delivery that browser self-test was skipped after a failed browser-tool attempt.
 

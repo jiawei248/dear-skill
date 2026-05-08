@@ -40,7 +40,7 @@ Stretch:
 
 ## Reference Use
 
-This card is a high-quality reference, not a fixed script. Hermes may widen the apparent use case, borrow only the UI grammar, the fake-game framing, the score or reward logic, the reveal rhythm, or the joke structure, remix it with other patterns, and change copy, composition, assets, and tone freely.
+This card is a high-quality reference, not a fixed script. the skill may widen the apparent use case, borrow only the UI grammar, the fake-game framing, the score or reward logic, the reveal rhythm, or the joke structure, remix it with other patterns, and change copy, composition, assets, and tone freely.
 
 the skill should not treat this as permission to build a full game. The point is not gameplay depth. The point is to borrow just enough game language that the user instantly understands the fantasy, joke, or emotional outlet.
 
@@ -286,7 +286,7 @@ Avoid:
 - "The user complained about something and wants a tiny custom fantasy of winning."
 - "A negative mood could be softened by a harmless joke app."
 - "A positive mood could be heightened with a reward or match-style payoff."
-- "Hermes wants to respond with something playful that still clearly relates to today's conversation."
+- "the user wants to respond with something playful that still clearly relates to today's conversation."
 - "The user is waiting for something good, and a tiny countdown ritual would make the anticipation feel more alive."
 - "A holiday, trip, reunion, or launch is close enough that the lead-up itself can become the gift."
 

@@ -56,7 +56,7 @@ This prevents the model from rendering debug text, filenames, or technical artif
 
 ## Language Matching
 
-When the user and Hermes communicate in Chinese, ALL text that appears inside the generated image must be Chinese — unless English is deliberately part of the concept (e.g. a fake English-language newspaper).
+When the user and the recipient communicate in Chinese, ALL text that appears inside the generated image must be Chinese — unless English is deliberately part of the concept (e.g. a fake English-language newspaper).
 
 In the scene_description and text_overlay_spec, explicitly state: "All visible text in the image must be in Chinese (简体中文)."
 
@@ -99,7 +99,7 @@ Pass a JSON file that contains at least:
 - `image_genre`
 - `style_hint`
 - `aspect_ratio_hint`
-- `characters`: array of character descriptions appearing in the image, each carrying species, color, distinguishing features, and role in the scene; pull these from `./user-portrait/` metadata plus any OC definitions in `SOUL.md`, `USER.md`, setup-state, or taste-profile when relevant
+- `characters`: array of character descriptions appearing in the image, each carrying species, color, distinguishing features, and role in the scene; pull these from `./user-portrait/` metadata plus any OC definitions in the recipient brief, the supplied user context, setup-state, or taste-profile when relevant
 - `pov`: whose perspective the image represents, such as `hermes watching user`, `user self-view`, or `third-person`; the composition should match this rather than drifting into a generic default angle
 - `text_overlay_spec` when text should appear inside the image
 
@@ -260,13 +260,13 @@ Decode each returned `inline_data` image to a local file and return those local 
 
 ## Alternative: Direct Tool Invocation
 
-If Hermes's runtime provides a built-in image generation tool, the agent may bypass `render-image.sh` entirely and:
+If the skill's runtime provides a built-in image generation tool, the agent may bypass `render-image.sh` entirely and:
 
 1. call the image tool directly with the final prompt
 2. receive an image path or URL from that tool
 3. deliver it using the standard image delivery flow
 
-This is preferred when available because it avoids shell-level API orchestration and benefits from Hermes's built-in auth, retries, and error handling.
+This is preferred when available because it avoids shell-level API orchestration and benefits from built-in auth, retries, and error handling.
 
 `render-image.sh` remains the fallback runtime bridge for environments that prefer or require script-based execution.
 
@@ -310,7 +310,7 @@ Division of labor:
 
 - this file defines universal image-quality and prompt-building principles that apply for all users
 - `assets/examples/` and the image-genre reference assets define the concrete visual benchmark for what counts as good-looking in this skill; if the needed binary references are missing locally, fetch the relevant bundle first via `{baseDir}/scripts/fetch-asset-bundle.sh`
-- `SOUL.md`, `MEMORY.md`, and live interaction context help infer the user's personal taste and how strongly to lean toward it
+- the recipient brief, `MEMORY.md`, and live interaction context help infer the user's personal taste and how strongly to lean toward it
 
 ## When To Prefer Image
 
@@ -321,7 +321,7 @@ Prefer image when:
 - narrative sequencing is unnecessary
 - the gift needs very polished visual finish or strong instruction following
 - meme, atmosphere, collage, sticker, poster, proxy-character scene, or surreal still treatment is more fitting than panel-based structure
-- Hermes wants the return to land through one precise frame rather than motion or participation
+- the user wants the return to land through one precise frame rather than motion or participation
 
 Do not default to image only because it seems easier. Choose it when the still-image form is itself the right return.
 
@@ -601,7 +601,7 @@ Image generation may include text, but only when it materially improves the gift
 If text is included, specify:
 
 - the exact wording
-- the language, which should match the user's dominant interaction language with Hermes
+- the language, which should match the user's dominant interaction language with the skill
 - the placement
 - the approximate size
 - the font feel or typographic direction

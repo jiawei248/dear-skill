@@ -247,14 +247,15 @@ To version up assets (e.g. add 50 new stickers):
 
 ### How the skill fetches a bundle
 
-When entering template mode the skill checks if `assets/templates/<id>/base/` exists and is non-empty. If not:
-1. Read `template.json.asset_bundle.url`
-2. Download zip via `curl` to a temp file
-3. (If `sha256` is set) verify
-4. Unzip into `assets/templates/<id>/base/`
-5. Cache permanently — never re-fetch unless the user runs `--refresh-template <id>` or the manifest's `sha256` differs
+When entering template mode the skill checks `assets/templates/<id>/base/.bundle-sha256` against `template.json.asset_bundle.sha256`.
 
-`scripts/fetch-asset-bundle.sh` is the runtime entry. It supports both the existing per-category bundle pattern and template bundles via `--template <id>`.
+1. If `base/` is non-empty and `.bundle-sha256` matches the manifest, reuse the cached bundle.
+2. If `base/` is missing, empty, missing `.bundle-sha256`, or has a mismatched sha, download the zip to a temp file.
+3. Verify sha256 when present.
+4. Unzip into a temp directory first, then replace `assets/templates/<id>/base/` and write `base/.bundle-sha256`.
+5. If the user explicitly requests a refresh, run `scripts/fetch-asset-bundle.sh --refresh-template <id>` to force replacement even when the marker matches.
+
+`scripts/fetch-asset-bundle.sh` is the runtime entry. It supports both the existing per-category bundle pattern and template bundles via `--template <id>` / `--refresh-template <id>`.
 
 ## The Slot-Matching Flow
 
