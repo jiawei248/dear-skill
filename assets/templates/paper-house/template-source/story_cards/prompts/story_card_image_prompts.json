@@ -1,0 +1,67 @@
+{
+  "note": "These prompts are for replacing the current draft collage images with AI-generated scene images. Keep the generated image mostly visual and leave blank negative space for the HTML handwritten note overlay. Do not generate readable text inside the image.",
+  "shared_inputs": {
+    "boy_reference": "ref_boy.jpg",
+    "girl_reference": "ref_girl.jpg",
+    "style_reference": "scene_kitchen.jpg, scene_rooftop.jpg, scene_karaoke_1.jpg, scene_couch.jpg",
+    "output_size": "1024x720"
+  },
+  "cards": [
+    {
+      "id": "kitchen-fridge",
+      "current_html_image": "story_cards/drafts/kitchen-fridge-draft.png",
+      "target_output": "story_cards/generated/kitchen-fridge.png",
+      "input_images": [
+        { "path": "ref_boy.jpg", "role": "identity reference for the boyfriend" },
+        { "path": "ref_girl.jpg", "role": "identity reference for the girlfriend" },
+        { "path": "kitchen/4.png", "role": "main interactive sticker, cream fridge" },
+        { "path": "scene_kitchen.jpg", "role": "room color and mood reference" },
+        { "path": "stickers/food/sticker_25.png", "role": "supporting sticker, cookies/heart snack" },
+        { "path": "stickers/decorations/sticker_142.png", "role": "supporting sticker, handmade note accent" }
+      ],
+      "prompt": "Use case: identity-preserve, compositing. Asset type: handmade Instagram-style story card image for a romantic interactive HTML popup. Preserve the boyfriend and girlfriend identities from the references, with natural young-couple styling. Create a warm cozy orange kitchen scene: the couple is standing near a cream fridge, the fridge door is open, and the girlfriend has hidden a small cake and little notes inside while the boyfriend discovers them. Use the fridge sticker as the key object. Add a few matching scrapbook details inspired by the cookie/heart snack and note stickers, but keep them subtle and handmade. Composition: soft lifestyle photo-collage, warm paper texture, slight film grain, tape edges, cozy kitchen light. Leave generous clean blank space on the lower right for handwritten Chinese text overlay. No readable generated text, no watermark, no logo, no extra people."
+    },
+    {
+      "id": "rooftop-suitcase",
+      "current_html_image": "story_cards/drafts/rooftop-suitcase-draft.png",
+      "target_output": "story_cards/generated/rooftop-suitcase.png",
+      "input_images": [
+        { "path": "ref_boy.jpg", "role": "identity reference for the boyfriend" },
+        { "path": "ref_girl.jpg", "role": "identity reference for the girlfriend" },
+        { "path": "rooftop/1.png", "role": "main interactive sticker, blue suitcases" },
+        { "path": "scene_rooftop.jpg", "role": "room color and mood reference" },
+        { "path": "stickers/decorations/sticker_103.png", "role": "supporting sticker, travel ticket" },
+        { "path": "stickers/decorations/sticker_113.png", "role": "supporting sticker, ribbon" }
+      ],
+      "prompt": "Use case: identity-preserve, compositing. Asset type: handmade Instagram-style story card image for a romantic interactive HTML popup. Preserve the boyfriend and girlfriend identities from the references. Create a tender rainy rooftop travel scene: the couple is under one umbrella beside blue suitcases, as if they are about to leave on a spontaneous little trip after the rain. Use the suitcase sticker as the key object. Add soft ticket and ribbon scrapbook accents that match the cool blue-gray rooftop palette. Composition: airy top-bottom collage with paper border, light tape, gentle rain glow, dreamy but not fantasy. Leave generous clean blank space on the right side for handwritten Chinese text overlay. No readable generated text, no watermark, no logo, no extra people."
+    },
+    {
+      "id": "karaoke-camera",
+      "current_html_image": "story_cards/drafts/karaoke-camera-draft.png",
+      "target_output": "story_cards/generated/karaoke-camera.png",
+      "input_images": [
+        { "path": "ref_boy.jpg", "role": "identity reference for the boyfriend" },
+        { "path": "ref_girl.jpg", "role": "identity reference for the girlfriend" },
+        { "path": "karaoke/3.png", "role": "main interactive sticker, CCD camera frame" },
+        { "path": "scene_karaoke_1.jpg", "role": "room color and mood reference" },
+        { "path": "stickers/household_goods/sticker_75.png", "role": "supporting sticker, pink camera" },
+        { "path": "stickers/decorations/sticker_161.png", "role": "supporting sticker, music notes" }
+      ],
+      "prompt": "Use case: identity-preserve, compositing. Asset type: handmade Instagram-style story card image for a romantic interactive HTML popup. Preserve the boyfriend and girlfriend identities from the references. Create a playful karaoke-room scene: the boyfriend and girlfriend are laughing with microphones, and a CCD camera is capturing the funny off-guard moment. Use the CCD camera sticker as the key object, with a small pink camera and music-note accents as scrapbook decorations. Composition: lively pink karaoke color, instant-photo collage, stickers layered around the image, handmade paper texture. Leave a clean blank area near the lower right or right edge for handwritten Chinese text overlay. No readable generated text, no watermark, no logo, no extra people."
+    },
+    {
+      "id": "couch-chess",
+      "current_html_image": "story_cards/drafts/couch-chess-draft.png",
+      "target_output": "story_cards/generated/couch-chess.png",
+      "input_images": [
+        { "path": "ref_boy.jpg", "role": "identity reference for the boyfriend" },
+        { "path": "ref_girl.jpg", "role": "identity reference for the girlfriend" },
+        { "path": "couch/6.png", "role": "main interactive sticker, chess board" },
+        { "path": "scene_couch.jpg", "role": "room color and mood reference" },
+        { "path": "stickers/decorations/sticker_102.png", "role": "supporting sticker, notebook" },
+        { "path": "stickers/decorations/sticker_149.png", "role": "supporting sticker, stamp" }
+      ],
+      "prompt": "Use case: identity-preserve, compositing. Asset type: handmade Instagram-style story card image for a romantic interactive HTML popup. Preserve the boyfriend and girlfriend identities from the references. Create a quiet sofa-room evening scene: the couple sits close together on the sofa with a chess board between them, the boyfriend is gently explaining one move and the girlfriend is smiling at him instead of the board. Use the chess board sticker as the key object. Add subtle notebook and stamp scrapbook accents in a soft lavender room palette. Composition: triangular handmade collage layout, cozy lamp light, paper texture, tape, soft shadow. Leave generous clean blank space on the lower left for handwritten Chinese text overlay. No readable generated text, no watermark, no logo, no extra people."
+    }
+  ]
+}

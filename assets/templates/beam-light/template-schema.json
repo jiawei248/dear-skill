@@ -1,0 +1,36 @@
+{
+  "template_id": "beam-light",
+  "engine": "p5.js",
+  "description": "A spotlight reveal effect where dragging a card handle sweeps light across a framed scene, uncovering hidden content through multiply blend mode.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "frame_title",
+    "frame_subtitle",
+    "hint_text",
+    "revealed_content",
+    "frame_color",
+    "frame_border_colors",
+    "desktop_background",
+    "star_count",
+    "star_colors",
+    "nebula_colors",
+    "card_handle_color",
+    "decoration_elements",
+    "text_color"
+  ],
+  "fit_tags": [
+    "mystery",
+    "discovery",
+    "contemplation",
+    "atmospheric",
+    "night-mood",
+    "hidden-message"
+  ],
+  "avoid_tags": [
+    "urgent-celebration",
+    "high-energy",
+    "data-heavy",
+    "quick-read"
+  ]
+}

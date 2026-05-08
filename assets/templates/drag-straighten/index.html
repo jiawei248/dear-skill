@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>How calm are you today?</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --text: #111111;
+      --muted: #a3a3a3;
+      --muted-2: #6b7280;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    #canvas-container {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    .ui-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 15vh 0;
+      box-sizing: border-box;
+      text-align: center;
+    }
+
+    .headline h1 {
+      margin: 0 0 12px;
+      font-size: 2rem;
+      line-height: 1.15;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: 0.01em;
+    }
+
+    .headline p {
+      margin: 0;
+      font-size: 0.95rem;
+      line-height: 1.4;
+      font-weight: 300;
+      color: var(--muted);
+      letter-spacing: 0.15em;
+    }
+
+    .footer {
+      font-size: 0.95rem;
+      line-height: 1.35;
+    }
+
+    .footer .primary {
+      margin: 0 0 4px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .footer .secondary {
+      margin: 0;
+      color: var(--muted-2);
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.96);
+      color: rgba(17, 17, 17, 0.72);
+      font-size: 0.95rem;
+      letter-spacing: 0.04em;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Preparing the line...</div>
+
+  <div class="ui-layer">
+    <div class="headline">
+      <h1 id="headline-text">How calm are you today?</h1>
+      <p id="helper-text">Drag <span aria-hidden="true">→</span></p>
+    </div>
+    <div class="footer">
+      <p class="primary" id="footer-primary">by Hermes</p>
+      <p class="secondary" id="footer-secondary">A small p5.js calming interaction</p>
+    </div>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "How calm are you today?",
+      loadingText: "Preparing the line...",
+      headlineText: "How calm are you today?",
+      helperText: "Drag ->",
+      footerPrimary: "by Hermes",
+      footerSecondary: "A small p5.js calming interaction",
+      backgroundColor: [255, 255, 255],
+      lineColor: [15, 15, 15],
+      lineWeight: 5,
+      numPoints: 250,
+      knobRadius: 18,
+      startXRatio: 0.2,
+      endXRatio: 0.8,
+      startYRatio: 0.5,
+      noiseScaleLow: 5,
+      noiseScaleHigh: 15,
+      noiseAmplitudeX: 450,
+      noiseAmplitudeY: 350,
+      highFrequencyAmplitude: 80,
+      blendWidth: 0.08,
+      springStiffness: 0.25,
+      springDamping: 0.75,
+      knobHitRadiusMultiplier: 2.5
+    };
+
+    let points = [];
+    let startX;
+    let endX;
+    let startY;
+    let knobT = 0;
+    let isDragging = false;
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      document.getElementById("headline-text").textContent = TEMPLATE_DATA.headlineText;
+      document.getElementById("helper-text").innerHTML = TEMPLATE_DATA.helperText.replace("->", '<span aria-hidden="true">→</span>');
+      document.getElementById("footer-primary").textContent = TEMPLATE_DATA.footerPrimary;
+      document.getElementById("footer-secondary").textContent = TEMPLATE_DATA.footerSecondary;
+      document.getElementById("loading").textContent = TEMPLATE_DATA.loadingText;
+
+      const canvas = createCanvas(windowWidth, windowHeight);
+      canvas.parent("canvas-container");
+      initPath();
+
+      document.getElementById("loading").style.display = "none";
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      initPath();
+    }
+
+    function initPath() {
+      startX = width * TEMPLATE_DATA.startXRatio;
+      endX = width * TEMPLATE_DATA.endXRatio;
+      startY = height * TEMPLATE_DATA.startYRatio;
+
+      points = [];
+      for (let i = 0; i <= TEMPLATE_DATA.numPoints; i += 1) {
+        const t = i / TEMPLATE_DATA.numPoints;
+        points.push({
+          t,
+          targetX: lerp(startX, endX, t),
+          targetY: startY,
+          origX: 0,
+          origY: 0,
+          currX: lerp(startX, endX, t),
+          currY: startY,
+          vx: 0,
+          vy: 0
+        });
+      }
+    }
+
+    function draw() {
+      clear();
+      background(
+        TEMPLATE_DATA.backgroundColor[0],
+        TEMPLATE_DATA.backgroundColor[1],
+        TEMPLATE_DATA.backgroundColor[2],
+        0
+      );
+
+      const knobX = lerp(startX, endX, knobT);
+      const knobY = startY;
+
+      if (dist(mouseX, mouseY, knobX, knobY) < TEMPLATE_DATA.knobRadius * 1.5 || isDragging) {
+        document.body.style.cursor = isDragging ? "grabbing" : "grab";
+      } else {
+        document.body.style.cursor = "default";
+      }
+
+      const time = millis() * 0.0005;
+
+      noFill();
+      stroke(TEMPLATE_DATA.lineColor[0], TEMPLATE_DATA.lineColor[1], TEMPLATE_DATA.lineColor[2]);
+      strokeWeight(TEMPLATE_DATA.lineWeight);
+      strokeJoin(ROUND);
+      strokeCap(ROUND);
+
+      beginShape();
+      for (let i = 0; i <= TEMPLATE_DATA.numPoints; i += 1) {
+        const p = points[i];
+
+        const noiseX =
+          (noise(p.t * TEMPLATE_DATA.noiseScaleLow, time) - 0.5) * TEMPLATE_DATA.noiseAmplitudeX;
+        const noiseY =
+          (noise(p.t * TEMPLATE_DATA.noiseScaleLow + 100, time) - 0.5) * TEMPLATE_DATA.noiseAmplitudeY;
+
+        const hfNoiseX =
+          (noise(p.t * TEMPLATE_DATA.noiseScaleHigh, time + 200) - 0.5) *
+          TEMPLATE_DATA.highFrequencyAmplitude;
+        const hfNoiseY =
+          (noise(p.t * TEMPLATE_DATA.noiseScaleHigh, time + 300) - 0.5) *
+          TEMPLATE_DATA.highFrequencyAmplitude;
+
+        p.origX = p.targetX + noiseX + hfNoiseX;
+        p.origY = p.targetY + noiseY + hfNoiseY;
+
+        const diff = p.t - knobT;
+        let targetBlend = 0;
+
+        if (diff > 0) {
+          targetBlend = constrain(diff / TEMPLATE_DATA.blendWidth, 0, 1);
+          targetBlend = targetBlend * targetBlend * (3 - 2 * targetBlend);
+        }
+
+        const idealX = lerp(p.targetX, p.origX, targetBlend);
+        const idealY = lerp(p.targetY, p.origY, targetBlend);
+
+        p.vx = (p.vx + (idealX - p.currX) * TEMPLATE_DATA.springStiffness) * TEMPLATE_DATA.springDamping;
+        p.vy = (p.vy + (idealY - p.currY) * TEMPLATE_DATA.springStiffness) * TEMPLATE_DATA.springDamping;
+
+        p.currX += p.vx;
+        p.currY += p.vy;
+
+        if (abs(diff) < 1.0 / TEMPLATE_DATA.numPoints) {
+          p.currX = knobX;
+          p.currY = knobY;
+        }
+
+        if (i === 0 || i === TEMPLATE_DATA.numPoints) curveVertex(p.currX, p.currY);
+        curveVertex(p.currX, p.currY);
+      }
+      endShape();
+
+      fill(TEMPLATE_DATA.lineColor[0], TEMPLATE_DATA.lineColor[1], TEMPLATE_DATA.lineColor[2]);
+      noStroke();
+      ellipse(knobX, knobY, TEMPLATE_DATA.knobRadius * 2);
+    }
+
+    function mousePressed() {
+      const knobX = lerp(startX, endX, knobT);
+      const knobY = startY;
+      if (dist(mouseX, mouseY, knobX, knobY) < TEMPLATE_DATA.knobRadius * TEMPLATE_DATA.knobHitRadiusMultiplier) {
+        isDragging = true;
+      }
+    }
+
+    function mouseDragged() {
+      if (isDragging) {
+        knobT = constrain((mouseX - startX) / (endX - startX), 0, 1);
+      }
+    }
+
+    function mouseReleased() {
+      isDragging = false;
+    }
+
+    function touchStarted() {
+      mousePressed();
+      return false;
+    }
+
+    function touchMoved() {
+      mouseDragged();
+      return false;
+    }
+
+    function touchEnded() {
+      mouseReleased();
+      return false;
+    }
+  </script>
+</body>
+</html>

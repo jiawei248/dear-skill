@@ -1,0 +1,35 @@
+{
+  "template_id": "cloud-text-rain",
+  "engine": "p5.js",
+  "description": "A poetic auto-play scene where text orbits a cloud, falls as rain, and creates ripple effects on a ground plane of dense prose. Text becomes weather in a doorway frame composition.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "cloud_text",
+    "ground_text",
+    "wall_color",
+    "sky_gradient",
+    "cloud_colors",
+    "rain_interval",
+    "ripple_duration",
+    "ripple_max_radius",
+    "door_dimensions",
+    "ground_grid_size",
+    "ground_text_size_range"
+  ],
+  "fit_tags": [
+    "poetic",
+    "contemplation",
+    "transformation",
+    "literary",
+    "gentle-melancholy",
+    "atmospheric",
+    "long-text"
+  ],
+  "avoid_tags": [
+    "celebration",
+    "high-energy",
+    "quick-interaction",
+    "data-presentation"
+  ]
+}

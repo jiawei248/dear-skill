@@ -1,0 +1,34 @@
+{
+  "template_id": "obj-player",
+  "engine": "p5.js + webgl",
+  "description": "Brutalist product card with bold grid layout, color-blocked sections. Pink/orange/green/blue blocks with heavy Anton typography. Interactive 3D wireframe grid responds to mouse hover. Streetwear/techwear aesthetic.",
+  "final_delivery_requirement": "Export as single HTML file. Pinned CDN delivery for p5.js is acceptable. All assets inline.",
+  "customizable_fields": [
+    "page_title",
+    "header_text",
+    "marquee_text",
+    "portrait_image",
+    "product_details",
+    "color_blocks",
+    "typography_text",
+    "grid_animation_style",
+    "background_color",
+    "accent_colors"
+  ],
+  "fit_tags": [
+    "brutalist",
+    "fashion",
+    "streetwear",
+    "bold",
+    "kinetic-collage",
+    "edgy",
+    "experimental"
+  ],
+  "avoid_tags": [
+    "gentle",
+    "quiet",
+    "grief",
+    "romantic",
+    "vintage-soft"
+  ]
+}

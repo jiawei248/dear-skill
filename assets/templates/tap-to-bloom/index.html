@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Living Text</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #0f2617;
+      font-family: "Georgia", "Times New Roman", "Microsoft YaHei", serif;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(15, 38, 23, 0.96);
+      color: rgba(255, 255, 255, 0.78);
+      letter-spacing: 0.08em;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    #info {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: rgba(255, 255, 255, 0.5);
+      pointer-events: none;
+      font-size: 14px;
+      letter-spacing: 2px;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Preparing the garden inside the text...</div>
+  <div id="info">Move across the text, or tap and drag to make it bloom</div>
+
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Living Text",
+      loadingText: "Preparing the garden inside the text...",
+      hintText: "Move across the text, or tap and drag to make it bloom",
+      lines: [
+        "From tomorrow on, I will be a happy person;",
+        "Grooming, chopping, and traveling all over the world.",
+        "From tomorrow on, I will care for food and vegetables,",
+        "I have a house, towards the sea, with spring blossoms."
+      ],
+      backgroundColor: "#0f2617",
+      textColor: [240, 250, 240],
+      fontFamily: "Georgia",
+      baseFontSizeMax: 28,
+      baseFontSizeRatio: 0.025,
+      lineHeightMultiplier: 1.8,
+      initialPlantCount: 40,
+      triggerRadius: 35,
+      hoverRadius: 30,
+      maxPlantsPerCharacter: 5,
+      leafColors: ["#558B2F", "#7CB342", "#8BC34A", "#AED581", "#33691E", "#4DB6AC"],
+      flowerColors: ["#F8BBD0", "#F48FB1", "#81D4FA", "#FFF59D", "#E1BEE7", "#FFFFFF", "#FFAB91"],
+      particleTrailEnabled: true,
+      particleBurstCount: 10
+    };
+
+    let textNodes = [];
+    let particles = [];
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      document.getElementById("loading").textContent = TEMPLATE_DATA.loadingText;
+      document.getElementById("info").textContent = TEMPLATE_DATA.hintText;
+
+      createCanvas(windowWidth, windowHeight);
+      textFont(TEMPLATE_DATA.fontFamily);
+
+      initTextNodes();
+
+      for (let i = 0; i < TEMPLATE_DATA.initialPlantCount; i += 1) {
+        const randomNode = random(textNodes);
+        if (randomNode && randomNode.char !== " ") {
+          randomNode.plants.push(new Plant());
+        }
+      }
+
+      document.getElementById("loading").style.display = "none";
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      textNodes = [];
+      initTextNodes();
+    }
+
+    function initTextNodes() {
+      const baseSize = min(windowWidth * TEMPLATE_DATA.baseFontSizeRatio, TEMPLATE_DATA.baseFontSizeMax);
+      textSize(baseSize);
+      const lineHeight = baseSize * TEMPLATE_DATA.lineHeightMultiplier;
+      const startY = height / 2 - (TEMPLATE_DATA.lines.length * lineHeight) / 2;
+
+      for (let i = 0; i < TEMPLATE_DATA.lines.length; i += 1) {
+        const lineStr = TEMPLATE_DATA.lines[i];
+        const lineWidth = textWidth(lineStr);
+        const startX = width / 2 - lineWidth / 2;
+
+        for (let j = 0; j < lineStr.length; j += 1) {
+          const char = lineStr[j];
+          if (char === " ") continue;
+
+          const xPos = startX + textWidth(lineStr.substring(0, j)) + textWidth(char) / 2;
+          textNodes.push(new TextNode(char, xPos, startY + i * lineHeight));
+        }
+      }
+    }
+
+    function draw() {
+      background(TEMPLATE_DATA.backgroundColor);
+
+      for (const node of textNodes) {
+        node.update(mouseX, mouseY);
+        node.draw();
+      }
+
+      if (TEMPLATE_DATA.particleTrailEnabled) {
+        particles.push(new Particle(mouseX, mouseY));
+      }
+
+      for (let i = particles.length - 1; i >= 0; i -= 1) {
+        const p = particles[i];
+        p.update();
+        p.draw();
+        if (p.isDead()) {
+          particles.splice(i, 1);
+        }
+      }
+
+      if (mouseIsPressed) {
+        triggerNodes(mouseX, mouseY, true);
+      }
+    }
+
+    function mousePressed() {
+      triggerNodes(mouseX, mouseY, false);
+      for (let i = 0; i < TEMPLATE_DATA.particleBurstCount; i += 1) {
+        particles.push(new Particle(mouseX, mouseY, true));
+      }
+    }
+
+    function touchStarted() {
+      mousePressed();
+      return false;
+    }
+
+    function touchMoved() {
+      if (touches.length > 0) {
+        triggerNodes(touches[0].x, touches[0].y, true);
+      }
+      return false;
+    }
+
+    function triggerNodes(mx, my, isDragging) {
+      for (const node of textNodes) {
+        const d = dist(mx, my, node.x, node.y + node.yOffset);
+        if (d < TEMPLATE_DATA.triggerRadius) {
+          node.trigger(isDragging);
+        }
+      }
+    }
+
+    class TextNode {
+      constructor(char, x, y) {
+        this.char = char;
+        this.x = x;
+        this.y = y;
+        this.yOffset = 0;
+        this.vy = 0;
+        this.plants = [];
+        this.hovered = false;
+        this.cooldown = 0;
+      }
+
+      update(mx, my) {
+        const targetY = 0;
+        const force = (targetY - this.yOffset) * 0.25;
+        this.vy += force;
+        this.vy *= 0.82;
+        this.yOffset += this.vy;
+
+        const d = dist(mx, my, this.x, this.y + this.yOffset);
+        if (d < TEMPLATE_DATA.hoverRadius) {
+          if (!this.hovered) {
+            this.vy = -3;
+            this.hovered = true;
+          }
+        } else {
+          this.hovered = false;
+        }
+
+        if (this.cooldown > 0) this.cooldown -= 1;
+      }
+
+      trigger(isDragging) {
+        if (isDragging && this.cooldown > 0) return;
+
+        this.vy = -12;
+        this.cooldown = 15;
+
+        if (this.plants.length < TEMPLATE_DATA.maxPlantsPerCharacter) {
+          this.plants.push(new Plant());
+        } else if (random() > 0.5) {
+          this.plants.shift();
+          this.plants.push(new Plant());
+        }
+      }
+
+      draw() {
+        push();
+        translate(this.x, this.y + this.yOffset);
+
+        for (const plant of this.plants) {
+          plant.update();
+          plant.draw();
+        }
+
+        fill(TEMPLATE_DATA.textColor[0], TEMPLATE_DATA.textColor[1], TEMPLATE_DATA.textColor[2]);
+        noStroke();
+        textAlign(CENTER, CENTER);
+        text(this.char, 0, 0);
+
+        pop();
+      }
+    }
+
+    class Plant {
+      constructor() {
+        this.type = floor(random(5));
+        this.offsetX = random(-20, 20);
+        this.offsetY = random(-20, 15);
+        this.angle = atan2(this.offsetY, this.offsetX) + PI / 2 + random(-0.5, 0.5);
+        this.scale = 0;
+        this.targetScale = random(0.6, 1.2);
+        this.vs = 0;
+
+        if (this.type === 1 || this.type === 4) {
+          this.color = random(TEMPLATE_DATA.flowerColors);
+        } else {
+          this.color = random(TEMPLATE_DATA.leafColors);
+        }
+      }
+
+      update() {
+        const scaleForce = (this.targetScale - this.scale) * 0.2;
+        this.vs += scaleForce;
+        this.vs *= 0.75;
+        this.scale += this.vs;
+      }
+
+      draw() {
+        push();
+        translate(this.offsetX, this.offsetY);
+        rotate(this.angle);
+        scale(this.scale);
+
+        switch (this.type) {
+          case 0:
+            this.drawLeaf();
+            break;
+          case 1:
+            this.drawFlowerDaisy();
+            break;
+          case 2:
+            this.drawClover();
+            break;
+          case 3:
+            this.drawVine();
+            break;
+          case 4:
+            this.drawFlowerTulip();
+            break;
+        }
+        pop();
+      }
+
+      drawLeaf() {
+        stroke(this.color);
+        strokeWeight(2);
+        line(0, 0, 0, -20);
+
+        fill(this.color);
+        noStroke();
+        push();
+        translate(0, -10);
+        rotate(-PI / 6);
+        this.drawBezierLeaf();
+        pop();
+        push();
+        translate(0, -15);
+        rotate(PI / 6);
+        this.drawBezierLeaf();
+        pop();
+      }
+
+      drawBezierLeaf() {
+        beginShape();
+        vertex(0, 0);
+        bezierVertex(-10, -5, -10, -15, 0, -20);
+        bezierVertex(10, -15, 10, -5, 0, 0);
+        endShape();
+      }
+
+      drawFlowerDaisy() {
+        fill(this.color);
+        noStroke();
+        for (let i = 0; i < 5; i += 1) {
+          push();
+          rotate((TWO_PI * i) / 5);
+          translate(0, -8);
+          beginShape();
+          vertex(0, 8);
+          bezierVertex(-8, 0, -6, -12, 0, -14);
+          bezierVertex(6, -12, 8, 0, 0, 8);
+          endShape();
+          pop();
+        }
+        fill("#FFD54F");
+        circle(0, 0, 8);
+      }
+
+      drawClover() {
+        stroke(this.color);
+        strokeWeight(1.5);
+        line(0, 0, 0, -15);
+        fill(this.color);
+        noStroke();
+        translate(0, -15);
+        for (let i = 0; i < 4; i += 1) {
+          push();
+          rotate((TWO_PI * i) / 4);
+          circle(0, -6, 10);
+          pop();
+        }
+      }
+
+      drawVine() {
+        noFill();
+        stroke(this.color);
+        strokeWeight(2);
+        beginShape();
+        curveVertex(0, 0);
+        curveVertex(0, 0);
+        curveVertex(10, -10);
+        curveVertex(5, -20);
+        curveVertex(15, -30);
+        curveVertex(8, -35);
+        endShape();
+
+        fill(random(TEMPLATE_DATA.flowerColors));
+        noStroke();
+        circle(10, -10, 4);
+        circle(15, -30, 5);
+      }
+
+      drawFlowerTulip() {
+        stroke("#7CB342");
+        strokeWeight(2);
+        line(0, 0, 0, -15);
+
+        translate(0, -15);
+        fill(this.color);
+        noStroke();
+        beginShape();
+        vertex(0, 5);
+        bezierVertex(-12, 0, -10, -18, -4, -22);
+        bezierVertex(0, -15, 0, -15, 4, -22);
+        bezierVertex(10, -18, 12, 0, 0, 5);
+        endShape();
+      }
+    }
+
+    class Particle {
+      constructor(x, y, isBurst = false) {
+        this.x = x + random(-5, 5);
+        this.y = y + random(-5, 5);
+        this.life = 255;
+        if (isBurst) {
+          this.vx = random(-3, 3);
+          this.vy = random(-3, 3);
+          this.size = random(3, 6);
+        } else {
+          this.vx = random(-1, 1);
+          this.vy = random(-1, 1);
+          this.size = random(2, 4);
+        }
+        this.color = random(["#FFF59D", "#81D4FA", "#FFFFFF"]);
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= 8;
+        this.size *= 0.95;
+      }
+
+      draw() {
+        const c = color(this.color);
+        c.setAlpha(this.life);
+        fill(c);
+        noStroke();
+        circle(this.x, this.y, this.size);
+      }
+
+      isDead() {
+        return this.life <= 0;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,37 @@
+{
+  "template_id": "tear-stained-paper",
+  "engine": "p5.js",
+  "description": "Blue tear stains spread across gridded handwritten paper, warping the page and slowly revealing sorrowful text.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js and stable font CDNs are acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "loading_text",
+    "source_text",
+    "paper_background_color",
+    "page_outer_background_color",
+    "grid_stroke_color",
+    "handwriting_text_color",
+    "font_family",
+    "tear_hue_min",
+    "tear_hue_max",
+    "cell_width",
+    "cell_height",
+    "tear_threshold_for_text",
+    "tear_spawn_interval_frames",
+    "tear_limit",
+    "allow_tap_tears"
+  ],
+  "fit_tags": [
+    "sadness",
+    "longing",
+    "disappointment",
+    "tender-grief",
+    "handwritten"
+  ],
+  "avoid_tags": [
+    "celebration",
+    "playful-flirt",
+    "practical-summary",
+    "high-energy-relief"
+  ]
+}

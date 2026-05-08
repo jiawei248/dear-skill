@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "VisualStrategy",
+  "type": "object",
+  "required": [
+    "creative_concept",
+    "selected_format",
+    "concept_format_rationale",
+    "output_shape",
+    "render_path",
+    "screen_count",
+    "interaction_grammar",
+    "asset_strategy"
+  ],
+  "properties": {
+    "creative_concept": {
+      "type": "string",
+      "description": "The chosen one-sentence creative concept from Stage 2.5 that this visual strategy is implementing."
+    },
+    "selected_format": {
+      "type": "string",
+      "enum": ["h5", "image", "text", "text-play"]
+    },
+    "concept_format_rationale": {
+      "type": "string",
+      "description": "Why this selected format serves the chosen concept better than the nearest alternative."
+    },
+    "pattern_id": {
+      "type": "string",
+      "description": "H5 pattern identifier when the selected format is h5."
+    },
+    "output_shape": {
+      "type": "string",
+      "description": "Chosen output-shape category for repetition control and form planning. Prefer the recommended taxonomy in delivery-policy.md when possible, but use a new stable high-level label when a genuinely new form does not fit existing categories."
+    },
+    "visual_style": {
+      "type": "string",
+      "description": "Chosen high-level visual-style label for repetition control, such as dark-terminal, dark-cinematic, light-warm, colorful-playful, minimal-poster, pixel-retro, photographic, or a stable custom label."
+    },
+    "render_path": {
+      "type": "string",
+      "enum": ["code-first", "image-first", "hybrid", "chat-native"]
+    },
+    "screen_count": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "interaction_grammar": {
+      "type": "string"
+    },
+    "asset_strategy": {
+      "type": "string",
+      "description": "One-line asset plan decided before rendering begins, such as `assets: none (pure code h5)` or `assets: 1 background image (airport rain scene)`."
+    },
+    "repetition_note": {
+      "type": "string",
+      "description": "Brief note on whether this output shape, visual style, and content direction are fresh enough relative to recent gifts, or why deliberate repetition is acceptable."
+    },
+    "image_genre": {
+      "type": "string",
+      "description": "Image genre when the selected format is image."
+    },
+    "text_play_type": {
+      "type": "string",
+      "description": "Bounded text-play subtype when the selected format is text-play."
+    },
+    "turn_limit": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Planned maximum number of turns for bounded text-play."
+    },
+    "style_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "examples": [
+    {
+      "creative_concept": "A tiny bedside radio that tunes into tonight's mood and reveals one connected lyric message as the user switches stations.",
+      "selected_format": "h5",
+      "concept_format_rationale": "The concept works best as an object the user actively tunes, so interaction carries the return better than a static text artifact.",
+      "output_shape": "object-reveal",
+      "visual_style": "dark-cinematic",
+      "render_path": "code-first",
+      "screen_count": 1,
+      "interaction_grammar": "tap stations, dial rotation, lyric reveal",
+      "asset_strategy": "assets: none (pure code h5)",
+      "repetition_note": "Output shape is fresh enough, and although the palette is dark, the recent gifts were not dark-heavy enough to trigger a forced shift.",
+      "style_notes": [
+        "Use warm amber highlights instead of terminal green.",
+        "Keep typography cinematic rather than code-like.",
+        "Treat the radio as the center object with tactile depth."
+      ]
+    }
+  ],
+  "additionalProperties": true
+}

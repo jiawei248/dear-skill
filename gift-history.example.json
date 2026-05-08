@@ -1,0 +1,94 @@
+[
+  {
+    "recorded_at": "2026-05-06T21:14:00+08:00",
+    "recipient": {
+      "slug": "mom",
+      "name_or_nickname": "妈",
+      "relationship": "parent"
+    },
+    "trigger": "inspiration",
+    "gift_weight": "standard",
+    "content_direction": "witness",
+    "format": "image",
+    "output_shape": "illustrated-scene",
+    "visual_style": "light-warm",
+    "visual_elements": ["watercolor", "garden-light", "handwritten-title"],
+    "concept_family": "poetic-literary",
+    "concept_theme": "garden",
+    "tone": "tender",
+    "content_tags": ["multi-succulent", "after-retirement", "saw-her-朋友圈"],
+    "emotional_intent": "seen",
+    "artifact_path": "./gifts/2026-05-06-mom/image.png",
+    "summary": "Watercolor scene of her succulent garden in the late afternoon light, anchoring on her recent 朋友圈 post."
+  },
+  {
+    "recorded_at": "2026-05-08T23:02:00+08:00",
+    "recipient": {
+      "slug": "xiao-a",
+      "name_or_nickname": "小A",
+      "relationship": "friend"
+    },
+    "trigger": "inspiration",
+    "gift_weight": "light",
+    "content_direction": "extension",
+    "format": "h5",
+    "output_shape": "mini-game",
+    "visual_style": "colorful-playful",
+    "visual_elements": ["clay-wobble-animation", "pottery-wheel", "sticky-note-labels"],
+    "concept_family": "interactive-object",
+    "concept_theme": "pottery",
+    "tone": "warm-wry",
+    "content_tags": ["new-hobby", "ceramics-class"],
+    "emotional_intent": "amused",
+    "artifact_path": "./gifts/2026-05-08-xiao-a/index.html",
+    "hosted_url": "https://xiao-a-gift.surge.sh",
+    "summary": "A tap-to-shape clay wheel H5 — every tap produces a wobblier pot with a sticky-note caption quoting her own messages about the class."
+  },
+  {
+    "recorded_at": "2026-05-10T15:47:00+08:00",
+    "recipient": {
+      "slug": "ren",
+      "name_or_nickname": "Ren",
+      "relationship": "partner"
+    },
+    "trigger": "milestone",
+    "gift_weight": "heavy",
+    "content_direction": "portrait",
+    "format": "text",
+    "output_shape": "letter",
+    "visual_style": "minimal-poster",
+    "visual_elements": [],
+    "concept_family": "narrative",
+    "concept_theme": "letter",
+    "tone": "soft-earnest",
+    "content_tags": ["anniversary", "three-years"],
+    "emotional_intent": "remembered",
+    "artifact_path": "./gifts/2026-05-10-ren/gift.md",
+    "summary": "A letter written in the shape of the movie TA cried at last year — same three-act rhythm, three specific anchors from shared memory."
+  },
+  {
+    "recorded_at": "2026-05-12T20:30:00+08:00",
+    "recipient": {
+      "slug": "lilei",
+      "name_or_nickname": "李雷",
+      "relationship": "colleague"
+    },
+    "trigger": "inspiration",
+    "gift_weight": "light",
+    "content_direction": "play",
+    "format": "text-play",
+    "output_shape": "text-play-riddle",
+    "visual_style": "chat-native",
+    "visual_elements": [],
+    "concept_family": "game-puzzle",
+    "concept_theme": "detective",
+    "tone": "warm-playful",
+    "content_tags": ["welcome-back-from-sabbatical", "inside-joke"],
+    "emotional_intent": "amused",
+    "artifact_path": "",
+    "summary": "6-turn emoji-riddle text-play about his sabbatical trip, ending with a callback to the team group-chat joke about him becoming a monk.",
+    "text_play_type": "riddle",
+    "text_play_turn_count": 6,
+    "text_play_completed": true
+  }
+]

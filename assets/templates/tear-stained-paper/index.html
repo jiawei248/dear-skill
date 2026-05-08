@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tear-Stained Paper</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries and fonts is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Long+Cang&family=Zhi+Mang+Xing&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --outer-bg: #f2efe9;
+      --loading-color: #5a5a5a;
+      --paper-shadow: rgba(0, 0, 0, 0.1);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--outer-bg);
+    }
+
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    canvas {
+      box-shadow: 0 0 20px var(--paper-shadow);
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--loading-color);
+      font-family: monospace;
+      font-size: 1rem;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">正在让泪水浸入纸张纤维...</div>
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Tear-Stained Paper",
+      loadingText: "正在让泪水浸入纸张纤维...",
+      pageOuterBackgroundColor: "#f2efe9",
+      paperBackgroundColor: [248, 246, 240],
+      gridStroke: [140, 140, 135, 160],
+      handwritingColor: [40, 45, 50, 220],
+      fontFamily: "'Long Cang', 'Zhi Mang Xing', cursive",
+      sourceText:
+        "今夜有些话不是说出口的，而是慢慢渗进纸里的。\\n" +
+        "我本来想把它们写得平静一些，可情绪总会先落下来。\\n" +
+        "有些难过不是轰然的，只是一点一点把纸打湿。\\n" +
+        "字还在，心也还在，只是都被今晚的水痕改写了形状。\\n" +
+        "如果你现在不想解释太多，也没关系。\\n" +
+        "我可以先陪你看着这些湿掉的句子，等它们慢慢安静。",
+      textStartRow: 1,
+      textStartCol: 1,
+      cellWidth: 30,
+      cellHeight: 30,
+      textSizeFactor: 0.8,
+      tearThresholdForText: 3,
+      tearSpawnIntervalFrames: 18,
+      tearLimit: 150,
+      allowTapTears: true,
+      tearTargetRadiusRange: [12, 35],
+      tearHueRange: [195, 215]
+    };
+
+    let points = [];
+    let tears = [];
+    let cols;
+    let rows;
+    let marginX;
+    let marginY;
+    let textChars = [];
+    let showText = false;
+    let textStartTime = 0;
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      document.getElementById("loading").textContent = TEMPLATE_DATA.loadingText;
+
+      const canvasW = min(windowWidth * 0.9, 800);
+      const canvasH = min(windowHeight * 0.9, 1000);
+      createCanvas(canvasW, canvasH);
+      initGrid();
+      document.getElementById("loading").style.display = "none";
+    }
+
+    function initGrid() {
+      points = [];
+      textChars = [];
+      tears = [];
+      showText = false;
+
+      cols = floor((width * 0.85) / TEMPLATE_DATA.cellWidth);
+      rows = floor((height * 0.85) / TEMPLATE_DATA.cellHeight);
+
+      marginX = (width - cols * TEMPLATE_DATA.cellWidth) / 2;
+      marginY = (height - rows * TEMPLATE_DATA.cellHeight) / 2;
+
+      for (let i = 0; i <= rows; i += 1) {
+        const row = [];
+        for (let j = 0; j <= cols; j += 1) {
+          const bx = marginX + j * TEMPLATE_DATA.cellWidth + random(-0.3, 0.3);
+          const by = marginY + i * TEMPLATE_DATA.cellHeight + random(-0.3, 0.3);
+          row.push({ x: bx, y: by, bx, by });
+        }
+        points.push(row);
+      }
+
+      const lines = TEMPLATE_DATA.sourceText.split("\n");
+      let currentR = TEMPLATE_DATA.textStartRow;
+      let currentC = TEMPLATE_DATA.textStartCol;
+
+      for (let i = 0; i < lines.length; i += 1) {
+        const line = lines[i];
+        for (let j = 0; j < line.length; j += 1) {
+          textChars.push({ char: line[j], r: currentR, c: currentC });
+          currentC += 1;
+          if (currentC >= cols - 1) {
+            currentC = TEMPLATE_DATA.textStartCol;
+            currentR += 1;
+          }
+        }
+        currentC = TEMPLATE_DATA.textStartCol;
+        currentR += 1;
+      }
+    }
+
+    function draw() {
+      background(...TEMPLATE_DATA.paperBackgroundColor);
+
+      if (frameCount % TEMPLATE_DATA.tearSpawnIntervalFrames === 0 && tears.length < TEMPLATE_DATA.tearLimit) {
+        const tx = random(marginX, width - marginX);
+        const ty = random(marginY, height - marginY);
+        tears.push(new Tear(tx, ty));
+      }
+
+      if (tears.length >= TEMPLATE_DATA.tearThresholdForText && !showText) {
+        showText = true;
+        textStartTime = frameCount;
+      }
+
+      for (let i = 0; i <= rows; i += 1) {
+        for (let j = 0; j <= cols; j += 1) {
+          const p = points[i][j];
+          p.x = p.bx;
+          p.y = p.by;
+
+          for (const t of tears) {
+            const d = dist(p.bx, p.by, t.x, t.y);
+            if (d < t.r * 2.5) {
+              const influence = pow(map(d, 0, t.r * 2.5, 1, 0), 1.5);
+              const angle = atan2(p.by - t.y, p.bx - t.x);
+              const pushAmt = influence * t.r * 0.5;
+              p.x += cos(angle) * pushAmt;
+              p.y += sin(angle) * pushAmt;
+              p.x += sin(frameCount * 0.04 + p.by * 0.05) * 2.5 * influence;
+              p.y += cos(frameCount * 0.04 + p.bx * 0.05) * 2.5 * influence;
+            }
+          }
+        }
+      }
+
+      strokeWeight(1.0);
+      stroke(...TEMPLATE_DATA.gridStroke);
+      noFill();
+
+      for (let i = 0; i <= rows; i += 1) {
+        beginShape();
+        for (let j = 0; j <= cols; j += 1) {
+          curveVertex(points[i][j].x, points[i][j].y);
+          if (j === 0 || j === cols) {
+            curveVertex(points[i][j].x, points[i][j].y);
+          }
+        }
+        endShape();
+      }
+
+      for (let j = 0; j <= cols; j += 1) {
+        beginShape();
+        for (let i = 0; i <= rows; i += 1) {
+          curveVertex(points[i][j].x, points[i][j].y);
+          if (i === 0 || i === rows) {
+            curveVertex(points[i][j].x, points[i][j].y);
+          }
+        }
+        endShape();
+      }
+
+      for (const t of tears) {
+        t.update();
+        t.display();
+      }
+
+      if (showText) {
+        textFont(TEMPLATE_DATA.fontFamily);
+        textAlign(CENTER, CENTER);
+        textSize(TEMPLATE_DATA.cellWidth * TEMPLATE_DATA.textSizeFactor);
+        fill(...TEMPLATE_DATA.handwritingColor);
+        noStroke();
+
+        let charLimit = floor((frameCount - textStartTime) / 4);
+        charLimit = constrain(charLimit, 0, textChars.length);
+
+        for (let i = 0; i < charLimit; i += 1) {
+          const tc = textChars[i];
+          if (tc.r >= rows || tc.c >= cols) continue;
+
+          const p1 = points[tc.r][tc.c];
+          const p2 = points[tc.r][tc.c + 1];
+          const p3 = points[tc.r + 1][tc.c];
+          const p4 = points[tc.r + 1][tc.c + 1];
+
+          if (p1 && p2 && p3 && p4) {
+            const cx = (p1.x + p2.x + p3.x + p4.x) / 4;
+            const cy = (p1.y + p2.y + p3.y + p4.y) / 4;
+
+            let wobbleX = 0;
+            let wobbleY = 0;
+            for (const t of tears) {
+              const d = dist(p1.bx, p1.by, t.x, t.y);
+              if (d < t.r) {
+                wobbleX = sin(frameCount * 0.05 + i) * 1.0;
+                wobbleY = cos(frameCount * 0.05 + i) * 1.0;
+              }
+            }
+
+            text(tc.char, cx + wobbleX, cy + wobbleY);
+          }
+        }
+      }
+    }
+
+    function mousePressed() {
+      if (!TEMPLATE_DATA.allowTapTears) return;
+      tears.push(new Tear(mouseX, mouseY));
+    }
+
+    function touchStarted() {
+      if (!TEMPLATE_DATA.allowTapTears) return false;
+      tears.push(new Tear(mouseX, mouseY));
+      return false;
+    }
+
+    function windowResized() {
+      setup();
+    }
+
+    class Tear {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.targetR = random(TEMPLATE_DATA.tearTargetRadiusRange[0], TEMPLATE_DATA.tearTargetRadiusRange[1]);
+        this.r = 0.1;
+        this.seed = random(1000);
+        this.baseHue = random(TEMPLATE_DATA.tearHueRange[0], TEMPLATE_DATA.tearHueRange[1]);
+      }
+
+      update() {
+        this.r += (this.targetR - this.r) * 0.025;
+      }
+
+      display() {
+        push();
+        translate(this.x, this.y);
+
+        const progress = constrain(this.r / this.targetR, 0, 1);
+        const currentBlur = map(progress, 0, 1, 0.5, 8);
+        drawingContext.filter = `blur(${currentBlur}px)`;
+
+        colorMode(HSB, 360, 100, 100, 255);
+        const layers = 3;
+
+        for (let i = 0; i < layers; i += 1) {
+          const radiusRatio = 1 - i * 0.2;
+          const currentR = this.r * radiusRatio;
+
+          const startS = map(i, 0, layers - 1, 35, 60);
+          const endS = map(i, 0, layers - 1, 10, 25);
+          const s = map(progress, 0, 1, startS, endS);
+
+          const startB = 90;
+          const endB = map(i, 0, layers - 1, 98, 92);
+          const b = map(progress, 0, 1, startB, endB);
+
+          const startA = map(i, 0, layers - 1, 120, 200);
+          const endA = map(i, 0, layers - 1, 15, 60);
+          const a = map(progress, 0, 1, startA, endA);
+
+          fill(this.baseHue, s, b, a);
+          noStroke();
+
+          beginShape();
+          for (let angle = 0; angle < TWO_PI; angle += 0.1) {
+            const xoff = map(cos(angle), -1, 1, 0, 2);
+            const yoff = map(sin(angle), -1, 1, 0, 2);
+            const n = noise(xoff + this.seed, yoff + this.seed, frameCount * 0.004);
+            const rVar = currentR + map(n, 0, 1, -currentR * 0.45, currentR * 0.55);
+            const sx = rVar * cos(angle);
+            const sy = rVar * sin(angle);
+            curveVertex(sx, sy);
+          }
+          endShape(CLOSE);
+        }
+
+        drawingContext.filter = "none";
+        pop();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Symmetry Breaking Ticket</title>
+    <!-- 引入 Space Mono 字体以还原等宽科技感 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- 引入 p5.js 库用于左侧粒子流动动画 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0a0a0a; /* 极暗背景 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Space Mono', monospace;
+            color: #d0d0d0;
+            overflow: hidden;
+        }
+
+        /* 卡片主容器 */
+        .ticket {
+            display: flex;
+            width: 860px;
+            height: 440px;
+            background-color: #262626; /* 卡片底色 */
+            border-radius: 12px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8),
+                        inset 0 0 0 1px rgba(255, 255, 255, 0.05); /* 微弱的内边框提亮 */
+            overflow: hidden;
+        }
+
+        /* 左侧动画区域 */
+        .left-panel {
+            width: 380px;
+            height: 100%;
+            position: relative;
+            background-color: #262626;
+            border-right: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        /* 左侧悬浮文字 */
+        .overlay-text {
+            position: absolute;
+            top: 35px;
+            left: 35px;
+            color: rgba(255, 255, 255, 0.45);
+            font-size: 11px;
+            line-height: 1.8;
+            letter-spacing: 5px;
+            pointer-events: none; /* 避免影响鼠标交互 */
+            z-index: 10;
+        }
+
+        #canvas-container {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 右侧信息区域 */
+        .right-panel {
+            flex: 1;
+            padding: 45px 50px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .row {
+            display: flex;
+            margin-bottom: 8px;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .label {
+            width: 75px;
+            color: #7a7a7a;
+            letter-spacing: 0.5px;
+        }
+
+        .arrow {
+            width: 25px;
+            color: #7a7a7a;
+        }
+
+        .value {
+            color: #d0d0d0;
+            letter-spacing: 0.5px;
+        }
+
+        /* 标志性的 LLLL 分割线 */
+        .l-divider {
+            color: #4a4a4a;
+            font-size: 11px;
+            letter-spacing: 2px;
+            margin: 20px 0 25px 0;
+            white-space: nowrap;
+            overflow: hidden;
+            opacity: 0.7;
+        }
+
+        .spacer {
+            flex-grow: 1;
+        }
+
+        /* 底部信息区块 */
+        .footer-line {
+            border: none;
+            border-top: 1px solid #444;
+            margin-bottom: 12px;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+        }
+
+        .title-text {
+            color: #999;
+            font-size: 11px;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .id-text {
+            color: #666;
+            font-size: 11px;
+        }
+
+        .footer-right {
+            color: #555;
+            font-size: 10px;
+            letter-spacing: 0.5px;
+        }
+
+        /* 响应式缩放处理 */
+        @media (max-width: 900px) {
+            .ticket {
+                transform: scale(0.8);
+            }
+        }
+        @media (max-width: 700px) {
+            .ticket {
+                transform: scale(0.5);
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="ticket">
+        <!-- 左侧: 粒子动画与浮水印文字 -->
+        <div class="left-panel">
+            <div class="overlay-text">
+                S Y M M E T R Y<br>
+                B R E A K I N G<br>
+                V O L . 0 4
+            </div>
+            <div id="canvas-container"></div>
+        </div>
+
+        <!-- 右侧: 排版细节 -->
+        <div class="right-panel">
+            <div class="section">
+                <div class="row">
+                    <span class="label">TYPE</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">GENERAL ADMISSION</span>
+                </div>
+                <div class="row">
+                    <span class="label">ACCESS</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">ALL ZONES</span>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="row">
+                    <span class="label">DATE</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">12.11.2024</span>
+                </div>
+                <div class="row">
+                    <span class="label">VENUE</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">KRAFTWERK SECTOR B</span>
+                </div>
+                <div class="row">
+                    <span class="label">CITY</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">BERLIN</span>
+                </div>
+            </div>
+
+            <!-- L型装饰线 -->
+            <div class="l-divider">LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL</div>
+
+            <div class="section">
+                <div class="row">
+                    <span class="label">ACT 01</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">ALVA NOTO</span>
+                </div>
+                <div class="row">
+                    <span class="label">ACT 02</span>
+                    <span class="arrow">&gt;</span>
+                    <span class="value">RYOICHI KUROKAWA</span>
+                </div>
+            </div>
+
+            <div class="spacer"></div>
+
+            <!-- 底部区域 -->
+            <div class="footer">
+                <hr class="footer-line">
+                <div class="footer-content">
+                    <div class="footer-left">
+                        <div class="title-text">SYMMETRY BREAKING = VOL. 04</div>
+                        <div class="id-text">ID: 0029384-A</div>
+                    </div>
+                    <div class="footer-right">
+                        VALID ON ENTRY ONLY
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- p5.js 动画逻辑 -->
+    <script>
+        const sketch = (p) => {
+            let timeX = 0; // 控制向左移动的时间变量
+            let timeZ = 0; // 控制形态演变的时间变量
+            const spacing = 7; // 粒子之间的网格间距
+
+            p.setup = () => {
+                // 将画布适应到指定的容器中
+                let container = document.getElementById('canvas-container');
+                let canvas = p.createCanvas(container.offsetWidth, container.offsetHeight);
+                canvas.parent('canvas-container');
+                p.noStroke();
+            };
+
+            p.draw = () => {
+                // 清除背景色，与卡片背景色一致 #262626
+                p.background(38, 38, 38); 
+
+                // 时间步进：timeX 增加产生向左流动的视觉错觉，timeZ 产生有机变化
+                timeX += 0.015; 
+                timeZ += 0.003; 
+
+                // 遍历网格
+                for (let x = 0; x < p.width; x += spacing) {
+                    for (let y = 0; y < p.height; y += spacing) {
+                        
+                        // 计算噪声参数：x坐标受 timeX 影响，产生位移
+                        let nx = x * 0.012 + timeX;
+                        let ny = y * 0.012;
+                        
+                        // 采集 3D 柏林噪声，获得 [0, 1] 的平滑随机值
+                        let noiseVal = p.noise(nx, ny, timeZ);
+
+                        let dotSize = 0;
+                        
+                        // 基于噪声值进行阈值划分，形成高对比度的波浪边缘
+                        if (noiseVal > 0.58) {
+                            dotSize = spacing * 0.85; // 连成一片的大点
+                        } else if (noiseVal > 0.45) {
+                            // 边缘过渡地带的点
+                            dotSize = p.map(noiseVal, 0.45, 0.58, 1.5, spacing * 0.85); 
+                        } else {
+                            // 背景区域的极小点
+                            dotSize = 1.2; 
+                        }
+
+                        // 填充浅灰色粒子
+                        p.fill(210);
+                        p.ellipse(x + spacing/2, y + spacing/2, dotSize);
+                    }
+                }
+            };
+
+            // 监听窗口大小变化（虽然此处固定尺寸，但保留是个好习惯）
+            p.windowResized = () => {
+                let container = document.getElementById('canvas-container');
+                p.resizeCanvas(container.offsetWidth, container.offsetHeight);
+            };
+        };
+
+        // 实例化 p5 避免全局污染
+        new p5(sketch);
+    </script>
+</body>
+</html>

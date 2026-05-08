@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rainy Night</title>
+  <!-- Authoring template note: final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable, but images and
+       custom assets should remain inline in the final artifact. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    :root {
+      --page-bg: #111111;
+      --fog-bg: rgba(90, 150, 250, 0.85);
+      --clear-bg: #2b6ee5;
+      --clear-text: #09255e;
+      --fog-text: #ffffff;
+      --title-color: rgba(0, 40, 150, 0.2);
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--page-bg);
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    canvas {
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.45);
+      max-width: 100vw;
+      max-height: 100vh;
+      object-fit: contain;
+    }
+  </style>
+</head>
+<body>
+<script>
+  const TEMPLATE_DATA = {
+    pageTitle: "Rainy Night",
+    mainTitle: "Rainy\nNight",
+    subTitle: "雨夜",
+    clearBackground: "#2B6EE5",
+    clearTextColor: "#09255E",
+    fogBackground: "rgba(90, 150, 250, 0.85)",
+    fogTextColor: "#FFFFFF",
+    titleColor: "rgba(0, 40, 150, 0.2)",
+    backgroundText: (
+      "Tonight does not need to be brighter than it is. " +
+      "It only needs somewhere to rest. " +
+      "Maybe the rain is not here to drown the words. " +
+      "Maybe it is here to let the truest line emerge slowly. " +
+      "You do not have to solve everything before sleeping. " +
+      "I can stay here with the part that still feels heavy. " +
+      "There is a kind of companionship that does not fix the weather, " +
+      "but keeps the window warm enough to keep looking through it. "
+    ).repeat(10),
+    config: {
+      canvas: {
+        width: 600,
+        height: 800
+      },
+      curve: {
+        startYRange: [-50, -10],
+        growthSpeedRange: [1, 3.5],
+        xDriftOptions: [-1.2, 1.2],
+        maxLengthRange: [600, 1000],
+        weightRange: [3, 6]
+      },
+      generator: {
+        spawnInterval: 25,
+        maxCurves: 80
+      }
+    }
+  };
+
+  let pgClear;
+  let pgFog;
+  let curves = [];
+
+  class Curve {
+    constructor() {
+      this.x = random(0, width);
+      this.y = random(TEMPLATE_DATA.config.curve.startYRange[0], TEMPLATE_DATA.config.curve.startYRange[1]);
+      this.prevX = this.x;
+      this.prevY = this.y;
+      this.speed = random(
+        TEMPLATE_DATA.config.curve.growthSpeedRange[0],
+        TEMPLATE_DATA.config.curve.growthSpeedRange[1]
+      );
+      this.baseWeight = random(
+        TEMPLATE_DATA.config.curve.weightRange[0],
+        TEMPLATE_DATA.config.curve.weightRange[1]
+      );
+      this.currentWeight = this.baseWeight;
+      this.maxLength = random(
+        TEMPLATE_DATA.config.curve.maxLengthRange[0],
+        TEMPLATE_DATA.config.curve.maxLengthRange[1]
+      );
+      this.currentLength = 0;
+      this.isDead = false;
+      this.noiseOffset = random(0, 1000);
+      this.weightNoiseOffset = random(1000, 2000);
+    }
+
+    update() {
+      this.prevX = this.x;
+      this.prevY = this.y;
+
+      const drift = map(
+        noise(this.noiseOffset),
+        0,
+        1,
+        TEMPLATE_DATA.config.curve.xDriftOptions[0],
+        TEMPLATE_DATA.config.curve.xDriftOptions[1]
+      );
+
+      this.currentWeight = this.baseWeight + map(
+        noise(this.weightNoiseOffset),
+        0,
+        1,
+        -this.baseWeight * 0.5,
+        this.baseWeight * 1.5
+      );
+
+      this.x += drift;
+      this.y += this.speed;
+      this.currentLength += this.speed;
+      this.noiseOffset += 0.02;
+      this.weightNoiseOffset += 0.04;
+
+      if (this.currentLength > this.maxLength || this.y > height + 50) {
+        this.isDead = true;
+      }
+    }
+
+    drawErase(layer, w) {
+      layer.strokeWeight(w);
+      layer.stroke(0);
+      layer.strokeCap(ROUND);
+      layer.strokeJoin(ROUND);
+      layer.line(this.prevX, this.prevY, this.x, this.y);
+    }
+
+    drawHead() {
+      noStroke();
+      fill(255, 255, 255, 120);
+      ellipse(this.x, this.y, this.currentWeight * 1.2, this.currentWeight * 1.5);
+    }
+  }
+
+  function drawWrappedMultilineTitle(layer, lines, x, y, lineGap, size) {
+    layer.textSize(size);
+    for (let i = 0; i < lines.length; i += 1) {
+      layer.text(lines[i], x, y + i * lineGap);
+    }
+  }
+
+  function setup() {
+    document.title = TEMPLATE_DATA.pageTitle;
+
+    createCanvas(
+      TEMPLATE_DATA.config.canvas.width,
+      TEMPLATE_DATA.config.canvas.height
+    );
+
+    pgClear = createGraphics(width, height);
+    pgClear.background(TEMPLATE_DATA.clearBackground);
+    pgClear.fill(TEMPLATE_DATA.clearTextColor);
+    pgClear.textSize(16);
+    pgClear.textLeading(24);
+    pgClear.textAlign(LEFT, TOP);
+    pgClear.text(TEMPLATE_DATA.backgroundText, 10, 10, width - 20, height * 2);
+
+    pgFog = createGraphics(width, height);
+    pgFog.background(TEMPLATE_DATA.fogBackground);
+    pgFog.fill(TEMPLATE_DATA.fogTextColor);
+    pgFog.textSize(16);
+    pgFog.textLeading(24);
+    pgFog.textAlign(LEFT, TOP);
+    pgFog.text(TEMPLATE_DATA.backgroundText, 10, 10, width - 20, height * 2);
+    pgFog.filter(BLUR, 4);
+
+    pgFog.textAlign(CENTER, CENTER);
+    pgFog.fill(TEMPLATE_DATA.titleColor);
+    pgFog.textFont("Georgia");
+
+    const titleLines = TEMPLATE_DATA.mainTitle.split("\n");
+    drawWrappedMultilineTitle(pgFog, titleLines, width / 2, height / 2 - 110, 140, 160);
+
+    pgFog.textSize(80);
+    pgFog.text(TEMPLATE_DATA.subTitle, width / 2, height / 2 + 180);
+    pgFog.filter(BLUR, 1);
+  }
+
+  function draw() {
+    image(pgClear, 0, 0);
+
+    if (
+      frameCount % TEMPLATE_DATA.config.generator.spawnInterval === 0 &&
+      curves.length < TEMPLATE_DATA.config.generator.maxCurves
+    ) {
+      curves.push(new Curve());
+    }
+
+    for (let i = curves.length - 1; i >= 0; i -= 1) {
+      curves[i].update();
+      if (curves[i].isDead) {
+        curves.splice(i, 1);
+      }
+    }
+
+    pgFog.erase(15, 15);
+    for (const curve of curves) {
+      curve.drawErase(pgFog, curve.currentWeight * 3.5);
+    }
+
+    pgFog.erase(60, 60);
+    for (const curve of curves) {
+      curve.drawErase(pgFog, curve.currentWeight * 2.0);
+    }
+
+    pgFog.erase(255, 255);
+    for (const curve of curves) {
+      curve.drawErase(pgFog, curve.currentWeight * 0.8);
+    }
+    pgFog.noErase();
+
+    image(pgFog, 0, 0);
+
+    for (const curve of curves) {
+      curve.drawHead();
+    }
+  }
+</script>
+</body>
+</html>

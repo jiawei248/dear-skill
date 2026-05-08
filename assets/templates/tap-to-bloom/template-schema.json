@@ -1,0 +1,38 @@
+{
+  "template_id": "tap-to-bloom",
+  "engine": "p5.js",
+  "description": "A living-text interaction where touched letters bounce and sprout animated flowers, leaves, and particles.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "loading_text",
+    "hint_text",
+    "source_lines",
+    "background_color",
+    "text_color",
+    "font_family",
+    "base_font_size",
+    "line_height_multiplier",
+    "leaf_colors",
+    "flower_colors",
+    "initial_plant_count",
+    "trigger_radius",
+    "hover_radius",
+    "max_plants_per_character",
+    "particle_trail_enabled",
+    "particle_burst_count"
+  ],
+  "fit_tags": [
+    "joy",
+    "delight",
+    "renewal",
+    "creative-energy",
+    "warmth"
+  ],
+  "avoid_tags": [
+    "acute-grief",
+    "severe-anger",
+    "heavy-explanation",
+    "solemn-memorial"
+  ]
+}

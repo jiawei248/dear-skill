@@ -1,0 +1,32 @@
+{
+  "template_id": "scroll",
+  "engine": "vanilla-css",
+  "description": "Mobile app-style vertical scrolling page with horizontally scrollable cards. Warm peach/cream background, polka-dot patterns, offset shadow cards. Playful retro-modern travel aesthetic.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Space Mono). All assets inline.",
+  "customizable_fields": [
+    "page_title",
+    "header_text",
+    "card_items",
+    "card_images",
+    "card_titles",
+    "card_descriptions",
+    "background_color",
+    "accent_colors",
+    "tab_labels",
+    "search_placeholder"
+  ],
+  "fit_tags": [
+    "exploration",
+    "recommendation",
+    "travel",
+    "discovery",
+    "curated-list",
+    "extension"
+  ],
+  "avoid_tags": [
+    "grief",
+    "contemplation",
+    "minimal",
+    "dark-mood"
+  ]
+}

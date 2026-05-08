@@ -1,0 +1,50 @@
+{
+  "template_id": "wind-scatter",
+  "engine": "p5.js",
+  "description": "A radial text cluster that loosens into wind-carried characters with airy motion trails.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "source_text",
+    "background_gradient_start",
+    "background_gradient_end",
+    "canvas_width",
+    "canvas_height",
+    "center_x",
+    "center_y",
+    "center_start_x",
+    "center_start_y",
+    "font_size",
+    "fill_color",
+    "inner_letter_spacing",
+    "outer_letter_spacing",
+    "layer_spacing",
+    "max_layers",
+    "line_color",
+    "line_weight",
+    "initial_velocity_x",
+    "initial_velocity_y",
+    "max_line_length",
+    "flying_trigger_interval",
+    "flying_count_min",
+    "flying_count_max",
+    "flying_start_delay",
+    "center_dot_color",
+    "outside_line_color",
+    "outside_line_weight",
+    "char_float_range"
+  ],
+  "fit_tags": [
+    "release",
+    "lightness",
+    "reconciliation",
+    "airy-renewal",
+    "life-spreading"
+  ],
+  "avoid_tags": [
+    "sharp-anger",
+    "dense-explanation",
+    "hard-comedy",
+    "heavy-practical-summary"
+  ]
+}

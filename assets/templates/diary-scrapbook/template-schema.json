@@ -1,0 +1,33 @@
+{
+  "template_id": "diary-scrapbook",
+  "engine": "vanilla-css",
+  "description": "Open diary/notebook with deep steel blue pages. Left page is a scrapbook collage with overlapping photos, Polaroid frames, push-pins, sparkle stars, gingham hearts, stickers. Right page has handwritten diary text on ruled lines. Month tabs across top.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Caveat, Playfair Display). Images inline as base64 or generated.",
+  "customizable_fields": [
+    "page_title",
+    "diary_text",
+    "photo_images",
+    "sticker_elements",
+    "month_tabs",
+    "page_color",
+    "collage_layout",
+    "handwriting_font",
+    "decorative_elements"
+  ],
+  "fit_tags": [
+    "memory-shelf",
+    "scrapbook",
+    "personal",
+    "nostalgic",
+    "intimate",
+    "warm",
+    "journal"
+  ],
+  "avoid_tags": [
+    "tech",
+    "data-heavy",
+    "brutalist",
+    "corporate",
+    "minimal"
+  ]
+}

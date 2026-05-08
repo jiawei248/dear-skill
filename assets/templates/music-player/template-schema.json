@@ -1,0 +1,34 @@
+{
+  "template_id": "music-player",
+  "engine": "p5.js + webgl",
+  "description": "Dark ambient 3D music player interface. Left side: vinyl record album cover with 3D tilt on hover. Below: minimal player UI with progress bar and controls. Right side: tilted playlist panel with track listing. Audiophile/dark luxury aesthetic.",
+  "final_delivery_requirement": "Export as single HTML file. Pinned CDN delivery for p5.js is acceptable. All assets inline.",
+  "customizable_fields": [
+    "page_title",
+    "album_title",
+    "album_art_colors",
+    "track_list",
+    "track_durations",
+    "artist_name",
+    "progress_position",
+    "background_color",
+    "accent_color",
+    "vinyl_label_color"
+  ],
+  "fit_tags": [
+    "music",
+    "playlist",
+    "mixtape",
+    "audiophile",
+    "dark-luxury",
+    "dedication",
+    "song"
+  ],
+  "avoid_tags": [
+    "bright",
+    "cute",
+    "data-heavy",
+    "planning",
+    "checklist"
+  ]
+}

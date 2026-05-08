@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sys.Portfolio V1.0</title>
+  <!-- 引入 p5.js 库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #0a0a0a; /* 外围深色背景，突出中间的手机屏幕效果 */
+      font-family: monospace;
+    }
+    canvas {
+      box-shadow: 0 0 30px rgba(20, 80, 255, 0.2);
+      border-radius: 30px; /* 模拟手机圆角 */
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    let blueCol;
+    let bgCol;
+
+    function setup() {
+      // 创建模拟手机比例的画布
+      createCanvas(420, 850);
+      // 设置高像素密度以保证字体和线条锐利
+      pixelDensity(2);
+      
+      // 定义颜色：复古亮蓝色 和 略微偏暖的米白背景色
+      blueCol = color(20, 80, 235);
+      bgCol = color(248, 249, 250);
+    }
+
+    function draw() {
+      background(bgCol);
+      
+      // 全局边框
+      stroke(blueCol);
+      strokeWeight(2);
+      noFill();
+      rect(1, 1, width - 2, height - 2, 30);
+
+      // --- 顶部导航栏 ---
+      strokeWeight(1.5);
+      line(0, 45, width, 45);
+      
+      noStroke();
+      fill(blueCol);
+      textFont('monospace');
+      textSize(14);
+      textAlign(LEFT, CENTER);
+      text("FILE  EDIT  VIEW", 25, 25);
+      
+      textAlign(RIGHT, CENTER);
+      text("SYS.PORTFOLIO V1.0", width - 25, 25);
+
+      // --- 顶部空白方框 ---
+      stroke(blueCol);
+      noFill();
+      rect(80, 70, 260, 70);
+
+      // --- 右侧悬浮工具条 (部分露出) ---
+      drawSideBar();
+
+      // --- 窗口1: GREET.EXE ---
+      drawGreetWindow(30, 160);
+
+      // --- 窗口2: GLYPH_VIEWER.APP ---
+      drawGlyphWindow(20, 420);
+
+      // --- 窗口3: SKETCH_01.TMP (底部半截) ---
+      drawSketchWindow(110, 780);
+    }
+
+    // --- 动态雪花屏效果函数 ---
+    function drawSnow(x, y, w, h) {
+      push();
+      let snowCol = color(20, 80, 235, 50); // 淡淡的透明蓝色
+      stroke(snowCol);
+      strokeWeight(1);
+      // 根据面积决定随机点的数量
+      let density = 0.6; 
+      let totalPoints = w * h * density;
+      for (let i = 0; i < totalPoints; i++) {
+        let px = x + random(w);
+        let py = y + random(h);
+        point(px, py);
+      }
+      pop();
+    }
+
+    // --- 绘制右侧工具条 ---
+    function drawSideBar() {
+      let x = 390;
+      let y = 190;
+      let w = 30;
+      stroke(blueCol);
+      fill(bgCol);
+      rect(x, y, w, 180);
+      line(x, y + 25, width, y + 25);
+      line(x, y + 50, width, y + 50);
+      line(x, y + 75, width, y + 75);
+      line(x, y + 100, width, y + 100);
+      line(x, y + 150, width, y + 150);
+
+      noStroke();
+      fill(blueCol);
+      textAlign(CENTER, CENTER);
+      text("A", x + w/2, y + 13);
+      text("|+|", x + w/2, y + 38);
+      
+      // 填充块
+      fill(blueCol);
+      rect(x, y + 75, w, 25);
+      fill(bgCol);
+      text("S", x + w/2, y + 88); // 占位符图标
+      
+      fill(blueCol);
+      text("e", x + w/2, y + 113);
+    }
+
+    // --- 绘制 GREET.EXE 窗口 ---
+    function drawGreetWindow(x, y) {
+      let w = 330;
+      let h = 280;
+      
+      // 窗口外框
+      stroke(blueCol);
+      fill(bgCol);
+      rect(x, y, w, h);
+      
+      // 标题栏及雪花屏
+      line(x, y + 25, x + w, y + 25);
+      drawSnow(x, y, w - 60, 25); // 雪花屏区域避开按钮区
+      drawSnow(x + w - 60, y, 30, 25); // 按钮背景也有雪花
+      drawSnow(x + w - 30, y, 30, 25); 
+
+      // 标题文字
+      noStroke();
+      fill(blueCol);
+      textAlign(LEFT, CENTER);
+      text("GREET.EXE", x + 12, y + 12);
+      
+      // 右侧按钮 _, X
+      stroke(blueCol);
+      line(x + w - 60, y, x + w - 60, y + 25);
+      line(x + w - 30, y, x + w - 30, y + 25);
+      noStroke();
+      fill(blueCol);
+      textAlign(CENTER, CENTER);
+      text("_", x + w - 45, y + 10);
+      text("X", x + w - 15, y + 13);
+
+      // 内部带锚点的方框
+      let bx = x + 20;
+      let by = y + 50;
+      let bw = w - 40;
+      let bh = h - 70;
+      stroke(blueCol);
+      noFill();
+      rect(bx, by, bw, bh);
+      drawAnchors(bx, by, bw, bh);
+
+      // "Hello" 大字 (使用无衬线字体)
+      noStroke();
+      fill(blueCol);
+      textAlign(LEFT, TOP);
+      textFont('sans-serif');
+      textStyle(BOLD);
+      textSize(54);
+      text("Hello", bx + 20, by + 30);
+      
+      // 终端指令部分
+      textFont('monospace');
+      textStyle(NORMAL);
+      textSize(12);
+      let ty = by + 100;
+      text("> LOAD \"DESIGNER\",8,1", bx + 20, ty);
+      text("> READY.", bx + 20, ty + 20);
+      text("> RUN", bx + 20, ty + 40);
+
+      // 光标闪烁逻辑
+      if (floor(millis() / 500) % 2 === 0) {
+        text("_", bx + 20 + textWidth("> RUN "), ty + 40);
+      }
+
+      // 底部小字
+      text("BUILDING SYSTEMS &\nINTERFACES.", bx + 20, ty + 80);
+    }
+
+    // --- 绘制 GLYPH_VIEWER.APP 窗口 ---
+    function drawGlyphWindow(x, y) {
+      let w = 295;
+      let h = 330;
+      
+      // 窗口外框
+      stroke(blueCol);
+      fill(bgCol);
+      rect(x, y, w, h);
+      
+      // 标题栏 (干净的，无雪花)
+      line(x, y + 25, x + w, y + 25);
+      noStroke();
+      fill(blueCol);
+      textAlign(LEFT, CENTER);
+      text("GLYPH_VIEWER.APP", x + 10, y + 12);
+
+      // 按钮 _, [], X
+      stroke(blueCol);
+      line(x + w - 90, y, x + w - 90, y + 25);
+      line(x + w - 60, y, x + w - 60, y + 25);
+      line(x + w - 30, y, x + w - 30, y + 25);
+      noStroke();
+      fill(blueCol);
+      textAlign(CENTER, CENTER);
+      text("_", x + w - 75, y + 10);
+      text("[]", x + w - 45, y + 13);
+      text("X", x + w - 15, y + 13);
+
+      // 背景网格 (20px间距)
+      stroke(blueCol);
+      strokeWeight(0.8);
+      let gridStartY = y + 25;
+      let gridEndY = y + h - 25;
+      for (let i = x + 20; i < x + w; i += 20) {
+        line(i, gridStartY, i, gridEndY);
+      }
+      for (let j = gridStartY + 20; j < gridEndY; j += 20) {
+        line(x, j, x + w, j);
+      }
+      strokeWeight(1.5);
+
+      // 像素字体中心框
+      let boxX = x + 75; // 对齐网格
+      let boxY = y + 85; 
+      let boxS = 140; // 7x7 grid
+      fill(bgCol);
+      stroke(blueCol);
+      rect(boxX, boxY, boxS, boxS);
+
+      // 绘制像素 'a'
+      push();
+      translate(boxX, boxY);
+      fill(blueCol);
+      noStroke();
+      let s = 20;
+      // 硬编码近似于图像中的 'a' 形状
+      rect(2*s, 1*s, s, s); rect(3*s, 1*s, s, s);
+      rect(1*s, 2*s, s, s); rect(4*s, 2*s, s, s);
+      rect(4*s, 3*s, s, s);
+      rect(1*s, 4*s, s, s); rect(2*s, 4*s, s, s); rect(3*s, 4*s, s, s); rect(4*s, 4*s, s, s);
+      rect(1*s, 5*s, s, s); rect(4*s, 5*s, s, s);
+      rect(1*s, 6*s, s, s); rect(4*s, 6*s, s, s);
+      rect(2*s, 7*s, s, s); rect(3*s, 7*s, s, s); rect(5*s, 7*s, s, s); // 尾巴
+      pop();
+
+      // 底部状态栏
+      stroke(blueCol);
+      line(x, gridEndY, x + w, gridEndY);
+      noStroke();
+      fill(blueCol);
+      textAlign(LEFT, CENTER);
+      textSize(10);
+      text("SEL: 10x10px", x + 10, gridEndY + 12);
+      textAlign(RIGHT, CENTER);
+      text("ZOOM: 800%", x + w - 10, gridEndY + 12);
+    }
+
+    // --- 绘制 SKETCH_01.TMP 窗口 (底部) ---
+    function drawSketchWindow(x, y) {
+      let w = 245;
+      let h = 100;
+      
+      stroke(blueCol);
+      fill(bgCol);
+      rect(x, y, w, h);
+      
+      // 标题栏及雪花屏
+      line(x, y + 25, x + w, y + 25);
+      drawSnow(x, y, w - 30, 25);
+      drawSnow(x + w - 30, y, 30, 25);
+
+      // 标题
+      noStroke();
+      fill(blueCol);
+      textAlign(LEFT, CENTER);
+      textSize(12);
+      text("SKETCH_01.TMP", x + 10, y + 12);
+
+      // 按钮 X
+      stroke(blueCol);
+      line(x + w - 30, y, x + w - 30, y + 25);
+      noStroke();
+      fill(blueCol);
+      textAlign(CENTER, CENTER);
+      text("X", x + w - 15, y + 13);
+    }
+
+    // --- 绘制边界线上的小方块锚点 ---
+    function drawAnchors(x, y, w, h) {
+      let s = 6; 
+      let half = s / 2;
+      fill(bgCol);
+      stroke(blueCol);
+      
+      // 四角
+      rect(x - half, y - half, s, s);
+      rect(x + w - half, y - half, s, s);
+      rect(x - half, y + h - half, s, s);
+      rect(x + w - half, y + h - half, s, s);
+      
+      // 四边中点
+      rect(x + w/2 - half, y - half, s, s);
+      rect(x + w/2 - half, y + h - half, s, s);
+      rect(x - half, y + h/2 - half, s, s);
+      rect(x + w - half, y + h/2 - half, s, s);
+    }
+  </script>
+</body>
+</html>

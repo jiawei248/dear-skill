@@ -1,0 +1,45 @@
+{
+  "template_id": "dossier-folder",
+  "engine": "vanilla-css",
+  "description": "Interactive skeuomorphic personnel file folder. Click to open reveals two-page vertical spread with fold crease at viewport center. Contains card pile: profile card with polaroid-bordered photo, evidence exhibit cards, sticky notes, and decorative elements (CSS-only binder clip, paperclips, pushpins, washi tape, cassette tape with reels/screws, floppy disk with shutter/label, tri-color star stickers). Warm kraft paper palette on dark desk background with polka dots.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Caveat, Special Elite, Courier Prime, Inter). Profile photo and polaroid landscape photo inline as base64 JPEG. Replace {{PROFILE_PHOTO_BASE64}} (2 occurrences) and {{POLAROID_PHOTO_BASE64}} (1 occurrence).",
+  "customizable_fields": [
+    "page_title",
+    "file_number",
+    "cover_title",
+    "cover_subtitle",
+    "profile_name",
+    "profile_fields",
+    "persona_tags",
+    "evidence_cards",
+    "sticky_note_text",
+    "bottom_message",
+    "polaroid_caption",
+    "cassette_label",
+    "floppy_label",
+    "stamp_text",
+    "star_colors",
+    "profile_photo_base64",
+    "polaroid_photo_base64",
+    "dog_sign_text"
+  ],
+  "fit_tags": [
+    "being-seen",
+    "personality-profile",
+    "achievement-showcase",
+    "borrowed-media",
+    "interactive-object",
+    "dossier",
+    "archive",
+    "warm",
+    "tactile",
+    "skeuomorphic"
+  ],
+  "avoid_tags": [
+    "minimal",
+    "dark-terminal",
+    "pixel-retro",
+    "brutalist",
+    "poetic-literary"
+  ]
+}

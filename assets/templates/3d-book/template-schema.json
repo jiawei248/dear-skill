@@ -1,0 +1,34 @@
+{
+  "template_id": "3d-book",
+  "engine": "three.js",
+  "description": "Interactive 3D book with realistic page-turning animation. Pages physically bend and curl during flipping with shadows and lighting. Dark cinematic background. Canvas-generated page textures.",
+  "final_delivery_requirement": "Export as single HTML file. Pinned CDN delivery for Three.js is acceptable. Page content generated on canvas.",
+  "customizable_fields": [
+    "page_title",
+    "page_count",
+    "page_contents",
+    "cover_title",
+    "cover_color",
+    "page_background_colors",
+    "text_content",
+    "font_style",
+    "background_color",
+    "lighting_intensity"
+  ],
+  "fit_tags": [
+    "narrative",
+    "story",
+    "letter",
+    "multi-part",
+    "reveal",
+    "immersive",
+    "literary"
+  ],
+  "avoid_tags": [
+    "quick-interaction",
+    "data-heavy",
+    "casual",
+    "meme",
+    "light-playful"
+  ]
+}

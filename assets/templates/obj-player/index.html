@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NULL_OBJ Archive Player</title>
+    <!-- 引入 p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.js"></script>
+    <!-- 引入字体：Anton (粗体大字) 和 Space Mono (等宽小字) -->
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #111111;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            color: white;
+            font-family: 'Space Mono', monospace;
+        }
+        canvas {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border-radius: 20px;
+        }
+        /* 隐藏 p5.js 默认的加载提示，使用我们自定义的 */
+        #p5_loading {
+            display: none;
+        }
+        #loading-text {
+            position: absolute;
+            font-size: 14px;
+            letter-spacing: 2px;
+            color: #ffb4c8;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading-text">INITIALIZING SYSTEM...</div>
+    <script>
+        // 定义全局颜色配置 (精准提取自参考图)
+        const C_PINK_TOP = '#ffb4c8';
+        const C_ORANGE = '#ff8f4d';
+        const C_GREY_BG = '#a3a3a3';
+        const C_DARK_BLUE = '#2b3f5c';
+        const C_GREEN = '#415e46';
+        const C_PINK_LIGHT = '#ffc8da';
+        const C_BEIGE = '#f2ebdc';
+        const C_BLACK = '#0f0f0f';
+
+        // 布局参数
+        const W = 420;
+        const H = 840;
+        const BORDER = 4; // 粗线条宽度
+        
+        let fontTitle, fontMono;
+        let portraitImg;
+        
+        // 3D 缓冲区域相关
+        let pgGrid;
+        let textTexture;
+        let targetRotX = 0, targetRotY = 0;
+        let currRotX = 0, currRotY = 0;
+
+        // 预加载资源
+        function preload() {
+            // 使用 p5.js 的方式加载字体，确保 Canvas 内可用
+            fontTitle = loadFont('https://cdnjs.cloudflare.com/ajax/libs/topcoat/0.8.0/font/SourceCodePro-Bold.otf'); 
+            // 注意：为了保证单文件加载不出错，WEBGL 纹理最好使用默认字体或系统安全字体。
+            // 稍后在绘制中会尽量使用系统字体如 'Arial Black' 保底。
+
+            // 加载人像占位图 (使用 Unsplash 随机图)
+            portraitImg = loadImage('https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80');
+        }
+
+        function setup() {
+            createCanvas(W, H);
+            document.getElementById('loading-text').style.display = 'none'; // 隐藏加载提示
+            
+            // 初始化 3D 缓冲画布，用于左侧的流动网格
+            pgGrid = createGraphics(190, 316, WEBGL);
+            
+            // 初始化用于 3D 贴图的 2D 文本画布
+            textTexture = createGraphics(316, 190);
+            updateTextTexture();
+        }
+
+        // 绘制镂空的 RAW DATA 纹理
+        function updateTextTexture() {
+            textTexture.clear();
+            textTexture.textAlign(CENTER, CENTER);
+            textTexture.textFont('Impact, Arial Black, sans-serif'); 
+            textTexture.textSize(70);
+            textTexture.fill(C_GREY_BG); // 内部填充背景色，使其看起来像镂空
+            textTexture.stroke(50);
+            textTexture.strokeWeight(3);
+            
+            // 两行文字错开
+            textTexture.text("RAW", textTexture.width/2 - 20, textTexture.height/2 - 35);
+            textTexture.text("DATA", textTexture.width/2 + 20, textTexture.height/2 + 35);
+        }
+
+        function draw() {
+            background(C_BLACK);
+            
+            // 外层圆角裁切效果 (通过绘制圆角底色实现)
+            noStroke();
+            fill(C_BLACK);
+            rect(0, 0, W, H, 20);
+
+            // ----------------------------------------------------
+            // 绘制各大色块区域 (不含边框)
+            // ----------------------------------------------------
+            
+            // 1. 顶部粉色区
+            fill(C_PINK_TOP);
+            rect(20, 20, W-40, 120, 15, 15, 0, 0);
+            
+            // 2. 橙色跑马灯区
+            fill(C_ORANGE);
+            rect(20, 140, W-40, 44);
+
+            // 3. 中间右侧 深蓝人像区 (y: 184, h: 316)
+            fill(C_DARK_BLUE);
+            rect(210, 184, 190, 316);
+            if (portraitImg) {
+                push();
+                tint(43, 63, 92, 220); // 覆盖深蓝色滤镜
+                imageMode(CORNER);
+                // 裁切并绘制图像
+                drawingContext.save();
+                rect(210, 184, 190, 316);
+                drawingContext.clip();
+                image(portraitImg, 150, 184, 300, 316); 
+                drawingContext.restore();
+                pop();
+            }
+
+            // 4. 左下 绿色区
+            fill(C_GREEN);
+            rect(20, 500, 190, 110);
+            
+            // 5. 右下 浅粉区
+            fill(C_PINK_LIGHT);
+            rect(210, 500, 190, 110);
+
+            // 6. 左下 米色区
+            fill(C_BEIGE);
+            rect(20, 610, 190, 110);
+
+            // 7. 右下 黑色唱片区
+            fill(C_BLACK);
+            rect(210, 610, 190, 110);
+            
+            // 8. 底部 米色购买区
+            fill(C_BEIGE);
+            rect(20, 720, W-40, 100, 0, 0, 15, 15);
+
+
+            // ----------------------------------------------------
+            // 3D 流动网格处理 (中间左侧区域)
+            // ----------------------------------------------------
+            let gridX = 20, gridY = 184, gridW = 190, gridH = 316;
+            
+            // 检测鼠标是否在网格区域内并计算倾斜目标值
+            if (mouseX > gridX && mouseX < gridX + gridW && mouseY > gridY && mouseY < gridY + gridH) {
+                let mx = mouseX - (gridX + gridW/2);
+                let my = mouseY - (gridY + gridH/2);
+                targetRotY = map(mx, -gridW/2, gridW/2, -PI/5, PI/5);
+                targetRotX = map(my, -gridH/2, gridH/2, PI/5, -PI/5); // 反向更符合直觉
+            } else {
+                targetRotX = 0;
+                targetRotY = 0;
+            }
+            
+            // 平滑过渡(Lerp)
+            currRotX = lerp(currRotX, targetRotX, 0.1);
+            currRotY = lerp(currRotY, targetRotY, 0.1);
+
+            // 渲染 3D 缓冲
+            pgGrid.clear();
+            pgGrid.background(C_GREY_BG);
+            pgGrid.push();
+            pgGrid.rotateX(currRotX);
+            pgGrid.rotateY(currRotY);
+
+            // 绘制扭曲流动的线框
+            let t = frameCount * 0.03;
+            pgGrid.stroke(80);
+            pgGrid.strokeWeight(1.5);
+            pgGrid.noFill();
+            
+            // 垂直波浪线
+            for (let i = -120; i <= 120; i += 25) {
+                pgGrid.beginShape();
+                for (let j = -200; j <= 200; j += 20) {
+                    let offX = sin(j * 0.03 + t) * 8;
+                    let offY = cos(i * 0.03 + t) * 8;
+                    pgGrid.vertex(i + offX, j + offY, 0);
+                }
+                pgGrid.endShape();
+            }
+            // 水平波浪线
+            for (let j = -180; j <= 180; j += 25) {
+                pgGrid.beginShape();
+                for (let i = -150; i <= 150; i += 20) {
+                    let offX = sin(j * 0.03 + t) * 8;
+                    let offY = cos(i * 0.03 + t) * 8;
+                    pgGrid.vertex(i + offX, j + offY, 0);
+                }
+                pgGrid.endShape();
+            }
+            // 绘制网格交点的小方块
+            pgGrid.fill(60);
+            pgGrid.noStroke();
+            for (let i = -120; i <= 120; i += 25) {
+                for (let j = -180; j <= 180; j += 25) {
+                    let offX = sin(j * 0.03 + t) * 8;
+                    let offY = cos(i * 0.03 + t) * 8;
+                    pgGrid.rect(i + offX - 2.5, j + offY - 2.5, 5, 5);
+                }
+            }
+            
+            // 叠加 RAW DATA 文字纹理平面
+            pgGrid.push();
+            pgGrid.translate(0, 0, 1); // 稍微置前，避免Z-fighting
+            pgGrid.rotateZ(-HALF_PI); // 逆时针旋转 90 度
+            pgGrid.texture(textTexture);
+            pgGrid.noStroke();
+            // 平面大小与颠倒后的长宽对应
+            pgGrid.plane(gridH, gridW); 
+            pgGrid.pop();
+
+            pgGrid.pop();
+            
+            // 将 3D 画面绘制到主画布
+            image(pgGrid, gridX, gridY);
+
+
+            // ----------------------------------------------------
+            // 绘制全局粗黑边框和分割线
+            // ----------------------------------------------------
+            stroke(C_BLACK);
+            strokeWeight(BORDER);
+            noFill();
+            
+            // 外边框
+            rect(20, 20, W-40, H-40, 15);
+            // 横向分割线
+            line(20, 140, W-20, 140);
+            line(20, 184, W-20, 184);
+            line(20, 500, W-20, 500);
+            line(20, 610, W-20, 610);
+            line(20, 720, W-20, 720);
+            // 纵向分割线
+            line(210, 184, 210, 720);
+
+
+            // ----------------------------------------------------
+            // 排版内容与文字 (精准还原字体和排版)
+            // ----------------------------------------------------
+            noStroke();
+            
+            // 1. 顶部 Header
+            fill(C_BLACK);
+            textAlign(LEFT, TOP);
+            textFont('Space Mono, monospace');
+            textSize(12);
+            text("VOL. 09", 30, 30);
+            
+            textAlign(CENTER, TOP);
+            text("[ARCHIVE]", W/2, 30);
+            
+            textAlign(RIGHT, TOP);
+            text("2024", W-30, 30);
+            
+            // 大字 NULL_OBJ (进行纵向拉伸)
+            push();
+            translate(W/2, 85);
+            scale(1.1, 1.8); // 宽度拉伸1.1倍，高度拉伸1.8倍
+            textAlign(CENTER, CENTER);
+            textFont('Anton, sans-serif');
+            textSize(42);
+            text("NULL_OBJ", 0, 0);
+            pop();
+            
+            // 顶部底部小字
+            textAlign(LEFT, BOTTOM);
+            textFont('Space Mono, monospace');
+            textSize(12);
+            text("LIMITED RUN", 30, 135);
+            textAlign(CENTER, BOTTOM);
+            text("///", W/2, 135);
+            textAlign(RIGHT, BOTTOM);
+            text("TOKYO / NY", W-30, 135);
+
+            // 2. 跑马灯文字
+            textAlign(LEFT, CENTER);
+            textFont('Anton, sans-serif');
+            textSize(22);
+            text("►PROTOTYPE_01◄HE/A", 30, 163);
+
+            // 3. 右侧人像区文字
+            textAlign(LEFT, BOTTOM);
+            textFont('Space Mono, monospace');
+            textSize(11);
+            fill(255);
+            text("COLLECTION:", 220, 420);
+            
+            fill(240); // 略微奶白
+            textFont('Anton, sans-serif');
+            textSize(42);
+            textLeading(36); // 行高
+            text("STATIC\nNOISE", 220, 490);
+
+            // 4. 左侧绿色区 MATERIAL
+            fill(180, 210, 180); // 浅绿色小字
+            textFont('Space Mono, monospace');
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text("MATERIAL", 115, 515);
+            
+            fill(255);
+            textFont('Anton, sans-serif');
+            textSize(36);
+            textAlign(CENTER, CENTER);
+            text("NYLON", 115, 555);
+            
+            fill(255);
+            textFont('Space Mono, monospace');
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text("100% RIPSTOP", 115, 595);
+
+            // 5. 右侧粉色区 SIZE
+            fill(200, 100, 130);
+            textFont('Space Mono, monospace');
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text("SIZE", 305, 515);
+            
+            fill(C_BLACK);
+            textFont('Anton, sans-serif');
+            textSize(36);
+            textAlign(CENTER, CENTER);
+            text("UNI", 305, 555);
+            
+            textFont('Space Mono, monospace');
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text("ADJUSTABLE", 305, 595);
+
+            // 6. 左下米色区 STATUS
+            fill(120, 110, 100);
+            textFont('Space Mono, monospace');
+            textSize(10);
+            textAlign(CENTER, TOP);
+            text("STATUS", 115, 625);
+            
+            fill(C_BLACK);
+            textFont('Anton, sans-serif');
+            textSize(36);
+            textAlign(CENTER, CENTER);
+            text("AVAIL", 115, 665);
+            
+            textFont('Space Mono, monospace');
+            textSize(12);
+            textAlign(CENTER, BOTTOM);
+            text("IN STOCK", 115, 705);
+
+            // 7. 右下黑色唱片ICON
+            fill(C_ORANGE);
+            circle(305, 665, 70); // 外圆
+            fill(C_BLACK);
+            circle(305, 665, 20); // 内孔
+
+            // 8. 底部购买区
+            fill(C_BLACK);
+            push();
+            translate(W/2, 770);
+            scale(1.2, 1.2); // 放大拉伸
+            textAlign(CENTER, CENTER);
+            textFont('Anton, sans-serif');
+            textSize(46);
+            text("ACQUIRE$240", 0, 0);
+            pop();
+        }
+    </script>
+</body>
+</html>

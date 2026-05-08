@@ -1,0 +1,35 @@
+{
+  "template_id": "wet-letter",
+  "engine": "p5.js",
+  "description": "Circular raindrop dispersion effect that makes text feel soaked, disturbed, and quietly revealed.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "loading_text",
+    "source_text",
+    "background_color",
+    "text_color",
+    "text_size",
+    "text_leading",
+    "particle_step",
+    "drop_spawn_probability",
+    "drop_target_radius_min",
+    "drop_target_radius_max",
+    "drop_speed_min",
+    "drop_speed_max",
+    "allow_tap_drops"
+  ],
+  "fit_tags": [
+    "sadness",
+    "disappointment",
+    "heartbreak",
+    "quiet-grief",
+    "witnessing"
+  ],
+  "avoid_tags": [
+    "celebration",
+    "practical-summary",
+    "high-energy-comedy",
+    "playful-flirt"
+  ]
+}

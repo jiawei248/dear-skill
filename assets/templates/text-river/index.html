@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text River</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #000000;
+    }
+
+    body {
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Text River",
+      wordsList: [
+        "memory", "echo", "rest", "flow", "return", "still",
+        "light", "trust", "near", "listen", "warm", "hold",
+        "breathe", "carry", "soft", "again", "home", "drift",
+        "think", "together", "quiet", "awaken", "learn", "love",
+        "wonder", "remain", "gently", "river", "trace", "glow"
+      ],
+      backgroundColor: [0, 80],
+      textColor: [255, 255, 255],
+      particleCountDesktop: 500,
+      particleCountMobile: 250,
+      sizeMin: 10,
+      sizeMax: 22,
+      initialVelocityMin: 0.5,
+      initialVelocityMax: 1.2,
+      maxSpeedMin: 0.8,
+      maxSpeedMax: 2.0,
+      flowNoiseScale: 0.002,
+      flowTurns: 4,
+      flowStrength: 0.1,
+      baseRightwardForce: 0.25,
+      centerPullStrength: 0.001,
+      interactRadius: 180,
+      interactForceMin: 4,
+      interactForceMax: 0,
+      vortexMultiplier: 0.8,
+      trailAlpha: 80,
+      mobileBreakpoint: 800,
+      riverTopRatio: 0.2,
+      riverBottomRatio: 0.8
+    };
+
+    let particles = [];
+    let zoff = 0;
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      createCanvas(windowWidth, windowHeight);
+      background(0);
+
+      const particleCount =
+        windowWidth > TEMPLATE_DATA.mobileBreakpoint
+          ? TEMPLATE_DATA.particleCountDesktop
+          : TEMPLATE_DATA.particleCountMobile;
+
+      particles = [];
+      for (let i = 0; i < particleCount; i += 1) {
+        particles.push(new Particle());
+      }
+
+      textFont("Arial");
+      textAlign(CENTER, CENTER);
+    }
+
+    function draw() {
+      background(0, TEMPLATE_DATA.trailAlpha);
+      zoff += 0.003;
+
+      for (const p of particles) {
+        p.applyFlow();
+        p.interact();
+        p.update();
+        p.edges();
+        p.show();
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      background(0);
+    }
+
+    class Particle {
+      constructor() {
+        this.pos = createVector(
+          random(-200, width),
+          random(height * TEMPLATE_DATA.riverTopRatio, height * TEMPLATE_DATA.riverBottomRatio)
+        );
+        this.vel = createVector(
+          random(TEMPLATE_DATA.initialVelocityMin, TEMPLATE_DATA.initialVelocityMax),
+          0
+        );
+        this.acc = createVector(0, 0);
+        this.maxSpeed = random(TEMPLATE_DATA.maxSpeedMin, TEMPLATE_DATA.maxSpeedMax);
+        this.word = random(TEMPLATE_DATA.wordsList);
+        this.size = random(TEMPLATE_DATA.sizeMin, TEMPLATE_DATA.sizeMax);
+        this.baseAlpha = random(120, 255);
+      }
+
+      applyForce(force) {
+        this.acc.add(force);
+      }
+
+      applyFlow() {
+        const noiseVal = noise(
+          this.pos.x * TEMPLATE_DATA.flowNoiseScale,
+          this.pos.y * TEMPLATE_DATA.flowNoiseScale,
+          zoff
+        );
+        const angle = noiseVal * TWO_PI * TEMPLATE_DATA.flowTurns;
+
+        const flowForce = p5.Vector.fromAngle(angle);
+        flowForce.setMag(TEMPLATE_DATA.flowStrength);
+        flowForce.add(createVector(TEMPLATE_DATA.baseRightwardForce, 0));
+
+        const distFromCenter = this.pos.y - height / 2;
+        const centerPull = createVector(0, -distFromCenter * TEMPLATE_DATA.centerPullStrength);
+        flowForce.add(centerPull);
+
+        this.applyForce(flowForce);
+      }
+
+      interact() {
+        const mousePos = createVector(mouseX, mouseY);
+        const dir = p5.Vector.sub(this.pos, mousePos);
+        const d = dir.mag();
+
+        if (d < TEMPLATE_DATA.interactRadius) {
+          dir.normalize();
+          const forceStrength = map(
+            d,
+            0,
+            TEMPLATE_DATA.interactRadius,
+            TEMPLATE_DATA.interactForceMin,
+            TEMPLATE_DATA.interactForceMax
+          );
+
+          const repelForce = dir.copy().mult(forceStrength);
+          const vortexForce = createVector(-dir.y, dir.x).mult(forceStrength * TEMPLATE_DATA.vortexMultiplier);
+
+          this.applyForce(repelForce);
+          this.applyForce(vortexForce);
+        }
+      }
+
+      update() {
+        this.vel.add(this.acc);
+        this.vel.limit(this.maxSpeed);
+        this.pos.add(this.vel);
+        this.acc.mult(0);
+      }
+
+      edges() {
+        if (this.pos.x > width + 100) {
+          this.pos.x = random(-200, -50);
+          this.pos.y = random(height * TEMPLATE_DATA.riverTopRatio, height * TEMPLATE_DATA.riverBottomRatio);
+          this.word = random(TEMPLATE_DATA.wordsList);
+        }
+
+        if (this.pos.y < -100 || this.pos.y > height + 100) {
+          this.pos.y = height / 2 + random(-50, 50);
+        }
+      }
+
+      show() {
+        push();
+        const distFromCenter = abs(this.pos.y - height / 2);
+        const alphaFade = map(distFromCenter, 0, height / 2, this.baseAlpha, 0);
+        fill(TEMPLATE_DATA.textColor[0], TEMPLATE_DATA.textColor[1], TEMPLATE_DATA.textColor[2], alphaFade);
+        textSize(this.size);
+        translate(this.pos.x, this.pos.y);
+
+        const heading = this.vel.heading();
+        if (heading > -PI / 2 && heading < PI / 2) {
+          rotate(heading * 0.4);
+        }
+
+        text(this.word, 0, 0);
+        pop();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>O Balloons</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #f8f8fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(248, 248, 250, 0.96);
+      color: rgba(30, 30, 30, 0.78);
+      font-family: Georgia, serif;
+      font-size: 15px;
+      letter-spacing: 0.8px;
+      pointer-events: none;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Laying out the page and preparing the lift...</div>
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "O Balloons",
+      loadingText: "Laying out the page and preparing the lift...",
+      sourceText:
+        "Some things do not need to be burned away. Some things can simply become lighter. What felt heavy can loosen. What kept circling can rise. A page can hold a feeling for a while, then let it drift upward until the space below feels easier to breathe in. Not every goodbye needs fire. Sometimes a little air is enough.",
+      backgroundColor: [248, 248, 250],
+      paperColor: [250, 246, 238],
+      paperStrokeColor: [230, 225, 215],
+      textColor: [40, 40, 40],
+      fontFamily: "Georgia",
+      paperWidthMax: 560,
+      paperWidthRatio: 0.85,
+      paperYRatio: 0.45,
+      paperPaddingX: 40,
+      paperPaddingTop: 45,
+      paperPaddingBottom: 60,
+      fontSize: 13,
+      lineHeight: 25,
+      balloonRadiusLowercase: 6,
+      balloonRadiusUppercase: 9,
+      stringLengthMin: 60,
+      stringLengthMax: 160,
+      swaySpeedMin: 1,
+      swaySpeedMax: 3,
+      floatOffsetMin: 10,
+      floatOffsetMax: 40,
+      cycleDurationSeconds: 16,
+      loopAnimation: true
+    };
+
+    let chars = [];
+    let balloons = [];
+
+    let pX;
+    let pY;
+    let pWidth;
+    let pHeight;
+
+    let animationTime = 0;
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      const loadingEl = document.getElementById("loading");
+      if (loadingEl) loadingEl.textContent = TEMPLATE_DATA.loadingText;
+
+      createCanvas(windowWidth, windowHeight);
+      textFont(TEMPLATE_DATA.fontFamily);
+      generateLayout();
+
+      if (loadingEl) {
+        loadingEl.style.display = "none";
+      }
+    }
+
+    function generateLayout() {
+      chars = [];
+      balloons = [];
+
+      pWidth = min(TEMPLATE_DATA.paperWidthMax, width * TEMPLATE_DATA.paperWidthRatio);
+      pX = (width - pWidth) / 2;
+      pY = height * TEMPLATE_DATA.paperYRatio;
+
+      const startX = pX + TEMPLATE_DATA.paperPaddingX;
+      const startY = pY + TEMPLATE_DATA.paperPaddingTop;
+      let x = startX;
+      let y = startY;
+
+      textSize(TEMPLATE_DATA.fontSize);
+
+      const words = TEMPLATE_DATA.sourceText.split(" ");
+
+      for (let i = 0; i < words.length; i += 1) {
+        const word = words[i];
+        const wordWidth = textWidth(word + " ");
+
+        if (x + wordWidth > pX + pWidth - TEMPLATE_DATA.paperPaddingX) {
+          x = startX;
+          y += TEMPLATE_DATA.lineHeight;
+        }
+
+        for (let j = 0; j < word.length; j += 1) {
+          const charStr = word.charAt(j);
+          const cw = textWidth(charStr);
+          const cx = x + cw / 2;
+          const cy = y;
+
+          if (charStr === "o" || charStr === "O") {
+            balloons.push({
+              charStr,
+              origX: cx,
+              origY: cy,
+              radius: charStr === "O"
+                ? TEMPLATE_DATA.balloonRadiusUppercase
+                : TEMPLATE_DATA.balloonRadiusLowercase,
+              strokeWeight: random(1, 2),
+              stringLen: random(TEMPLATE_DATA.stringLengthMin, TEMPLATE_DATA.stringLengthMax),
+              swaySpeed: random(TEMPLATE_DATA.swaySpeedMin, TEMPLATE_DATA.swaySpeedMax),
+              swayOffset: random(TWO_PI),
+              floatOffset: random(TEMPLATE_DATA.floatOffsetMin, TEMPLATE_DATA.floatOffsetMax),
+              targetIdx: -1
+            });
+          } else {
+            chars.push({
+              c: charStr,
+              origX: cx,
+              origY: cy,
+              currX: cx,
+              currY: cy
+            });
+          }
+
+          x += cw;
+        }
+
+        x += textWidth(" ");
+      }
+
+      pHeight = (y - pY) + TEMPLATE_DATA.paperPaddingBottom;
+
+      for (const b of balloons) {
+        let closestDist = Infinity;
+        let closestIdx = -1;
+
+        for (let i = 0; i < chars.length; i += 1) {
+          const c = chars[i];
+          let d = dist(b.origX, b.origY, c.origX, c.origY);
+          const dy = abs(b.origY - c.origY);
+          d += dy * 10;
+
+          if (d < closestDist) {
+            closestDist = d;
+            closestIdx = i;
+          }
+        }
+
+        b.targetIdx = closestIdx;
+      }
+    }
+
+    function draw() {
+      background(
+        TEMPLATE_DATA.backgroundColor[0],
+        TEMPLATE_DATA.backgroundColor[1],
+        TEMPLATE_DATA.backgroundColor[2]
+      );
+
+      animationTime += deltaTime * 0.001;
+      const duration = TEMPLATE_DATA.cycleDurationSeconds;
+      const cycleTime = TEMPLATE_DATA.loopAnimation
+        ? animationTime % duration
+        : min(animationTime, duration);
+
+      let balloonFloat = 0;
+      let balloonLift = 0;
+      let globalOffset = 0;
+
+      if (cycleTime < 2) {
+        // Still reading.
+      } else if (cycleTime < 5) {
+        let p = (cycleTime - 2) / 3;
+        p = p * p * (3 - 2 * p);
+        balloonFloat = p;
+      } else if (cycleTime < 9) {
+        balloonFloat = 1;
+        let p = (cycleTime - 5) / 4;
+        p = p * p * (3 - 2 * p);
+        balloonLift = p * 160;
+      } else if (cycleTime < 14) {
+        balloonFloat = 1;
+        balloonLift = 160;
+        let p = (cycleTime - 9) / 5;
+        p = p * p;
+        globalOffset = p * (height + 500);
+      } else {
+        balloonFloat = 1;
+        balloonLift = 160;
+        globalOffset = height + 500;
+      }
+
+      drawPaper();
+
+      for (let i = 0; i < chars.length; i += 1) {
+        const c = chars[i];
+        let maxDeform = 0;
+        let dominantBalloon = null;
+
+        if (balloonLift > 0) {
+          for (const b of balloons) {
+            const d = dist(c.origX, c.origY, b.origX, b.origY);
+            const sigma = 45;
+            const influence = exp(-(d * d) / (2 * sigma * sigma));
+            const deform = balloonLift * influence;
+
+            if (deform > maxDeform) {
+              maxDeform = deform;
+              dominantBalloon = b;
+            }
+          }
+        }
+
+        let horizPull = 0;
+        if (dominantBalloon && balloonLift > 0) {
+          const dx = c.origX - dominantBalloon.origX;
+          horizPull = -dx * (maxDeform / 400);
+        }
+
+        let flutter = 0;
+        if (globalOffset > 0) {
+          flutter = noise(c.origX * 0.01, c.origY * 0.01, frameCount * 0.03) * 30 - 15;
+        }
+
+        c.currX = c.origX + horizPull + flutter * (globalOffset / 1000);
+        c.currY = c.origY - maxDeform - globalOffset - flutter;
+      }
+
+      for (const b of balloons) {
+        const targetChar = chars[b.targetIdx];
+        if (!targetChar) continue;
+
+        if (balloonFloat === 0) {
+          fill(TEMPLATE_DATA.textColor[0], TEMPLATE_DATA.textColor[1], TEMPLATE_DATA.textColor[2]);
+          noStroke();
+          textAlign(CENTER, BASELINE);
+          text(b.charStr, b.origX, b.origY);
+          continue;
+        }
+
+        let sway = sin(animationTime * b.swaySpeed + b.swayOffset) * 15 * balloonFloat;
+        if (globalOffset > 0) {
+          sway += (noise(b.origX, animationTime) - 0.5) * 80 * (globalOffset / 800);
+        }
+
+        const currentStringLen = (b.stringLen + b.floatOffset) * balloonFloat;
+        const bx = targetChar.currX + sway;
+        const by = targetChar.currY - currentStringLen;
+
+        const charTopX = targetChar.currX;
+        const charTopY = targetChar.currY - 10;
+        const stringEndX = bx;
+        const stringEndY = by + b.radius;
+
+        const tension = constrain(balloonLift / 100, 0, 1);
+        const ctrlOffset = currentStringLen * 0.35 * (1 - tension * 0.85);
+
+        stroke(50, 150 * balloonFloat);
+        strokeWeight(0.5);
+        noFill();
+
+        const ctrl1X = charTopX;
+        const ctrl1Y = charTopY - ctrlOffset;
+        const ctrl2X = bx;
+        const ctrl2Y = by + ctrlOffset;
+        bezier(charTopX, charTopY, ctrl1X, ctrl1Y, ctrl2X, ctrl2Y, stringEndX, stringEndY);
+
+        if (balloonFloat < 0.3) {
+          const alphaText = map(balloonFloat, 0, 0.3, 255, 0);
+          fill(TEMPLATE_DATA.textColor[0], TEMPLATE_DATA.textColor[1], TEMPLATE_DATA.textColor[2], alphaText);
+          noStroke();
+          text(b.charStr, bx, by + 5);
+        }
+
+        const alphaCirc = map(balloonFloat, 0.1, 0.4, 0, 220);
+        if (alphaCirc > 0) {
+          stroke(0, alphaCirc);
+          strokeWeight(b.strokeWeight);
+          noFill();
+          circle(bx, by, b.radius * 2);
+
+          strokeWeight(0.6);
+          line(bx, by + b.radius, bx, by + b.radius + 3);
+        }
+      }
+
+      fill(TEMPLATE_DATA.textColor[0], TEMPLATE_DATA.textColor[1], TEMPLATE_DATA.textColor[2]);
+      noStroke();
+      textAlign(CENTER, BASELINE);
+      for (const c of chars) {
+        if (c.currY > -50) {
+          text(c.c, c.currX, c.currY);
+        }
+      }
+    }
+
+    function drawPaper() {
+      push();
+      fill(TEMPLATE_DATA.paperColor[0], TEMPLATE_DATA.paperColor[1], TEMPLATE_DATA.paperColor[2]);
+      stroke(
+        TEMPLATE_DATA.paperStrokeColor[0],
+        TEMPLATE_DATA.paperStrokeColor[1],
+        TEMPLATE_DATA.paperStrokeColor[2]
+      );
+      strokeWeight(1);
+
+      drawingContext.shadowColor = "rgba(0, 0, 0, 0.06)";
+      drawingContext.shadowBlur = 25;
+      drawingContext.shadowOffsetY = 15;
+
+      beginShape();
+      vertex(pX, pY);
+      vertex(pX + pWidth, pY - 2);
+      vertex(pX + pWidth + 2, pY + pHeight);
+      vertex(pX - 2, pY + pHeight + 2);
+      endShape(CLOSE);
+      pop();
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      generateLayout();
+      animationTime = 0;
+    }
+  </script>
+</body>
+</html>

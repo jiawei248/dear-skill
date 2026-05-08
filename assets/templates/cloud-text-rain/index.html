@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cloud Text Ripple</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<script>
+    // --- 核心变量 ---
+    let ringChars = [];
+    let fallingChars = [];
+    let groundChars = [];
+    let ripples = [];
+    
+    // 背景与透视相关参数
+    let horizonY;
+    let doorWidth;
+    let doorHeight;
+    let cloudCenter = {x: 0, y: 0};
+    
+    // 文本素材
+    const cloudTextRaw = "cloud cloud cloud cloud cloud cloud ";
+    const groundTextRaw = "hold one up to the sunlight, twisting the end until the shards of colored glass rearrange. I intended to be bored, my eyes fixed not on the patterns, but on the way your hair caught the light. Back then, I thought love was like those kaleidoscopes: ever-changing, but always contained. Stuck in the moment I woke up, the first time I told you, in the way you laughed, and for reasons that were never as important as you. Now, years later, that kaleidoscope is shattered. I could have loved you right. It's a reminder, not of the hope we had, but of the way my mind refuses to let me breathe. I think about you every day. Not in the soft, fleeting way of a memory under my skin, one I can't dig out no matter how hard I try. I pass the café where we sat in our usual booth, a book open in front of you, waiting for me to tease you about reading too much. I see the corner where you stepped on my feet and laughed so hard you cried, and my chest tightens until I can't breathe. Sometimes, fingers hovering over your name—still saved in my contacts, unchanged, untexted, a silent testament to the loneliness, though that's unbearable. It's the guilt. The heavy, suffocating guilt of knowing I betrayed you. I didn't just leave you; I made up stories about work, about needing space, about not being ready for commitment, when the truth was simpler, and far more cruel: I was scared. Scared of how much I loved you, scared of the way you made me feel seen, scared that if I stayed, I'd never be able to live up to the person you thought I was. So I ran. I ran to someone else, someone who didn't make me feel that vulnerability, someone who let me hide from the depth of my own feelings. I told myself it was easier this way—that you'd move on, that you'd find someone better, someone who wouldn't hurt you the way I did. But I knew, even then, that I was lying. I knew I was breaking something irreparable, and I did it anyway, because I was too selfish to face my own fears. I've tried to move on. I've dated other people, built a career, bought a house—all the things society tells you are 'success.' But none of it feels real. None of it fills the hole you left behind.";
+
+    function setup() {
+        createCanvas(windowWidth, windowHeight);
+        textFont('Arial');
+        
+        horizonY = height * 0.65;
+        doorWidth = width * 0.7;
+        doorHeight = height * 0.85;
+        cloudCenter = { x: width / 2, y: height * 0.35 };
+
+        // 初始化云环文字
+        let angleStep = TWO_PI / cloudTextRaw.length;
+        for (let i = 0; i < cloudTextRaw.length; i++) {
+            ringChars.push({
+                char: cloudTextRaw[i],
+                angle: i * angleStep,
+                radius: 120,
+                active: true, // 是否在环上
+                hideTime: 0
+            });
+        }
+
+        // 初始化地面文字网格 (模拟透视)
+        initGroundText();
+        
+        // 每隔一段时间掉落一个字符
+        setInterval(triggerDrop, 1500);
+    }
+
+    function windowResized() {
+        createCanvas(windowWidth, windowHeight);
+        horizonY = height * 0.65;
+        doorWidth = width * 0.7;
+        doorHeight = height * 0.85;
+        cloudCenter = { x: width / 2, y: height * 0.35 };
+        initGroundText();
+    }
+
+    function initGroundText() {
+        groundChars = [];
+        let cols = 70;
+        let rows = 30;
+        let charIndex = 0;
+        
+        for (let r = 0; r < rows; r++) {
+            let rowP = r / (rows - 1);
+            // 非线性Y轴，制造透视纵深感
+            let y = horizonY + Math.pow(rowP, 1.8) * (height - horizonY + 100);
+            
+            // 越往下越宽
+            let rowWidth = map(rowP, 0, 1, width * 0.5, width * 1.5);
+            let startX = (width - rowWidth) / 2;
+            
+            for (let c = 0; c < cols; c++) {
+                let x = startX + (c / (cols - 1)) * rowWidth;
+                
+                // 获取当前字符，如果文本用完则循环
+                let char = groundTextRaw[charIndex % groundTextRaw.length];
+                charIndex++;
+                
+                groundChars.push({
+                    baseX: x,
+                    baseY: y,
+                    char: char,
+                    rowP: rowP // 用于后续可能的景深处理
+                });
+            }
+        }
+    }
+
+    function triggerDrop() {
+        // 找出当前还在环上的字符
+        let available = ringChars.filter(rc => rc.active && rc.char !== ' ');
+        if (available.length > 0) {
+            let rc = random(available);
+            rc.active = false;
+            rc.hideTime = millis();
+            
+            // 计算当前屏幕坐标
+            let timeAngle = millis() * 0.0005;
+            let currentAngle = rc.angle + timeAngle;
+            let sx = cloudCenter.x + cos(currentAngle) * rc.radius;
+            // 匹配新的Y轴位置（整体下移30）和统一的椭圆扁率（0.4）
+            let sy = cloudCenter.y + 30 + sin(currentAngle) * rc.radius * 0.4; 
+            
+            // 加入掉落队列
+            fallingChars.push({
+                char: rc.char,
+                x: sx,
+                y: sy,
+                vy: random(2, 4), // 初始下落速度
+                targetY: horizonY + random(10, height - horizonY - 50) // 随机落入地面的深度
+            });
+        }
+    }
+
+    function draw() {
+        drawBackground();
+        drawDoors();
+        
+        // 绘制内部深空 (带渐变阴影质感)
+        push();
+        let skyGrad = drawingContext.createLinearGradient(0, height/2 - doorHeight/2, 0, height);
+        skyGrad.addColorStop(0, '#021526'); // 顶部更深邃
+        skyGrad.addColorStop(0.5, '#0a3a66');
+        skyGrad.addColorStop(1, '#1b5a8f'); // 底部稍亮
+        drawingContext.fillStyle = skyGrad;
+        noStroke();
+        
+        beginShape();
+        vertex(width/2 - doorWidth/2 * 0.7, height/2 - doorHeight/2 + 20);
+        vertex(width/2 + doorWidth/2 * 0.7, height/2 - doorHeight/2 + 20);
+        vertex(width/2 + doorWidth/2 * 0.7, height);
+        vertex(width/2 - doorWidth/2 * 0.7, height);
+        endShape(CLOSE);
+        pop();
+
+        drawCloud(cloudCenter.x, cloudCenter.y);
+        updateAndDrawRing();
+        updateAndDrawGround();
+        updateAndDrawFalling();
+        updateRipples();
+    }
+
+    // --- 绘制背景与门框 ---
+    function drawBackground() {
+        // 外墙
+        background('#7ab2d6');
+    }
+
+    function drawDoors() {
+        let cx = width / 2;
+        let cy = height / 2;
+        let dw = doorWidth;
+        let dh = doorHeight;
+        
+        push();
+        // 门框阴影和厚度
+        fill('#5894bf');
+        rect(cx - dw/2 - 20, cy - dh/2 - 20, dw + 40, dh + 20);
+        
+        // 门框外圈渐变
+        let frameGrad = drawingContext.createLinearGradient(cx - dw/2, cy - dh/2, cx + dw/2, cy + dh/2);
+        frameGrad.addColorStop(0, '#8cc2e3');
+        frameGrad.addColorStop(1, '#5693bb');
+        drawingContext.fillStyle = frameGrad;
+        noStroke();
+        rect(cx - dw/2 - 10, cy - dh/2 - 10, dw + 20, dh + 10);
+        
+        fill('#124d7a'); // 内部黑框
+        rect(cx - dw/2, cy - dh/2, dw, dh);
+        
+        // 左扇门 (透视打开 + 渐变阴影质感)
+        push();
+        let leftDoorGrad = drawingContext.createLinearGradient(cx - dw/2, 0, cx - dw/2 * 0.7, 0);
+        leftDoorGrad.addColorStop(0, '#d3eaf7'); // 靠墙边缘较亮
+        leftDoorGrad.addColorStop(1, '#81b2d4'); // 靠内部深空边缘较暗
+        drawingContext.fillStyle = leftDoorGrad;
+        stroke('#a3cce8');
+        strokeWeight(2);
+        beginShape();
+        vertex(cx - dw/2, cy - dh/2); // 左上
+        vertex(cx - dw/2 * 0.7, cy - dh/2 + 20); // 内部左上
+        vertex(cx - dw/2 * 0.7, height + 50); // 内部左下
+        vertex(cx - dw/2, height + 50); // 左下
+        endShape(CLOSE);
+        
+        // 左门板上的装饰线
+        stroke('#8abcdc');
+        line(cx - dw/2 + 20, cy - dh/2 + 30, cx - dw/2 * 0.7 - 20, cy - dh/2 + 50);
+        pop();
+        
+        // 右扇门 (透视打开 + 渐变阴影质感)
+        push();
+        let rightDoorGrad = drawingContext.createLinearGradient(cx + dw/2 * 0.7, 0, cx + dw/2, 0);
+        rightDoorGrad.addColorStop(0, '#81b2d4'); // 靠内部深空边缘较暗
+        rightDoorGrad.addColorStop(1, '#d3eaf7'); // 靠墙边缘较亮
+        drawingContext.fillStyle = rightDoorGrad;
+        stroke('#a3cce8');
+        strokeWeight(2);
+        beginShape();
+        vertex(cx + dw/2, cy - dh/2); 
+        vertex(cx + dw/2 * 0.7, cy - dh/2 + 20); 
+        vertex(cx + dw/2 * 0.7, height + 50); 
+        vertex(cx + dw/2, height + 50); 
+        endShape(CLOSE);
+        
+        // 右门板上的装饰线
+        stroke('#8abcdc');
+        line(cx + dw/2 - 20, cy - dh/2 + 30, cx + dw/2 * 0.7 + 20, cy - dh/2 + 50);
+        pop();
+        
+        pop();
+    }
+
+    // --- 绘制云朵 ---
+    function drawCloud(x, y) {
+        push();
+        noStroke();
+        
+        // 1. 底层深色阴影 (偏左下方，表现右上方光源)
+        fill(140, 160, 190, 160); 
+        ellipse(x - 70, y + 30, 140, 90);
+        ellipse(x + 10, y + 40, 180, 100);
+        ellipse(x + 70, y + 25, 130, 80);
+        ellipse(x - 110, y + 15, 100, 70);
+        
+        // 2. 中下层过渡阴影
+        fill(190, 210, 230, 220); 
+        ellipse(x - 60, y + 15, 150, 110);
+        ellipse(x + 20, y + 20, 190, 120);
+        ellipse(x + 80, y + 10, 140, 90);
+        ellipse(x - 90, y + 5, 110, 80);
+        ellipse(x, y + 30, 160, 90);
+
+        // 3. 中间主体 (偏白)
+        fill(235, 240, 250, 255);
+        ellipse(x - 45, y - 10, 140, 110);
+        ellipse(x + 15, y - 5, 170, 130);
+        ellipse(x + 75, y - 15, 120, 90);
+        ellipse(x - 75, y - 15, 100, 80);
+        ellipse(x + 105, y - 5, 90, 70);
+        
+        // 4. 顶层右上方高光 (最亮，迎着光源)
+        fill(255, 255, 255, 255);
+        ellipse(x + 35, y - 30, 120, 90);
+        ellipse(x + 85, y - 35, 90, 70);
+        ellipse(x - 10, y - 40, 110, 80);
+        ellipse(x - 45, y - 30, 90, 60);
+        ellipse(x + 55, y - 45, 80, 50);
+        
+        pop();
+    }
+
+    // --- 绘制和更新云环文字 ---
+    function updateAndDrawRing() {
+        let timeAngle = millis() * 0.0005; // 缓慢旋转
+        
+        push();
+        fill(255);
+        textSize(18);
+        textAlign(CENTER, CENTER);
+        
+        // 添加轻微的深色发光/阴影，防止文字融入云层高光中看不清
+        drawingContext.shadowBlur = 5;
+        drawingContext.shadowColor = 'rgba(2, 21, 38, 0.7)';
+        
+        for (let rc of ringChars) {
+            // 如果处于隐藏状态，一段时间后恢复（让字重生）
+            if (!rc.active && millis() - rc.hideTime > 5000) {
+                rc.active = true;
+            }
+
+            if (rc.active) {
+                let currentAngle = rc.angle + timeAngle;
+                // 使用椭圆轨迹产生3D透视感，整体向下调整 30，避开云朵最亮的部分
+                let x = cloudCenter.x + cos(currentAngle) * rc.radius;
+                let y = cloudCenter.y + 30 + sin(currentAngle) * rc.radius * 0.4;
+                
+                // 背面的字稍微暗一点，前面的字亮一点
+                let depthP = map(sin(currentAngle), -1, 1, 0.4, 1);
+                fill(255, 255 * depthP);
+                
+                push();
+                translate(x, y);
+                // 字母方向跟随切线变化，并增加一点翻转感
+                rotate(sin(currentAngle) * 0.2); 
+                text(rc.char, 0, 0);
+                pop();
+            }
+        }
+        pop();
+    }
+
+    // --- 掉落的文字逻辑 ---
+    function updateAndDrawFalling() {
+        push();
+        fill(255);
+        textSize(18);
+        textAlign(CENTER, CENTER);
+        
+        for (let i = fallingChars.length - 1; i >= 0; i--) {
+            let fc = fallingChars[i];
+            
+            // 重力下落
+            fc.vy += 0.15;
+            fc.y += fc.vy;
+            
+            text(fc.char, fc.x, fc.y);
+            
+            // 碰到底面
+            if (fc.y >= fc.targetY) {
+                // 产生涟漪
+                ripples.push({
+                    x: fc.x,
+                    y: fc.targetY,
+                    startTime: millis(),
+                    duration: 3500, // 涟漪存活时间
+                    maxRadius: 250 // 涟漪最大影响范围
+                });
+                // 移除掉落字符
+                fallingChars.splice(i, 1);
+            }
+        }
+        pop();
+    }
+
+    // --- 绘制地面文字及涟漪效果 ---
+    function updateAndDrawGround() {
+        push();
+        fill(255, 200);
+        textAlign(CENTER, CENTER);
+        
+        let currentTime = millis();
+        
+        for (let gc of groundChars) {
+            let x = gc.baseX;
+            let y = gc.baseY;
+            
+            // 根据Y轴深度调整字体大小
+            let size = map(gc.rowP, 0, 1, 8, 22);
+            textSize(size);
+            
+            // 计算涟漪影响
+            let dx = 0;
+            let dy = 0;
+            let transparency = 200;
+
+            for (let r of ripples) {
+                let age = currentTime - r.startTime;
+                if (age > r.duration) continue;
+                
+                let lifeP = 1.0 - (age / r.duration); // 1 递减到 0
+                // 由于有透视，我们把Y轴距离拉伸，让波纹看起来是平躺在3D面上的椭圆
+                let distToRipple = dist(gc.baseX, gc.baseY * 2, r.x, r.y * 2); 
+                
+                if (distToRipple < r.maxRadius) {
+                    // 波纹当前扩散到的半径
+                    let waveRadius = age * 0.15; 
+                    let distanceToWaveFront = Math.abs(distToRipple - waveRadius);
+                    
+                    // 1. 缺口排斥力 (让字从中心散开)
+                    // 在撞击点附近产生一个持续的向外推力
+                    let gapForce = 0;
+                    if (distToRipple < 60) {
+                        gapForce = map(distToRipple, 0, 60, 30, 0) * lifeP;
+                    }
+                    
+                    // 2. 水波震荡力 (跟随波峰波谷上下左右晃动)
+                    let waveForceX = 0;
+                    let waveForceY = 0;
+                    if (distanceToWaveFront < 50) {
+                        // 震荡强度基于生命周期和距离波前的距离
+                        let amp = map(distanceToWaveFront, 0, 50, 10, 0) * lifeP;
+                        let phase = distToRipple * 0.1 - age * 0.01;
+                        waveForceY = Math.sin(phase) * amp * 1.5; // Y轴上下起伏更明显
+                        waveForceX = Math.cos(phase) * amp * 0.5;
+                        
+                        // 处于波峰波谷时改变透明度，增强水滴折射感
+                        transparency = 200 + Math.sin(phase) * 55;
+                    }
+                    
+                    if (gapForce > 0 || waveForceX !== 0 || waveForceY !== 0) {
+                        let angle = atan2(gc.baseY - r.y, gc.baseX - r.x);
+                        // 应用排斥力和震荡力
+                        dx += cos(angle) * gapForce + waveForceX;
+                        dy += sin(angle) * gapForce + waveForceY;
+                    }
+                }
+            }
+            
+            fill(255, transparency);
+            text(gc.char, x + dx, y + dy);
+        }
+        pop();
+    }
+
+    // --- 清理过期涟漪 ---
+    function updateRipples() {
+        let currentTime = millis();
+        for (let i = ripples.length - 1; i >= 0; i--) {
+            if (currentTime - ripples[i].startTime > ripples[i].duration) {
+                ripples.splice(i, 1);
+            }
+        }
+    }
+</script>
+</body>
+</html>

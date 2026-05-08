@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空探照灯效果</title>
+    <!-- 引入 p5.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #2c2f36; /* 桌面背景色 */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'PingFang SC', 'Microsoft YaHei', sans-serif;
+        }
+        canvas {
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-radius: 8px;
+        }
+        #instruction {
+            position: absolute;
+            top: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            letter-spacing: 2px;
+            pointer-events: none;
+            background: rgba(0,0,0,0.4);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div id="instruction">👈 点击并拖拽右上角的卡片把手</div>
+
+    <script>
+        let pgScene;
+        let pgFrame;
+        let stars = [];
+
+        // 画框与窗口的尺寸常量
+        const frameW = 660, frameH = 460;
+        let frameX, frameY;
+        let winX, winY, winW, winH;
+
+        // 探照卡片的状态
+        let cardX, cardY;
+        let targetX, targetY;
+        let cardAngle = 50; // 卡片倾斜角度（度数）
+        
+        // 拖拽交互状态
+        let isDragging = false;
+        let isHovering = false;
+        let offsetX = 0;
+        let offsetY = 0;
+
+        function setup() {
+            createCanvas(800, 600);
+            
+            pgScene = createGraphics(800, 600);
+            pgFrame = createGraphics(800, 600);
+
+            // 计算画框的居中位置
+            frameX = (width - frameW) / 2;
+            frameY = (height - frameH) / 2;
+
+            // 计算画框内部“透视窗”的坐标（带有一定的边距）
+            winX = frameX + 40;
+            winY = frameY + 40;
+            winW = frameW - 80;
+            winH = frameH - 130; // 底部留出更多空间写字
+
+            // 初始卡片位置（在右上角外面）
+            targetX = 660;
+            targetY = 10;
+            cardX = targetX;
+            cardY = targetY;
+
+            // 初始化画框内繁星
+            for (let i = 0; i < 80; i++) {
+                stars.push({
+                    x: random(winX, winX + winW),
+                    y: random(winY, winY + winH),
+                    s: random(1, 3.5),
+                    halo: random(10, 35),
+                    phase: random(TWO_PI),
+                    speed: random(0.02, 0.05)
+                });
+            }
+
+            drawFrame(); // 画框是静态的，预先画好
+        }
+
+        function drawScene() {
+            // 关键：将场景外设置为纯白，这样在正片叠底时，画框外的部分就不会被压暗影响
+            pgScene.background(255); 
+            
+            pgScene.push();
+            
+            // 1. 创建裁剪遮罩：只在“透视窗”内部绘制星空，防止星空溢出到画框外面
+            pgScene.beginShape();
+            pgScene.vertex(winX, winY);
+            pgScene.vertex(winX + winW, winY);
+            pgScene.vertex(winX + winW, winY + winH);
+            pgScene.vertex(winX, winY + winH);
+            pgScene.endShape(CLOSE);
+            pgScene.drawingContext.clip(); // 开启裁剪
+
+            // 2. 绘制深蓝到暗夜的渐变背景
+            let c1 = color('#050814');
+            let c2 = color('#1c3a6e');
+            for (let y = 0; y < winH; y++) {
+                let inter = map(y, 0, winH, 0, 1);
+                pgScene.stroke(lerpColor(c1, c2, inter));
+                pgScene.line(winX, winY + y, winX + winW, winY + y);
+            }
+
+            // 3. 绘制星云
+            pgScene.noStroke();
+            let centerX = winX + winW / 2;
+            let centerY = winY + winH / 2 + 20;
+            pgScene.fill(30, 80, 200, 40);
+            pgScene.ellipse(centerX, centerY, 400, 250);
+            pgScene.fill(40, 120, 255, 40);
+            pgScene.ellipse(centerX, centerY, 200, 100);
+
+            // 4. 绘制闪烁的星星
+            for (let star of stars) {
+                let flicker = sin(frameCount * star.speed + star.phase);
+                let haloAlpha = map(flicker, -1, 1, 30, 120);
+                let coreAlpha = map(flicker, -1, 1, 150, 255);
+
+                pgScene.fill(255, 245, 200, haloAlpha * 0.2);
+                pgScene.circle(star.x, star.y, star.halo * 1.5);
+                pgScene.fill(255, 245, 200, haloAlpha * 0.5);
+                pgScene.circle(star.x, star.y, star.halo);
+
+                pgScene.fill(255, 255, 255, coreAlpha);
+                pgScene.circle(star.x, star.y, star.s);
+            }
+
+            // 5. 绘制小船
+            pgScene.push();
+            pgScene.translate(centerX, centerY);
+            pgScene.rotate(PI / 6);
+
+            pgScene.fill('#7fb0d6'); 
+            pgScene.stroke('#3b5e7d');
+            pgScene.strokeWeight(2);
+            pgScene.beginShape();
+            pgScene.vertex(-45, -15); pgScene.vertex(45, -15); pgScene.vertex(55, 0);
+            pgScene.vertex(45, 15); pgScene.vertex(-45, 15); pgScene.vertex(-55, 0);
+            pgScene.endShape(CLOSE);
+
+            pgScene.fill('#5a8cb5');
+            pgScene.noStroke();
+            pgScene.beginShape();
+            pgScene.vertex(-40, -10); pgScene.vertex(40, -10); pgScene.vertex(48, 0);
+            pgScene.vertex(40, 10); pgScene.vertex(-40, 10); pgScene.vertex(-48, 0);
+            pgScene.endShape(CLOSE);
+
+            pgScene.fill('#2a374a'); 
+            pgScene.ellipse(-10, 0, 16, 12); pgScene.ellipse(15, 0, 16, 12); 
+            pgScene.fill('#e2b89d'); 
+            pgScene.circle(-10, 0, 8); pgScene.circle(15, 0, 8); 
+
+            pgScene.pop();
+            pgScene.pop(); // 结束裁剪区域
+        }
+
+        function drawFrame() {
+            pgFrame.clear();
+
+            // 为画框添加外阴影
+            pgFrame.drawingContext.shadowOffsetX = 0;
+            pgFrame.drawingContext.shadowOffsetY = 15;
+            pgFrame.drawingContext.shadowBlur = 30;
+            pgFrame.drawingContext.shadowColor = 'rgba(0,0,0,0.6)';
+
+            // 画框外壳
+            pgFrame.fill('#252240');
+            pgFrame.noStroke();
+            pgFrame.rect(frameX, frameY, frameW, frameH, 8);
+
+            // 清除阴影防止影响内部
+            pgFrame.drawingContext.shadowColor = 'transparent';
+
+            // 挖空中间区域（透视窗）
+            pgFrame.erase();
+            pgFrame.rect(winX, winY, winW, winH, 4);
+            pgFrame.noErase();
+
+            // 画框内边框
+            pgFrame.noFill();
+            pgFrame.stroke('#4a456b');
+            pgFrame.strokeWeight(3);
+            pgFrame.rect(winX, winY, winW, winH, 4);
+            pgFrame.stroke('#6f689c');
+            pgFrame.strokeWeight(1);
+            pgFrame.rect(winX - 4, winY - 4, winW + 8, winH + 8, 6);
+
+            // 全息镭射装饰
+            pgFrame.stroke('#56cbd6');
+            pgFrame.strokeWeight(1.5);
+            let drawVine = (x, y, s) => {
+                pgFrame.push();
+                pgFrame.translate(x, y); pgFrame.scale(s);
+                pgFrame.beginShape(); pgFrame.vertex(0, 0); pgFrame.quadraticVertex(15, -15, 30, 0); pgFrame.quadraticVertex(45, 15, 60, 0); pgFrame.endShape();
+                pgFrame.fill('#a7e6ed'); pgFrame.noStroke();
+                pgFrame.circle(15, -20, 3); pgFrame.circle(45, 20, 2); pgFrame.circle(-10, 5, 2);
+                pgFrame.pop();
+            };
+            drawVine(frameX + frameW/2 - 160, frameY + frameH - 55, 1);
+            drawVine(frameX + frameW/2 + 100, frameY + frameH - 55, 1);
+
+            // 底部文字
+            pgFrame.fill('#b2def0');
+            pgFrame.noStroke();
+            pgFrame.textAlign(CENTER, CENTER);
+            pgFrame.textFont('serif');
+            pgFrame.textSize(26); pgFrame.letterSpacing = 4;
+            pgFrame.text("星 空", frameX + frameW / 2, frameY + frameH - 60);
+            pgFrame.textSize(12); pgFrame.letterSpacing = 1;
+            pgFrame.text("The Starry Starry Night", frameX + frameW / 2, frameY + frameH - 30);
+        }
+
+        // 绘制白色探照光束（将被压在画框下）
+        function drawBeam() {
+            fill(255);
+            stroke(255);
+            strokeWeight(60); // 粗边框产生圆角梯形
+            strokeJoin(ROUND);
+            beginShape();
+            vertex(-20, 0);
+            vertex(20, 0);
+            vertex(140, 500);
+            vertex(-140, 500);
+            endShape(CLOSE);
+            
+            // 底部圆润弧形
+            noStroke();
+            circle(0, 500, 340); // 140*2 + 60 = 340
+        }
+
+        // 绘制外部的可拖拽物理把手（将悬浮在画框之上）
+        function drawHandle() {
+            // 灰色纸板把手
+            fill('#d5d5db');
+            stroke('#a8a8b0');
+            strokeWeight(2);
+            rect(-30, -70, 60, 80, 8); // 向上延伸的把手
+
+            // 把手上的小孔（更像真实的卡牌标签）
+            fill('#2c2f36'); // 模拟透出底层桌面
+            noStroke();
+            circle(0, -45, 12);
+        }
+
+        function draw() {
+            // 平滑跟随拖动目标
+            cardX = lerp(cardX, targetX, 0.2);
+            cardY = lerp(cardY, targetY, 0.2);
+
+            // 更新鼠标悬停状态以改变指针样式
+            updateInteraction();
+
+            // 1. 绘制桌面背景
+            background('#2c2f36'); 
+
+            // 2. 绘制画框透视窗内部的“纯黑底板”
+            fill('#0a0c10');
+            noStroke();
+            rect(winX, winY, winW, winH, 4);
+
+            // 3. 绘制发光的卡片主体（光束），它在画框的下层
+            push();
+            translate(cardX, cardY);
+            rotate(radians(cardAngle));
+            drawBeam();
+            pop();
+
+            // 4. 实时渲染星空图层，并通过 MULTIPLY 使其只在光束白色的地方显现
+            drawScene();
+            blendMode(MULTIPLY);
+            image(pgScene, 0, 0);
+
+            // 5. 恢复正常混合模式，盖上最顶层的“物理画框”
+            blendMode(BLEND);
+            image(pgFrame, 0, 0);
+
+            // 6. 最后，在最上层绘制卡片把手，使其悬浮在画框外面！
+            push();
+            translate(cardX, cardY);
+            rotate(radians(cardAngle));
+            drawHandle();
+            pop();
+        }
+
+        // ---------- 交互逻辑 ----------
+
+        function updateInteraction() {
+            // 使用逆向矩阵计算鼠标相对于旋转卡片的局部坐标
+            let dx = mouseX - cardX;
+            let dy = mouseY - cardY;
+            let a = -radians(cardAngle);
+            let localX = dx * cos(a) - dy * sin(a);
+            let localY = dx * sin(a) + dy * cos(a);
+
+            // 判断鼠标是否在把手区域内 (X: -30~30, Y: -70~10)
+            isHovering = (localX > -35 && localX < 35 && localY > -75 && localY < 15);
+
+            if (isDragging) {
+                targetX = mouseX + offsetX;
+                targetY = mouseY + offsetY;
+                cursor('grabbing');
+            } else if (isHovering) {
+                cursor('grab');
+            } else {
+                cursor('default');
+            }
+        }
+
+        function mousePressed() {
+            if (isHovering) {
+                isDragging = true;
+                // 记录点击位置与卡片中心的偏移，防止拖拽瞬间卡片跳跃
+                offsetX = cardX - mouseX;
+                offsetY = cardY - mouseY;
+            }
+        }
+
+        function mouseReleased() {
+            isDragging = false;
+        }
+    </script>
+</body>
+</html>

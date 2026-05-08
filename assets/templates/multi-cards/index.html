@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passenger Manifest & Lodging UI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            bgBase: '#151412',
+            cardRed: '#B24A33',
+            cardBeige: '#E1DFCE',
+            cardYellow: '#D89F2A',
+            textDark: '#1A1A1A',
+            textLight: '#F5F1ED',
+          },
+          fontFamily: {
+            serif: ['"Playfair Display"', 'serif'],
+            sans: ['ui-sans-serif', 'system-ui', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #151412;
+      color: #F5F1ED;
+      margin: 0;
+      padding: 0;
+      font-family: ui-sans-serif, system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .vertical-text {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+    }
+    /* 隐藏滚动条但保持可滚动 */
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { h, Component, render } from 'https://esm.sh/preact@10.19.2';
+    import htm from 'https://esm.sh/htm@3.1.1';
+
+    const html = htm.bind(h);
+
+    const App = () => {
+      return html`
+        <div class="min-h-screen flex items-center justify-start md:justify-center gap-6 p-8 overflow-x-auto w-full bg-bgBase hide-scrollbar">
+           <${RedCard} />
+           <${BeigeCard} />
+           <${YellowSections} />
+        </div>
+      `;
+    };
+
+    // 左侧红色通行证卡片
+    const RedCard = () => {
+      return html`
+        <div class="bg-cardRed w-[320px] h-[640px] rounded-[32px] p-8 flex flex-col relative shrink-0 shadow-2xl">
+          <!-- 顶部状态栏 -->
+          <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center gap-2 text-[11px] font-medium tracking-wider">
+              <div class="w-1.5 h-1.5 bg-textLight rounded-full"></div>
+              Folio
+            </div>
+            <button class="w-8 h-8 rounded-full border border-textLight/30 flex justify-center items-center hover:bg-textLight/10 transition-colors">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-[14px] h-[14px] opacity-90">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+              </svg>
+            </button>
+          </div>
+
+          <!-- 主标题 -->
+          <h1 class="font-serif text-[46px] leading-[0.92] tracking-tight mb-2 z-10 relative">
+            Passenger<br/>manifest &<br/>lodging
+          </h1>
+
+          <!-- 半圆形剪裁图 -->
+          <div class="relative w-[112%] -ml-[6%] h-[115px] rounded-t-[1000px] overflow-hidden mt-10 mb-8 border-b border-black/10">
+            <!-- 使用灰度与正片叠底模拟原图暗黑浆果质感 -->
+            <img src="https://images.unsplash.com/photo-1498557850523-fd3d118b962e?q=80&w=600&auto=format&fit=crop" class="w-full h-full object-cover grayscale opacity-90 mix-blend-multiply scale-110" alt="texture" />
+            <div class="absolute inset-0 bg-black/30 mix-blend-overlay"></div>
+            <!-- 图片上方的对角白色细线 -->
+            <div class="absolute w-[150%] h-[1px] bg-white/50 -rotate-[20deg] top-[55%] -left-[20%]"></div>
+          </div>
+
+          <!-- 编号区域 -->
+          <div class="mb-auto mt-2">
+            <div class="font-serif text-[42px] leading-none mb-2 tracking-tight">No. 884</div>
+            <div class="text-[9.5px] tracking-[0.2em] opacity-80 uppercase font-medium">Registry Sequence</div>
+          </div>
+
+          <!-- 底部按钮组 -->
+          <div class="flex justify-between items-center mt-8">
+            <button class="px-7 py-2 rounded-full border border-textLight/40 text-[13px] font-medium hover:bg-textLight/10 transition-colors">Review</button>
+            <button class="px-7 py-2 rounded-full border border-textLight/40 text-[13px] font-medium hover:bg-textLight/10 transition-colors">Next</button>
+          </div>
+
+          <!-- 右侧竖向小字 -->
+          <div class="absolute right-3 top-1/2 -translate-y-1/2 text-[8.5px] tracking-[0.25em] opacity-40 font-medium vertical-text">
+            ROUTE/C - 84.992.1X
+          </div>
+        </div>
+      `;
+    };
+
+    // 中间米色知识库卡片
+    const BeigeCard = () => {
+      // 用于生成边缘打孔效果的圆点序列
+      const dots = Array.from({ length: 27 });
+      return html`
+        <div class="bg-cardBeige w-[320px] h-[640px] rounded-[32px] p-8 flex flex-col relative shrink-0 shadow-2xl text-textDark z-0">
+          
+          <!-- 右侧锯齿打孔边缘 (巧妙利用背景色圆点覆盖边缘制造打孔错觉) -->
+          <div class="absolute -right-[6px] top-6 bottom-6 w-3 flex flex-col justify-between overflow-visible z-20 pointer-events-none">
+            ${dots.map(() => html`<div class="w-3 h-3 bg-bgBase rounded-full"></div>`)}
+          </div>
+
+          <!-- 淡淡的水印图章 -->
+          <svg viewBox="0 0 200 200" class="absolute w-[290px] h-[290px] top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.045] pointer-events-none -rotate-12 z-0">
+            <circle cx="100" cy="100" r="90" fill="none" stroke="black" stroke-width="1.5" stroke-dasharray="4 6" />
+            <circle cx="100" cy="100" r="70" fill="none" stroke="black" stroke-width="0.5" />
+            <path id="curve" d="M 25,100 A 75,75 0 1,1 175,100 A 75,75 0 1,1 25,100" fill="none" />
+            <text font-size="14.5" font-weight="bold" fill="black" letter-spacing="3" font-family="sans-serif">
+              <textPath href="#curve" startOffset="3%">POSTAL SERVICE</textPath>
+              <textPath href="#curve" startOffset="54%">HOTEL REGISTRY</textPath>
+            </text>
+          </svg>
+
+          <!-- 保证内容层在水印之上 -->
+          <div class="relative z-10 flex flex-col h-full">
+            <!-- 顶部 -->
+            <div class="flex items-center gap-2 text-[11px] font-medium tracking-wider mb-6">
+              <div class="w-1.5 h-1.5 bg-textDark rounded-full"></div>
+              Knowledge Base
+            </div>
+
+            <!-- 超大衬线标题 -->
+            <h1 class="font-serif text-[78px] leading-[0.8] tracking-[-0.05em] mb-7 mt-1">
+              Keys
+            </h1>
+
+            <!-- 胶囊信息牌 -->
+            <div class="flex gap-2.5 mb-10">
+              <div class="px-4 py-1.5 rounded-full border border-black/15 text-[9px] uppercase tracking-[0.15em] font-medium opacity-80">Est.</div>
+              <div class="px-6 py-1.5 rounded-full border border-black/15 text-[9px] uppercase tracking-[0.15em] font-medium opacity-80">1892</div>
+              <div class="px-4 py-1.5 rounded-full border border-black/15 text-[9px] uppercase tracking-[0.15em] font-medium opacity-80">Dir.</div>
+            </div>
+
+            <!-- 列表项区域 -->
+            <div class="flex-1 flex flex-col border-t border-black/10 pt-5 gap-5">
+              
+              <!-- 列表项 1 -->
+              <div class="flex flex-col gap-2 pb-5 border-b border-black/10">
+                <div class="flex justify-between items-center">
+                  <h2 class="font-serif text-[23px] tracking-tight">Arrival details</h2>
+                  <svg class="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+                <p class="text-[11px] leading-[1.4] opacity-70 pr-4">Proceed to the grand lobby. Concierge will validate postage and issue credentials.</p>
+              </div>
+
+              <!-- 列表项 2 -->
+              <div class="flex flex-col gap-2 pb-5 border-b border-black/10">
+                <div class="flex justify-between items-center">
+                  <h2 class="font-serif text-[23px] tracking-tight">Courier post</h2>
+                  <svg class="w-3.5 h-3.5 opacity-70" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                </div>
+                <p class="text-[11px] leading-[1.4] opacity-70 pr-4">Outbound dispatches are collected daily at 17:00 from the brass receptacle.</p>
+              </div>
+
+              <!-- 列表项 3 -->
+              <div class="flex flex-col gap-2 pt-1">
+                <h2 class="font-serif text-[23px] tracking-tight">Room 402</h2>
+                <p class="text-[9px] uppercase tracking-[0.15em] font-medium opacity-60">West Wing / Courtyard View</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      `;
+    };
+
+    // 右侧黄色分体式卡片组
+    const YellowSections = () => {
+      return html`
+        <div class="flex flex-col gap-4 w-[320px] shrink-0 h-[640px]">
+          
+          <!-- 上半部分卡片 (图形标志) -->
+          <div class="bg-cardYellow w-full h-[430px] rounded-[32px] p-8 flex flex-col relative shadow-2xl">
+            <!-- 顶部 -->
+            <div class="flex justify-between items-center mb-auto">
+              <div class="flex items-center gap-2 text-[11px] font-medium tracking-wider">
+                <div class="w-1.5 h-1.5 bg-textLight rounded-full"></div>
+                Access
+              </div>
+              <button class="w-8 h-8 rounded-full border border-textLight/30 flex justify-center items-center hover:bg-textLight/10 transition-colors">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" class="w-3.5 h-3.5 opacity-90"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+
+            <!-- SVG遮罩切割的中央抽象图形 -->
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none mt-8">
+              <svg width="220" height="220" viewBox="0 0 100 100">
+                <defs>
+                  <mask id="cutoutMask">
+                    <!-- 底层白色全显 -->
+                    <rect width="100" height="100" fill="white" />
+                    <!-- 横向百叶窗式黑色遮罩条 (切割出缝隙) -->
+                    <rect y="23" width="100" height="4" fill="black" />
+                    <rect y="34" width="100" height="4" fill="black" />
+                    <rect y="45" width="100" height="4" fill="black" />
+                    <rect y="56" width="100" height="4" fill="black" />
+                    <rect y="67" width="100" height="4" fill="black" />
+                    <rect y="78" width="100" height="4" fill="black" />
+                    
+                    <!-- 飞鸟/折纸几何图形黑色遮罩 -->
+                    <polygon points="50,15 70,30 65,45 88,48 83,60 55,58 50,85 38,85 45,55 30,42 40,30" fill="black" />
+                  </mask>
+                </defs>
+                
+                <!-- 应用了遮罩的主体白色圆 -->
+                <circle cx="50" cy="50" r="42" fill="#F5F1ED" mask="url(#cutoutMask)" />
+                
+                <!-- 左上角的小型十字准星 -->
+                <path d="M 23 23 L 23 29 M 20 26 L 26 26" stroke="#F5F1ED" stroke-width="1.5" stroke-linecap="square" />
+              </svg>
+            </div>
+          </div>
+
+          <!-- 下半部分卡片 (授权数据) -->
+          <div class="bg-cardYellow w-full flex-1 rounded-[32px] p-8 flex flex-col justify-center shadow-2xl relative">
+            <div class="flex flex-col gap-5 w-full mt-2">
+              
+              <!-- 数据行 1 -->
+              <div class="flex justify-between items-baseline border-b border-[#B88220] pb-2.5">
+                <span class="text-[9.5px] uppercase tracking-[0.15em] opacity-80 font-medium">Valid Through</span>
+                <span class="font-serif text-[18px]">Oct 24</span>
+              </div>
+
+              <!-- 数据行 2 -->
+              <div class="flex justify-between items-baseline border-b border-[#B88220] pb-2.5">
+                <span class="text-[9.5px] uppercase tracking-[0.15em] opacity-80 font-medium">Authorization</span>
+                <span class="font-serif text-[18px]">Level II</span>
+              </div>
+
+              <!-- 数据行 3 -->
+              <div class="flex justify-between items-baseline border-b border-[#B88220] pb-2.5">
+                <span class="text-[9.5px] uppercase tracking-[0.15em] opacity-80 font-medium">Sequence Code</span>
+                <span class="font-serif text-[18px] tracking-wide">88-B.49</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      `;
+    };
+
+    render(html`<${App} />`, document.getElementById('app'));
+  </script>
+</body>
+</html>

@@ -1,0 +1,874 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Things That Wouldn't Exist Without You</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Special+Elite&family=Courier+Prime:wght@400;700&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg: #2C2520;
+  --kraft-front: #B89B78;
+  --kraft-front-dark: #A08562;
+  --kraft-back: #D4BE9C;
+  --kraft-back-light: #DFD0B4;
+  --paper: #F5ECD7;
+  --paper-aged: #EDE0C8;
+  --paper-blue: #D8E4ED;
+  --paper-pink: #F0DCD4;
+  --paper-green: #D6E4D2;
+  --paper-deep: #C4A87A;
+  --ink: #3A2D24;
+  --ink-light: #6B5B4F;
+  --accent-red: #C05746;
+  --accent-terracotta: #C0785A;
+  --accent-blue: #5A7A94;
+  --accent-mint: #7BA38E;
+}
+body {
+  background: var(--bg);
+  font-family: 'Inter', sans-serif;
+  color: var(--ink);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px 60px;
+}
+/* Playful polka dot background */
+body::before {
+  content: '';
+  position: fixed; top:0;left:0;right:0;bottom:0;
+  background:
+    radial-gradient(circle, rgba(192,120,90,0.07) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(90,122,148,0.06) 1px, transparent 1px),
+    radial-gradient(circle, rgba(123,163,142,0.05) 2px, transparent 2px),
+    radial-gradient(circle, rgba(184,150,62,0.06) 1.5px, transparent 1.5px),
+    radial-gradient(circle, rgba(192,87,70,0.04) 1px, transparent 1px);
+  background-size: 47px 43px, 31px 37px, 67px 59px, 53px 61px, 41px 47px;
+  background-position: 0 0, 15px 20px, 30px 10px, 8px 35px, 22px 5px;
+  pointer-events: none; z-index:0;
+}
+.scene { width:720px; position:relative; z-index:1; }
+
+/* ============ CLOSED ============ */
+.folder-closed {
+  position:relative; width:100%; height:500px;
+  cursor:pointer; transition:opacity 0.4s, transform 0.4s;
+  margin-top: max(0px, calc(50vh - 250px - 40px)); /* vertically center folder, minus body padding */
+}
+.folder-closed.hidden { opacity:0; pointer-events:none; position:absolute; transform:scale(0.95); margin-top:0; }
+
+.c-back {
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:linear-gradient(175deg,var(--kraft-back-light),var(--kraft-back));
+  border-radius:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  z-index:1;
+}
+.c-back::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(87deg,transparent,transparent 2px,rgba(139,109,76,0.05) 2px,rgba(139,109,76,0.05) 4px);
+  border-radius:inherit;pointer-events:none;
+}
+.c-back-tab {
+  position:absolute;top:-30px;left:0;width:180px;height:30px;
+  background:linear-gradient(180deg,var(--kraft-back-light),var(--kraft-back));
+  border-radius:8px 8px 0 0;
+}
+.c-papers { position:absolute;top:0;left:0;right:0;bottom:0;z-index:2;pointer-events:none; }
+.c-pe { position:absolute;border-radius:2px;box-shadow:0 1px 3px rgba(0,0,0,0.04); }
+.c-pe1{top:-8px;left:50px;width:310px;height:20px;background:var(--paper);transform:rotate(-2.5deg);transform-origin:bottom left}
+.c-pe2{top:-12px;left:300px;width:230px;height:24px;background:var(--paper-blue);transform:rotate(3deg);transform-origin:bottom left}
+.c-pe3{top:-5px;right:60px;width:150px;height:16px;background:var(--paper-pink);transform:rotate(-1.5deg)}
+.c-pe4{top:-9px;left:170px;width:170px;height:18px;background:var(--paper-green);transform:rotate(3.5deg);transform-origin:bottom center}
+.c-pe5{top:-4px;right:180px;width:190px;height:14px;background:var(--paper-deep);transform:rotate(-2.5deg)}
+.c-pe-l{top:90px;left:-10px;width:14px;height:100px;background:var(--paper);border-radius:2px 0 0 2px}
+.c-pe-r{top:150px;right:-8px;width:12px;height:70px;background:var(--paper-pink);border-radius:0 2px 2px 0}
+
+.c-front {
+  position:absolute;top:14px;left:4px;right:4px;bottom:4px;
+  background:linear-gradient(175deg,var(--kraft-front),var(--kraft-front-dark));
+  border-radius:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.12),inset 0 1px 0 rgba(255,255,255,0.1);
+  z-index:3; padding:20px 28px 24px;
+  display:flex; flex-direction:column; overflow:visible;
+}
+.c-front::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:repeating-linear-gradient(87deg,transparent,transparent 2px,rgba(139,109,76,0.05) 2px,rgba(139,109,76,0.05) 4px);
+  border-radius:inherit;pointer-events:none;
+}
+.c-front-tab {
+  position:absolute;top:-28px;right:0;width:200px;height:28px;
+  background:linear-gradient(180deg,var(--kraft-front),var(--kraft-front-dark) 80%);
+  border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;
+}
+.c-front-tab span { font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);letter-spacing:2px;text-transform:uppercase;opacity:0.8; }
+
+.cover-row { display:flex; gap:24px; flex:1; }
+.cover-photo-wrap { flex-shrink:0;width:175px;height:220px;position:relative;background:#fff;padding:8px 8px 24px;border-radius:2px;box-shadow:2px 3px 10px rgba(0,0,0,0.15);transform:rotate(-1deg); }
+.cover-photo { width:100%;height:100%;object-fit:cover;border-radius:1px;filter:brightness(1.02); }
+.cover-tape { position:absolute;top:-7px;left:50%;transform:translateX(-50%) rotate(-2deg);width:80px;height:22px;background:repeating-linear-gradient(90deg,rgba(210,195,140,0.8) 0px,rgba(220,205,150,0.88) 3px,rgba(200,185,130,0.75) 6px);border-top:1px solid rgba(180,165,110,0.3);border-bottom:1px solid rgba(180,165,110,0.3);z-index:2; }
+.cover-tape::before { content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,0.15) 2px,rgba(255,255,255,0.15) 4px); }
+.cover-tape-2 { position:absolute;bottom:-5px;right:10px;width:60px;height:17px;background:repeating-linear-gradient(90deg,rgba(195,210,200,0.75) 0px,rgba(205,220,210,0.82) 3px,rgba(185,200,190,0.7) 6px);transform:rotate(3deg);border-top:1px solid rgba(150,170,160,0.25);border-bottom:1px solid rgba(150,170,160,0.25);z-index:2; }
+.cover-info { flex:1;display:flex;flex-direction:column;gap:6px;padding-top:12px; }
+.cover-fileno { font-family:'Courier Prime',monospace;font-size:10px;letter-spacing:2px;color:rgba(58,45,36,0.5);text-transform:uppercase; }
+.cover-title { font-family:'Special Elite',monospace;font-size:18px;color:var(--ink);letter-spacing:0.5px;line-height:1.4;opacity:0.85; }
+.cover-sub { font-family:'Caveat',cursive;font-size:14px;color:var(--ink-light);opacity:0.7; }
+.cover-stamp { position:absolute;bottom:18px;right:24px;transform:rotate(8deg);font-family:'Special Elite',monospace;font-size:15px;color:var(--accent-red);border:2.5px solid var(--accent-red);padding:4px 14px;border-radius:3px;opacity:0.45;letter-spacing:2px;text-transform:uppercase; }
+.cover-hint { position:absolute;bottom:20px;left:28px;font-family:'Caveat',cursive;font-size:13px;color:var(--ink-light);opacity:0;transition:opacity 0.3s; }
+.folder-closed:hover .cover-hint { opacity:0.7; }
+/* Binder clip: wire handles UP, black body below clamping paper */
+.binder-clip { position:absolute;top:-26px;left:50px;z-index:12;width:44px;height:48px; }
+/* Wire handles (pointing up, overlapping deeply into clip body) */
+.clip-handles {
+  position:absolute; top:0; left:50%; transform:translateX(-50%);
+  width:30px; height:28px;
+}
+.clip-handles::before,.clip-handles::after {
+  content:''; position:absolute; bottom:-6px; /* deep overlap */
+  width:12px; height:28px;
+  border:2.5px solid #B0B0B0;
+  border-bottom:none;
+  border-radius:6px 6px 0 0;
+  background:transparent;
+}
+.clip-handles::before { left:1px; transform:rotate(-5deg); }
+.clip-handles::after { right:1px; transform:rotate(5deg); }
+/* Black body — overlaps with handle bottoms */
+.clip-body {
+  position:absolute; bottom:0; left:50%; transform:translateX(-50%);
+  width:42px; height:28px;
+  background:linear-gradient(180deg,#3D3D3D 0%,#1D1D1D 100%);
+  border-radius:1px 1px 3px 3px;
+  box-shadow:0 2px 4px rgba(0,0,0,0.3);
+  clip-path: polygon(2% 0%, 98% 0%, 88% 100%, 12% 100%);
+}
+
+/* ============ OPENED ============ */
+.folder-open {
+  position:relative; width:100%;
+  opacity:0; pointer-events:none; transform:scale(0.95);
+  transition:opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+  margin-top: max(0px, calc(50vh - 508px)); /* fold-line at viewport center: 480px page-top + 28px tab */
+}
+.folder-open.visible { opacity:1; pointer-events:all; transform:scale(1); }
+
+/* Two-page opened shell */
+.open-shell {
+  position:relative; width:100%;
+  border-radius:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.3);
+  overflow:visible;
+}
+
+/* Top page (front cover interior — flipped up) */
+.page-top {
+  position:relative;
+  height:480px;
+  background:linear-gradient(180deg, var(--kraft-back-light) 5%, var(--kraft-back) 70%, #C4AA88 100%);
+  border-radius:10px 10px 0 0;
+  overflow:visible;
+}
+.page-top::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-linear-gradient(87deg,transparent,transparent 2px,rgba(139,109,76,0.04) 2px,rgba(139,109,76,0.04) 4px),
+    linear-gradient(180deg, transparent 85%, rgba(0,0,0,0.04) 100%);
+  border-radius:inherit;pointer-events:none;
+}
+/* Top page tab = at the VERY TOP, right side */
+.page-top-tab {
+  position:absolute;top:-28px;right:0;width:200px;height:28px;
+  background:linear-gradient(180deg,var(--kraft-back-light),var(--kraft-back));
+  border-radius:8px 8px 0 0;display:flex;align-items:center;justify-content:center;
+}
+.page-top-tab span { font-family:'Special Elite',monospace;font-size:11px;color:var(--ink);letter-spacing:2px;text-transform:uppercase;opacity:0.5; }
+
+/* Bottom page (back — contents side) */
+.page-bottom {
+  position:relative;
+  min-height:480px;
+  background:linear-gradient(180deg, #C4AA88 0%, var(--kraft-back) 30%, var(--kraft-back-light) 95%);
+  border-radius:0 0 10px 10px;
+  padding:0 32px 32px;
+  overflow:visible;
+}
+.page-bottom::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-linear-gradient(87deg,transparent,transparent 2px,rgba(139,109,76,0.04) 2px,rgba(139,109,76,0.04) 4px),
+    linear-gradient(180deg, rgba(0,0,0,0.04) 0%, transparent 15%);
+  border-radius:inherit;pointer-events:none;
+}
+/* Bottom page tab = at the VERY BOTTOM, left side */
+.page-bottom-tab {
+  position:absolute;bottom:-28px;left:0;width:180px;height:28px;
+  background:linear-gradient(180deg,var(--kraft-back),var(--kraft-back-light));
+  border-radius:0 0 8px 8px;
+}
+
+/* Fold crease between pages — soft shadow/gradient */
+.fold-line {
+  position:relative;
+  height:4px;
+  background:transparent;
+  z-index:2;
+}
+/* Main crease shadow — soft spread above and below */
+.fold-line::before {
+  content:'';
+  position:absolute;
+  top:-12px; left:0; right:0;
+  height:28px;
+  background:linear-gradient(180deg,
+    transparent 0%,
+    rgba(100,75,50,0.04) 15%,
+    rgba(80,55,30,0.08) 30%,
+    rgba(60,40,20,0.14) 45%,
+    rgba(50,30,15,0.16) 50%,
+    rgba(60,40,20,0.14) 55%,
+    rgba(80,55,30,0.08) 70%,
+    rgba(100,75,50,0.04) 85%,
+    transparent 100%
+  );
+  pointer-events:none;
+}
+/* Thin score lines within the crease */
+.fold-line::after {
+  content:'';
+  position:absolute;
+  top:-1px; left:24px; right:24px;
+  height:6px;
+  background:
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.06) 48%, rgba(0,0,0,0.06) 52%, transparent 100%),
+    linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.03) 48%, rgba(0,0,0,0.03) 52%, transparent 100%);
+  background-size: 100% 2px, 100% 2px;
+  background-position: 0 0, 0 4px;
+  background-repeat: no-repeat;
+}
+
+/* Close button */
+.close-btn {
+  position:absolute;top:16px;right:16px;z-index:10;
+  width:32px;height:32px;border-radius:50%;border:none;
+  background:rgba(58,45,36,0.08);cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Courier Prime',monospace;font-size:16px;color:var(--ink-light);
+  transition:background 0.2s;
+}
+.close-btn:hover{background:rgba(58,45,36,0.15)}
+
+/* ============ CONTENT (spans across fold) ============ */
+.content-layer {
+  position:absolute;
+  top:0;left:0;right:0;bottom:0;
+  z-index:5;
+  pointer-events:none;
+}
+.content-inner {
+  position:absolute;
+  /* Title near top of upper page, cards centered on fold */
+  top: 40px;
+  left:32px; right:32px;
+  pointer-events:all;
+}
+
+/* Archive Header */
+.archive-header {
+  text-align:center;padding-bottom:14px;margin-bottom:20px;
+  border-bottom:1px dashed rgba(58,45,36,0.2);position:relative;
+}
+.archive-number{font-family:'Courier Prime',monospace;font-size:11px;letter-spacing:3px;color:var(--ink-light);text-transform:uppercase;margin-bottom:4px}
+.archive-title{font-family:'Special Elite',monospace;font-size:21px;color:var(--ink);letter-spacing:1px;line-height:1.4}
+.archive-subtitle{font-family:'Caveat',cursive;font-size:14px;color:var(--ink-light);margin-top:3px}
+.stamp{position:absolute;top:-2px;right:-8px;transform:rotate(12deg);font-family:'Special Elite',monospace;font-size:15px;color:var(--accent-red);border:2.5px solid var(--accent-red);padding:4px 14px;border-radius:3px;opacity:0.55;letter-spacing:2px;text-transform:uppercase}
+
+/* Card pile */
+.card-pile{position:relative;min-height:540px;margin-top:80px}
+.card{position:absolute;border-radius:4px;padding:20px;cursor:pointer;transition:all 0.5s cubic-bezier(0.34,1.2,0.64,1);box-shadow:2px 3px 10px rgba(0,0,0,0.1),0 1px 3px rgba(0,0,0,0.06)}
+.card:hover{box-shadow:4px 6px 20px rgba(0,0,0,0.18)}
+.card.active{z-index:100!important;box-shadow:6px 10px 30px rgba(0,0,0,0.22)}
+
+/* Profile — deeper kraft color */
+.card-profile{background:var(--paper-deep);width:400px;left:20px;top:0;z-index:4;transform:rotate(-1deg)}
+.card-profile::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(transparent,transparent 23px,rgba(150,140,120,0.06) 23px,rgba(150,140,120,0.06) 24px);pointer-events:none;border-radius:4px}
+.card-profile.active{transform:rotate(0deg) translate(80px,0) scale(1.02)}
+.profile-top{display:flex;gap:20px}
+.profile-photo-wrap{flex-shrink:0;width:140px;height:170px;position:relative;background:#fff;padding:6px 6px 20px;border-radius:2px;box-shadow:2px 3px 8px rgba(0,0,0,0.12);transform:rotate(1deg)}
+.profile-photo{width:100%;height:100%;object-fit:cover;border-radius:2px;filter:sepia(0.12) contrast(1.05);box-shadow:1px 2px 6px rgba(0,0,0,0.15)}
+.photo-tape{position:absolute;top:-8px;left:50%;transform:translateX(-50%) rotate(-2deg);width:80px;height:22px;background:repeating-linear-gradient(90deg,rgba(210,195,140,0.75) 0px,rgba(220,205,150,0.85) 3px,rgba(200,185,130,0.7) 6px);border-top:1px solid rgba(180,165,110,0.4);border-bottom:1px solid rgba(180,165,110,0.4);z-index:2}
+.photo-tape::before{content:'';position:absolute;top:0;left:0;right:0;bottom:0;background:repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,0.15) 2px,rgba(255,255,255,0.15) 4px)}
+.photo-tape-2{position:absolute;bottom:-6px;right:10px;width:60px;height:18px;background:repeating-linear-gradient(90deg,rgba(195,210,200,0.7) 0px,rgba(205,220,210,0.8) 3px,rgba(185,200,190,0.65) 6px);transform:rotate(3deg);border-top:1px solid rgba(150,170,160,0.3);border-bottom:1px solid rgba(150,170,160,0.3);z-index:2}
+.profile-info{flex:1;padding-top:4px}
+.profile-name{font-family:'Caveat',cursive;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:10px;line-height:1.1}
+.profile-field{display:flex;align-items:baseline;margin-bottom:6px}
+.field-label{font-family:'Courier Prime',monospace;font-size:10px;color:var(--ink-light);letter-spacing:1px;text-transform:uppercase;min-width:55px;flex-shrink:0}
+.field-value{font-family:'Caveat',cursive;font-size:16px;color:var(--ink);border-bottom:1px solid rgba(58,45,36,0.12);padding-bottom:1px;flex:1}
+.persona-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.tag{font-family:'Inter',sans-serif;font-size:10px;font-weight:600;padding:3px 10px;border-radius:12px;letter-spacing:0.5px}
+.tag-mint{background:rgba(123,163,142,0.3);color:#3A6A4E}
+.tag-blue{background:rgba(90,122,148,0.25);color:#2A5070}
+.tag-terracotta{background:rgba(192,120,90,0.25);color:#7A4020}
+.tag-gold{background:rgba(184,150,62,0.25);color:#6A5010}
+
+.pushpin{position:absolute;z-index:10;width:16px;height:24px}
+.pushpin::before{content:'';position:absolute;top:0;left:3px;width:10px;height:10px;background:radial-gradient(circle at 40% 35%,#E06050,#B03020);border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,0.3)}
+.pushpin::after{content:'';position:absolute;top:8px;left:6px;width:3px;height:8px;background:linear-gradient(180deg,#999,#777);border-radius:0 0 1px 1px}
+
+.card-evidence{width:380px;font-family:'Caveat',cursive}
+.card-ev-a{background:var(--paper-blue);right:10px;top:10px;z-index:3;transform:rotate(1.2deg)}
+.card-ev-a.active{transform:rotate(0deg) translate(-40px,10px) scale(1.02)}
+.card-ev-b{background:var(--paper-pink);left:140px;top:160px;z-index:2;transform:rotate(-0.8deg)}
+.card-ev-b.active{transform:rotate(0deg) translate(20px,0) scale(1.02)}
+.card-ev-c{
+  background:
+    linear-gradient(rgba(180,210,190,0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(180,210,190,0.35) 1px, transparent 1px),
+    #F4FAF4;
+  background-size: 18px 18px;right:30px;top:280px;z-index:1;transform:rotate(0.6deg)}
+.card-ev-c.active{transform:rotate(0deg) translate(-20px,10px) scale(1.02)}
+
+.ev-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px dashed rgba(58,45,36,0.15)}
+.ev-number{font-family:'Courier Prime',monospace;font-size:10px;color:var(--ink-light);letter-spacing:1px;background:rgba(255,255,255,0.5);padding:2px 8px;border-radius:3px}
+.ev-icon{font-size:22px}
+.ev-label{font-family:'Courier Prime',monospace;font-size:10px;color:var(--ink-light);letter-spacing:1px;text-transform:uppercase}
+.ev-text{font-size:17px;line-height:1.5;color:var(--ink)}
+.ev-text .highlight{background:linear-gradient(180deg,transparent 55%,rgba(245,213,114,0.5) 55%,rgba(245,213,114,0.5) 90%,transparent 90%);padding:0 2px}
+.ev-text .stat{font-weight:700;color:var(--accent-terracotta)}
+.ev-text em{color:var(--accent-blue)}
+
+.card-message{background:var(--paper-aged);width:320px;left:50%;transform:translateX(-50%) rotate(0.5deg);top:440px;height:fit-content;z-index:0;text-align:center}
+.card-message.active{transform:translateX(-50%) rotate(0deg) scale(1.03);z-index:100!important}
+.msg-divider{width:40px;height:1px;background:var(--ink-light);margin:0 auto 12px;opacity:0.3}
+.msg-main{font-family:'Caveat',cursive;font-size:20px;line-height:1.5;color:var(--ink)}
+.msg-quiet{font-family:'Caveat',cursive;font-size:16px;color:var(--ink-light);margin-top:4px}
+
+.sticky{position:absolute;padding:10px 12px;font-family:'Caveat',cursive;font-size:13px;line-height:1.3;box-shadow:2px 3px 6px rgba(0,0,0,0.1);z-index:8;pointer-events:none}
+.sticky::after{content:'';position:absolute;bottom:0;right:0;width:26px;height:26px;background:linear-gradient(135deg,transparent 35%,rgba(255,255,255,0.6) 45%,rgba(0,0,0,0.08) 55%,rgba(0,0,0,0.12) 100%);border-radius:0 0 10px 0;box-shadow:-1px -1px 2px rgba(0,0,0,0.04)}
+.sticky-yellow{background:linear-gradient(160deg,#F5E6A3,#EED97A);color:#6B5B20}
+.sticky-pink{background:linear-gradient(160deg,#F2C4C4,#E8A4A4);color:#7A3030}
+
+.paperclip{position:absolute;z-index:10;width:24px;height:52px}
+.paperclip::before{content:'';position:absolute;top:0;left:4px;width:16px;height:48px;border:2.5px solid #C8A860;border-radius:8px;background:transparent;box-shadow:0 1px 2px rgba(0,0,0,0.12)}
+.paperclip::after{content:'';position:absolute;top:6px;left:8px;width:10px;height:36px;border:2px solid #D4B870;border-radius:5px;background:transparent}
+
+/* Polaroid photo */
+.polaroid {
+  position:absolute;
+  width:120px;
+  background:#fff;
+  padding:8px 8px 28px;
+  border-radius:2px;
+  box-shadow:2px 3px 10px rgba(0,0,0,0.12);
+  z-index:5;
+  right:20px; top:360px;
+  transform:rotate(4deg);
+  cursor:pointer;
+  transition:all 0.4s ease;
+}
+.polaroid:hover { transform:rotate(0deg) scale(1.05); z-index:101; }
+.polaroid-img {
+  width:100%; height:88px;
+  background: linear-gradient(135deg, #E8D5B8 0%, #D4C0A0 40%, #C8B090 100%);
+  border-radius:1px;
+  position:relative;
+  overflow:hidden;
+}
+/* Abstract warm-tone art inside polaroid */
+.polaroid-img::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    radial-gradient(circle at 30% 60%, rgba(192,120,90,0.3) 0%, transparent 50%),
+    radial-gradient(circle at 70% 30%, rgba(90,122,148,0.25) 0%, transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(184,150,62,0.2) 0%, transparent 45%);
+}
+.polaroid-caption {
+  font-family:'Caveat',cursive;
+  font-size:11px;
+  color:var(--ink-light);
+  text-align:center;
+  margin-top:6px;
+}
+
+/* Silver star stickers */
+.star-sticker {
+  position:absolute;
+  z-index:6;
+  pointer-events:none;
+  opacity:0.6;
+}
+.star-sticker svg {
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.15));
+}
+
+/* ============ CASSETTE TAPE (detailed, 140×90) ============ */
+.cassette {
+  position:absolute;
+  width:140px; height:90px;
+  background:linear-gradient(180deg,#3D3D3D 0%,#2A2A2A 40%,#1A1A1A 100%);
+  border-radius:5px 5px 4px 4px;
+  box-shadow:
+    2px 4px 12px rgba(0,0,0,0.35),
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    inset 0 -1px 0 rgba(0,0,0,0.3);
+  z-index:7;
+  pointer-events:none;
+  overflow:hidden;
+}
+/* Subtle edge bevel */
+.cassette::before {
+  content:'';
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  border:1px solid rgba(255,255,255,0.04);
+  border-radius:inherit;
+  pointer-events:none;
+}
+/* Bottom guide holes */
+.cassette::after {
+  content:'';
+  position:absolute;
+  bottom:4px; left:50%; transform:translateX(-50%);
+  width:50px; height:6px;
+  background:
+    radial-gradient(circle at 8px 3px, #111 2.5px, transparent 2.5px),
+    radial-gradient(circle at 42px 3px, #111 2.5px, transparent 2.5px);
+}
+/* Label sticker */
+.cassette-label-area {
+  position:absolute;
+  top:6px; left:14px; right:14px; height:36px;
+  background:linear-gradient(180deg,#FBF5E0,#F0E8C8);
+  border-radius:2px;
+  border:1px solid rgba(160,140,100,0.25);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.1);
+  overflow:hidden;
+}
+/* Faint ruled lines on label */
+.cassette-label-area::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-linear-gradient(180deg, transparent, transparent 7px, rgba(180,160,120,0.15) 7px, rgba(180,160,120,0.15) 8px);
+  pointer-events:none;
+}
+.cassette-label-text {
+  position:absolute;
+  top:4px; left:8px; right:8px;
+  font-family:'Caveat',cursive;
+  font-size:11px;
+  color:#5A4A2A;
+  line-height:1.4;
+  z-index:1;
+}
+.cassette-label-side {
+  position:absolute;
+  bottom:3px; right:8px;
+  font-family:'Courier Prime',monospace;
+  font-size:7px;
+  letter-spacing:2px;
+  color:#9A8A6A;
+  z-index:1;
+}
+/* Tape window */
+.cassette-window {
+  position:absolute;
+  top:46px; left:50%; transform:translateX(-50%);
+  width:68px; height:22px;
+  background:linear-gradient(180deg,#1A1A1A,#0D0D0D);
+  border-radius:2px;
+  border:1px solid rgba(255,255,255,0.06);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,0.5);
+  overflow:hidden;
+}
+/* Transparent tape area + reels */
+.cassette-window::before {
+  content:'';position:absolute;
+  top:2px;left:50%;transform:translateX(-50%);
+  width:42px;height:16px;
+  background:rgba(60,40,20,0.15);
+  border-radius:1px;
+}
+.cassette-reel {
+  position:absolute;
+  top:50%; transform:translateY(-50%);
+  width:16px;height:16px;
+  border-radius:50%;
+  background:radial-gradient(circle,#777 2px,#555 3px,#444 6px,#333 7px,#444 8px);
+  box-shadow:0 0 2px rgba(0,0,0,0.4);
+}
+.cassette-reel-l { left:6px; }
+.cassette-reel-r { right:6px; }
+/* Spokes on reels */
+.cassette-reel::before {
+  content:'';position:absolute;top:50%;left:50%;
+  width:6px;height:6px;
+  margin:-3px 0 0 -3px;
+  background:transparent;
+  border:1px solid rgba(200,200,200,0.3);
+  border-radius:1px;
+  transform:rotate(45deg);
+}
+/* Screws */
+.cassette-screw {
+  position:absolute;
+  width:6px;height:6px;
+  border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#999,#666 40%,#444);
+  box-shadow:inset 0 0.5px 0 rgba(255,255,255,0.3), 0 1px 1px rgba(0,0,0,0.3);
+}
+.cassette-screw::before {
+  content:'';position:absolute;
+  top:2px;left:1.5px;width:3px;height:0.8px;
+  background:#333;border-radius:1px;
+}
+.cs-1{top:4px;left:4px}
+.cs-2{top:4px;right:4px}
+.cs-3{bottom:4px;left:4px}
+.cs-4{bottom:4px;right:4px}
+.cs-5{bottom:4px;left:50%;margin-left:-3px}
+
+/* ============ FLOPPY DISK (detailed, 100×100) ============ */
+.floppy {
+  position:absolute;
+  width:140px; height:140px;
+  background:linear-gradient(155deg,#9AA4AE 0%,#858E98 30%,#737D87 100%);
+  border-radius:4px 4px 4px 4px;
+  box-shadow:
+    3px 4px 12px rgba(0,0,0,0.3),
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    inset -1px 0 0 rgba(0,0,0,0.1),
+    inset 0 -1px 0 rgba(0,0,0,0.15);
+  z-index:7;
+  pointer-events:none;
+  overflow:visible;
+}
+/* Subtle plastic texture */
+.floppy::before {
+  content:'';position:absolute;top:0;left:0;right:0;bottom:0;
+  background:
+    repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(255,255,255,0.015) 1px, rgba(255,255,255,0.015) 2px);
+  border-radius:inherit;pointer-events:none;
+}
+/* Clipped corner triangle */
+.floppy-corner {
+  position:absolute;top:0;right:0;
+  width:0;height:0;
+  border-style:solid;
+  border-width:0 14px 14px 0;
+  border-color:transparent var(--kraft-back) transparent transparent;
+  z-index:2;
+  filter:drop-shadow(-1px 1px 1px rgba(0,0,0,0.1));
+}
+/* Metal shutter rail */
+.floppy-shutter {
+  position:absolute;
+  top:5px; left:50%; transform:translateX(-50%);
+  width:52px; height:20px;
+  background:linear-gradient(180deg,#C4C4C4 0%,#B0B0B0 30%,#A0A0A0 70%,#909090 100%);
+  border-radius:2px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.4),
+    inset 0 -1px 0 rgba(0,0,0,0.15),
+    0 1px 2px rgba(0,0,0,0.15);
+  overflow:hidden;
+}
+/* Shutter slot */
+.floppy-shutter::before {
+  content:'';position:absolute;
+  top:4px;left:50%;transform:translateX(-50%);
+  width:12px;height:12px;
+  background:#3A3A3A;
+  border-radius:1px;
+  box-shadow:inset 0 0 2px rgba(0,0,0,0.5);
+}
+/* Shutter sliding groove line */
+.floppy-shutter::after {
+  content:'';position:absolute;
+  top:0;right:12px;width:1px;height:100%;
+  background:linear-gradient(180deg,rgba(0,0,0,0.15),rgba(0,0,0,0.08),rgba(0,0,0,0.15));
+}
+/* Label area */
+.floppy-label {
+  position:absolute;
+  bottom:6px; left:8px; right:8px; height:44px;
+  background:linear-gradient(180deg,#F0ECE4,#E4E0D8);
+  border-radius:2px;
+  border:1px solid rgba(0,0,0,0.06);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.5), 0 1px 1px rgba(0,0,0,0.05);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:2px 4px;
+}
+.floppy-label-text {
+  font-family:'Courier Prime',monospace;
+  font-size:8px;
+  color:#5A5A5A;
+  letter-spacing:1px;
+}
+.floppy-label-sub {
+  font-family:'Caveat',cursive;
+  font-size:9px;
+  color:#7A7A7A;
+  margin-top:1px;
+}
+/* HD marking top-left */
+.floppy-hd {
+  position:absolute;
+  top:6px;left:8px;
+  font-family:'Courier Prime',monospace;
+  font-size:7px;
+  font-weight:700;
+  color:rgba(255,255,255,0.45);
+  letter-spacing:0.5px;
+  text-shadow:0 1px 1px rgba(0,0,0,0.2);
+}
+/* Write protect notch */
+.floppy-notch {
+  position:absolute;
+  bottom:10px; left:2px;
+  width:6px;height:8px;
+  background:rgba(0,0,0,0.2);
+  border-radius:0 2px 2px 0;
+}
+/* Side notches for drive grip */
+.floppy-grip-l, .floppy-grip-r {
+  position:absolute;
+  bottom:30px;
+  width:3px;height:10px;
+  background:rgba(0,0,0,0.08);
+  border-radius:1px;
+}
+.floppy-grip-l { left:0; }
+.floppy-grip-r { right:0; }
+
+.dog-sign{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px}
+.dog-emoji{font-size:22px}
+.sign-text{font-family:'Courier Prime',monospace;font-size:11px;color:var(--kraft-back);opacity:0.5;letter-spacing:1px}
+
+.scene{opacity:0;animation:fadeIn 0.6s ease forwards 0.2s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.folder-open.visible .card{animation:cardIn 0.5s ease forwards}
+.folder-open.visible .card-profile{animation-delay:0.3s;opacity:0}
+.folder-open.visible .card-ev-a{animation-delay:0.45s;opacity:0}
+.folder-open.visible .card-ev-b{animation-delay:0.6s;opacity:0}
+.folder-open.visible .card-ev-c{animation-delay:0.75s;opacity:0}
+.folder-open.visible .card-message{animation-delay:0.9s;opacity:0}
+@keyframes cardIn{from{opacity:0;transform:translateY(-20px)}to{opacity:1}}
+.folder-open.visible.animated .card{animation:none;opacity:1}
+</style>
+</head>
+<body>
+<div class="scene">
+  <!-- CLOSED -->
+  <div class="folder-closed" id="folderClosed" onclick="openFolder()">
+    <div class="c-back"><div class="c-back-tab"></div></div>
+    <div class="c-papers">
+      <div class="c-pe c-pe1"></div><div class="c-pe c-pe4"></div><div class="c-pe c-pe5"></div>
+      <div class="c-pe c-pe2"></div><div class="c-pe c-pe3"></div>
+      <div class="c-pe c-pe-l"></div><div class="c-pe c-pe-r"></div>
+    </div>
+    <div class="c-front">
+      <div class="c-front-tab"><span>Personnel File</span></div>
+      <div class="binder-clip"><div class="clip-handles"></div><div class="clip-body"></div></div>
+      <div class="cover-row">
+        <div class="cover-photo-wrap">
+          <img class="cover-photo" src="data:image/jpeg;base64,{{PROFILE_PHOTO_BASE64}}">
+          <div class="cover-tape"></div><div class="cover-tape-2"></div>
+        </div>
+        <div class="cover-info">
+          <div class="cover-fileno">File No. 0428 — Confidential</div>
+          <div class="cover-title">Things That Wouldn't<br>Exist Without You</div>
+          <div class="cover-sub">(a partial list, declassified)</div>
+        </div>
+      </div>
+      <div class="cover-stamp">VERIFIED</div>
+      <span class="cover-hint">click to open ↑</span>
+    </div>
+  </div>
+
+  <!-- OPENED -->
+  <div class="folder-open" id="folderOpen">
+    <div class="open-shell">
+      <!-- Top page (cover interior) with tab at TOP-RIGHT -->
+      <div class="page-top">
+        <div class="page-top-tab"><span>Personnel File</span></div>
+        <button class="close-btn" onclick="closeFolder()">✕</button>
+      </div>
+
+      <!-- Fold crease -->
+      <div class="fold-line"></div>
+
+      <!-- Bottom page (back) with tab at BOTTOM-LEFT -->
+      <div class="page-bottom">
+        <div class="page-bottom-tab"></div>
+      </div>
+
+      <!-- Content floating across both pages -->
+      <div class="content-layer">
+        <div class="content-inner">
+          <div class="archive-header">
+            <div class="archive-number">File No. 0428 — Confidential</div>
+            <div class="archive-title">Things That Wouldn't Exist Without You</div>
+            <div class="archive-subtitle">(a partial list, declassified)</div>
+            <div class="stamp">VERIFIED</div>
+          </div>
+          <div class="card-pile" id="cardPile">
+            <div class="card card-profile" onclick="bringToTop(this)">
+              <div class="pushpin" style="top:-4px;right:20px"></div>
+              <div class="paperclip" style="top:-6px;left:15px;transform:rotate(-5deg)"></div>
+              <div class="profile-top">
+                <div class="profile-photo-wrap">
+                  <img class="profile-photo" src="data:image/jpeg;base64,{{PROFILE_PHOTO_BASE64}}">
+                  <div class="photo-tape"></div><div class="photo-tape-2"></div>
+                </div>
+                <div class="profile-info">
+                  <div class="profile-name">Subject J.</div>
+                  <div class="profile-field"><span class="field-label">Type</span><span class="field-value">INTJ-A</span></div>
+                  <div class="profile-field"><span class="field-label">Role</span><span class="field-value">Product Architect</span></div>
+                  <div class="profile-field"><span class="field-label">Trait</span><span class="field-value">Sees what others miss</span></div>
+                  <div class="profile-field"><span class="field-label">Risk</span><span class="field-value">Forgets own impact</span></div>
+                  <div class="profile-field"><span class="field-label">Class</span><span class="field-value">Quiet Perfectionist</span></div>
+                </div>
+              </div>
+              <div class="persona-tags">
+                <span class="tag tag-mint">Detail Obsessed</span>
+                <span class="tag tag-blue">Systems Thinker</span>
+                <span class="tag tag-terracotta">Quiet Perfectionist</span>
+                <span class="tag tag-gold">User Advocate</span>
+                <span class="tag tag-mint">Taste-Driven</span>
+                <span class="tag tag-blue">Translation Layer</span>
+              </div>
+            </div>
+            <div class="card card-evidence card-ev-a" onclick="bringToTop(this)">
+              <div class="ev-header"><span class="ev-number">EXH-A</span><span class="ev-icon">⏳</span><span class="ev-label">Exhibit: The Loading Animation</span></div>
+              <div class="ev-text">That loading animation you fought for &mdash; <span class="highlight"><span class="stat">2,400 people</span></span> saw it today and felt, for half a second, that someone cared about the details.</div>
+              <div class="sticky sticky-yellow" style="bottom:-14px;right:12px;transform:rotate(3deg);width:110px;font-size:12px">Note: she stayed late for this one ✦</div>
+            </div>
+            <div class="card card-evidence card-ev-b" onclick="bringToTop(this)">
+              <div class="paperclip" style="top:-8px;right:20px;transform:rotate(10deg)"></div>
+              <div class="ev-header"><span class="ev-number">EXH-B</span><span class="ev-icon">🚪</span><span class="ev-label">Exhibit: The Onboarding Rewrite</span></div>
+              <div class="ev-text">The onboarding flow you rewrote in March &mdash; <span class="highlight"><span class="stat">12% fewer drop-offs</span></span>. That's <span class="stat">300 real people</span> who stayed.</div>
+            </div>
+            <div class="card card-evidence card-ev-c" onclick="bringToTop(this)">
+              <div class="ev-header"><span class="ev-number">EXH-C</span><span class="ev-icon">💬</span><span class="ev-label">Exhibit: The Error Message</span></div>
+              <div class="ev-text">That error message you changed from <em>'Invalid input'</em> to <em>'Hmm, try this instead'</em> &mdash; support tickets dropped by <span class="highlight"><span class="stat">6 that week</span></span>. Six people who didn't get frustrated.</div>
+              <div class="sticky sticky-pink" style="bottom:-10px;left:-55px;transform:rotate(-4deg);width:105px;font-size:12px">"Good enough" is never in her vocabulary 🔍</div>
+            </div>
+            <!-- Star stickers: gold / silver / coffee -->
+            <!-- Gold -->
+            <div class="star-sticker" style="top:-10px;left:420px;transform:rotate(15deg);">
+              <svg width="32" height="32" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#D4AA40" stroke="#B8922E" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Silver -->
+            <div class="star-sticker" style="top:100px;right:8px;transform:rotate(-18deg);">
+              <svg width="22" height="22" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#C8C8C8" stroke="#ABABAB" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Coffee -->
+            <div class="star-sticker" style="top:260px;left:2px;transform:rotate(25deg);">
+              <svg width="28" height="28" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#9A7B5A" stroke="#7A6040" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Gold -->
+            <div class="star-sticker" style="top:400px;right:160px;transform:rotate(-12deg);">
+              <svg width="36" height="36" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#E0B848" stroke="#C49A30" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Coffee -->
+            <div class="star-sticker" style="top:180px;left:380px;transform:rotate(8deg);">
+              <svg width="18" height="18" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#8A6B4A" stroke="#6A5030" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Silver -->
+            <div class="star-sticker" style="top:520px;left:80px;transform:rotate(-22deg);">
+              <svg width="24" height="24" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#D0D0D0" stroke="#B5B5B5" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Gold -->
+            <div class="star-sticker" style="top:340px;right:10px;transform:rotate(30deg);">
+              <svg width="20" height="20" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#C8A038" stroke="#A88828" stroke-width="0.5"/></svg>
+            </div>
+            <!-- Coffee -->
+            <div class="star-sticker" style="top:540px;right:50px;transform:rotate(-5deg);">
+              <svg width="14" height="14" viewBox="0 0 24 24"><polygon points="12,2 15,9 22,9 16.5,14 18.5,21 12,17 5.5,21 7.5,14 2,9 9,9" fill="#A0805A" stroke="#806040" stroke-width="0.5"/></svg>
+            </div>
+
+            <!-- Cassette tape — above the pink sticky (card-ev-c is top:280, sticky at left:-55) -->
+            <div class="cassette" style="left:15px;top:330px;transform:rotate(-4deg);">
+              <div class="cassette-label-area">
+                <div class="cassette-label-text">File #0428</div>
+                <div class="cassette-label-side">SIDE A</div>
+              </div>
+              <div class="cassette-window">
+                <div class="cassette-reel cassette-reel-l"></div>
+                <div class="cassette-reel cassette-reel-r"></div>
+              </div>
+              <div class="cassette-screw cs-1"></div>
+              <div class="cassette-screw cs-2"></div>
+              <div class="cassette-screw cs-3"></div>
+              <div class="cassette-screw cs-4"></div>
+              <div class="cassette-screw cs-5"></div>
+            </div>
+
+            <!-- Floppy disk — bottom right of the opened page -->
+            <div class="floppy" style="right:-25px;top:570px;transform:rotate(7deg);">
+              <div class="floppy-corner"></div>
+              <div class="floppy-shutter"></div>
+              <div class="floppy-hd">HD</div>
+              <div class="floppy-label">
+                <div class="floppy-label-text">BACKUP 04/28</div>
+                <div class="floppy-label-sub">confidential ✦</div>
+              </div>
+              <div class="floppy-notch"></div>
+              <div class="floppy-grip-l"></div>
+              <div class="floppy-grip-r"></div>
+            </div>
+
+            <!-- Polaroid photo -->
+            <div class="polaroid">
+              <img class="polaroid-img" src="data:image/jpeg;base64,{{POLAROID_PHOTO_BASE64}}">
+              <div class="polaroid-caption">spring 2026 ♡</div>
+            </div>
+
+            <div class="card card-message" onclick="bringToTop(this)">
+              <div class="msg-divider"></div>
+              <p class="msg-main">Not everything that matters<br>announces itself.</p>
+              <p class="msg-quiet">Some of it just... quietly works.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dog-sign"><span class="dog-emoji">🐕</span><span class="sign-text">data as of today, 22:00</span></div>
+</div>
+<script>
+function openFolder(){
+  document.getElementById('folderClosed').classList.add('hidden');
+  const o=document.getElementById('folderOpen');
+  o.classList.add('visible');
+  setTimeout(()=>o.classList.add('animated'),1200);
+  // Scroll so fold-line is near viewport center
+  setTimeout(()=>{
+    const fold=document.querySelector('.fold-line');
+    if(fold){const r=fold.getBoundingClientRect();window.scrollTo({top:window.scrollY+r.top-window.innerHeight/2,behavior:'smooth'})}
+  },100);
+}
+function closeFolder(){
+  const o=document.getElementById('folderOpen');
+  o.classList.remove('visible','animated');
+  document.getElementById('folderClosed').classList.remove('hidden');
+}
+let topZ=100;
+function bringToTop(c){
+  document.querySelectorAll('.card').forEach(x=>{if(x!==c)x.classList.remove('active')});
+  c.classList.toggle('active');
+  if(c.classList.contains('active')){topZ++;c.style.zIndex=topZ}
+}
+document.getElementById('cardPile').addEventListener('click',e=>{
+  if(e.target===e.currentTarget)document.querySelectorAll('.card').forEach(c=>c.classList.remove('active'));
+});
+</script>
+</body>
+</html>

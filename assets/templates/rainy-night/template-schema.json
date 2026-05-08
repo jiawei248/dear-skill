@@ -1,0 +1,34 @@
+{
+  "template_id": "rainy-night",
+  "engine": "p5.js",
+  "description": "Fogged-glass rain reveal for quiet, low, reflective, or gently comforting gifts.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "main_title",
+    "sub_title",
+    "background_text",
+    "background_color",
+    "clear_text_color",
+    "fog_tint",
+    "fog_text_color",
+    "title_color",
+    "canvas_width",
+    "canvas_height",
+    "spawn_interval",
+    "max_curves"
+  ],
+  "fit_tags": [
+    "melancholy",
+    "quiet",
+    "comfort",
+    "reflection",
+    "witnessing"
+  ],
+  "avoid_tags": [
+    "celebration",
+    "high-energy",
+    "pure-comedy",
+    "practical-summary"
+  ]
+}

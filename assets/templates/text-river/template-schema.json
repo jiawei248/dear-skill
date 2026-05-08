@@ -1,0 +1,36 @@
+{
+  "template_id": "text-river",
+  "engine": "p5.js",
+  "description": "A flowing river of short words that disperses near interaction and slowly gathers back into a continuous current.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "word_list",
+    "background_color",
+    "text_color",
+    "font_family",
+    "particle_count_desktop",
+    "particle_count_mobile",
+    "size_min",
+    "size_max",
+    "flow_strength",
+    "base_rightward_force",
+    "center_pull_strength",
+    "interaction_radius",
+    "interaction_force",
+    "trail_alpha"
+  ],
+  "fit_tags": [
+    "memory",
+    "reflection",
+    "thought-stream",
+    "quiet-hope",
+    "connection"
+  ],
+  "avoid_tags": [
+    "dense-explanation",
+    "timeline",
+    "practical-summary",
+    "heavy-breakdown"
+  ]
+}

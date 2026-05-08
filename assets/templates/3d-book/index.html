@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D 翻书效果 - Three.js</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1a1a1a;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+
+        /* UI 交互层 */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* 让点击穿透到特定按钮 */
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .header {
+            padding: 20px 40px;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 5vw;
+            position: absolute;
+            top: 50%;
+            width: 100%;
+            box-sizing: border-box;
+            transform: translateY(-50%);
+        }
+
+        .nav-btn {
+            pointer-events: auto;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.1);
+        }
+
+        .nav-btn svg {
+            fill: none;
+            stroke: white;
+            stroke-width: 2;
+            width: 24px;
+            height: 24px;
+        }
+
+        .pagination {
+            pointer-events: auto;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            padding-bottom: 30px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: rgba(255, 255, 255, 0.9);
+            transform: scale(1.3);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container"></div>
+
+    <div id="ui-layer">
+        <div class="header">
+            HTWKR / Interactive 3D Book
+        </div>
+        
+        <div class="controls">
+            <div class="nav-btn" id="btn-prev">
+                <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+            <div class="nav-btn" id="btn-next">
+                <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </div>
+        </div>
+
+        <div class="pagination" id="pagination">
+            <!-- 小圆点由 JS 动态生成 -->
+        </div>
+    </div>
+
+    <!-- 引入 Three.js -->
+    <script type="module">
+        import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js';
+
+        // --- 全局变量与配置 ---
+        const config = {
+            width: 4,          // 书页宽度
+            height: 5.5,       // 书页高度
+            thickness: 0.02,   // 单页厚度
+            segments: 48,      // 页面分段数（影响弯曲平滑度）
+            maxLeaves: 3,      // 总纸张数（3张纸 = 6面）
+            turnSpeed: 0.08    // 翻页动画速度
+        };
+
+        let scene, camera, renderer;
+        let leaves = [];
+        let currentSpread = 0; // 当前翻开的跨页索引
+
+        // --- 初始化 Three.js 场景 ---
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // 1. 场景
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x1a1a1a, 10, 25);
+
+            // 2. 相机
+            camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 100);
+            camera.position.set(0, -2, 12);
+            camera.lookAt(0, 0, 0);
+
+            // 3. 渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // 4. 灯光
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(2, 8, 5);
+            dirLight.castShadow = true;
+            dirLight.shadow.mapSize.width = 2048;
+            dirLight.shadow.mapSize.height = 2048;
+            dirLight.shadow.camera.near = 0.5;
+            dirLight.shadow.camera.far = 25;
+            dirLight.shadow.camera.left = -5;
+            dirLight.shadow.camera.right = 5;
+            dirLight.shadow.camera.top = 5;
+            dirLight.shadow.camera.bottom = -5;
+            scene.add(dirLight);
+
+            // 补充一个背部辅助光
+            const backLight = new THREE.DirectionalLight(0xffffff, 0.2);
+            backLight.position.set(-5, 5, -5);
+            scene.add(backLight);
+
+            // 5. 桌面/背景板 (用于接收阴影)
+            const bgGeometry = new THREE.PlaneGeometry(100, 100);
+            const bgMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x111111,
+                roughness: 0.8 
+            });
+            const bgMesh = new THREE.Mesh(bgGeometry, bgMaterial);
+            bgMesh.position.z = -1;
+            bgMesh.receiveShadow = true;
+            scene.add(bgMesh);
+
+            // 6. 创建书本
+            createBook();
+
+            // 7. 事件监听
+            window.addEventListener('resize', onWindowResize);
+            document.getElementById('btn-next').addEventListener('click', () => turnPage('next'));
+            document.getElementById('btn-prev').addEventListener('click', () => turnPage('prev'));
+
+            updatePagination();
+            animate();
+        }
+
+        // --- 动态生成材质纹理 (Canvas) ---
+        function createPageTexture(type) {
+            const canvas = document.createElement('canvas');
+            const size = 1024;
+            canvas.width = size;
+            canvas.height = size * (config.height / config.width); // 保持比例
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            // 默认背景色
+            ctx.fillStyle = '#1c1c1c';
+            ctx.fillRect(0, 0, w, h);
+
+            switch (type) {
+                case 'cover':
+                    ctx.fillStyle = '#222';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.font = 'bold 100px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('HTWKR', w/2, h/2 - 50);
+                    ctx.font = '30px sans-serif';
+                    ctx.fillStyle = '#888';
+                    ctx.fillText('Interactive Book Experience', w/2, h/2 + 30);
+                    break;
+                case 'red-left':
+                    ctx.fillStyle = '#c74949'; 
+                    ctx.fillRect(0, 0, w, h);
+                    // 绘制一些抽象图形
+                    ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+                    ctx.lineWidth = 40;
+                    ctx.beginPath();
+                    ctx.arc(w/2, h/2, 300, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.font = '40px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('How to talk about racism', w/2, 200);
+                    break;
+                case 'red-right':
+                    ctx.fillStyle = '#e55a5a'; 
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#f9e8d6';
+                    ctx.font = 'italic bold 180px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('Do', w/2, h/2 - 80);
+                    ctx.fillText('Something', w/2, h/2 + 80);
+                    ctx.font = '24px sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                    ctx.fillText('Act against racism. Make positive change by', w/2, h - 250);
+                    ctx.fillText('attending rallies, volunteering, and speaking out.', w/2, h - 200);
+                    break;
+                case 'end-left':
+                    ctx.fillStyle = '#181818';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#ddd';
+                    ctx.font = '80px serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('The End', w/2, h/2 + 100);
+                    ctx.font = '30px sans-serif';
+                    ctx.fillStyle = '#777';
+                    ctx.fillText('We can do better.', w/2, h/2 + 180);
+                    // 画两个小熊符号模拟插画
+                    ctx.font = '120px sans-serif';
+                    ctx.fillText('🐻  🐻', w/2, h/2 - 50);
+                    break;
+                case 'end-right':
+                    ctx.fillStyle = '#181818';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#666';
+                    ctx.font = 'italic 30px serif';
+                    ctx.textAlign = 'left';
+                    ctx.fillText('More resources for parents', 150, 300);
+                    ctx.fillStyle = '#ddd';
+                    ctx.font = '24px sans-serif';
+                    const list = [
+                        "Read:",
+                        "✓ Coretta Scott King Book Award Winners",
+                        "",
+                        "Watch:",
+                        "✓ New York Times – Exploring Race",
+                        "",
+                        "Follow:",
+                        "✓ The Conscious Kid on Instagram"
+                    ];
+                    let y = 400;
+                    list.forEach(text => {
+                        if(text.endsWith(':')) ctx.fillStyle = '#666';
+                        else ctx.fillStyle = '#ddd';
+                        ctx.fillText(text, 150, y);
+                        y += 40;
+                    });
+                    break;
+                case 'back':
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(0, 0, w, h);
+                    ctx.fillStyle = '#444';
+                    ctx.font = 'bold 50px sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('THANK YOU', w/2, h/2);
+                    break;
+            }
+
+            const texture = new THREE.CanvasTexture(canvas);
+            texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+            return texture;
+        }
+
+        // --- 构建 3D 书本 ---
+        function createBook() {
+            // 定义每一张纸（Leaf）的正反面内容
+            const pageConfigs = [
+                { front: 'cover', back: 'red-left' },
+                { front: 'red-right', back: 'end-left' },
+                { front: 'end-right', back: 'back' }
+            ];
+
+            // 基础几何体。增加分段数使其能够平滑弯曲。
+            // 注意：我们将几何体的中心向右平移了 width/2，这样书脊的坐标就落在了 X=0 的位置。
+            const baseGeometry = new THREE.BoxGeometry(config.width, config.height, config.thickness, config.segments, 1, 1);
+            baseGeometry.translate(config.width / 2, 0, 0);
+
+            // 纸张边缘和空白处的材质
+            const edgeMaterial = new THREE.MeshStandardMaterial({ color: 0xe0e0e0, roughness: 1 });
+
+            for (let i = 0; i < config.maxLeaves; i++) {
+                // 克隆几何体，因为每张纸要独立变形
+                const geometry = baseGeometry.clone();
+                // 存储初始顶点位置，用于每帧计算变形
+                const originalPositions = new Float32Array(geometry.attributes.position.array);
+
+                // 创建正反面材质
+                const frontTex = createPageTexture(pageConfigs[i].front);
+                const backTex = createPageTexture(pageConfigs[i].back);
+                
+                const frontMaterial = new THREE.MeshStandardMaterial({ map: frontTex, roughness: 0.6 });
+                const backMaterial = new THREE.MeshStandardMaterial({ map: backTex, roughness: 0.6 });
+
+                // BoxGeometry 的材质索引：0:右, 1:左, 2:上, 3:下, 4:前(+Z), 5:后(-Z)
+                const materials = [
+                    edgeMaterial, edgeMaterial, edgeMaterial, edgeMaterial, 
+                    frontMaterial, backMaterial
+                ];
+
+                const mesh = new THREE.Mesh(geometry, materials);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+
+                const leafGroup = new THREE.Group();
+                leafGroup.add(mesh);
+                scene.add(leafGroup);
+
+                // 将每张纸的数据存入数组
+                leaves.push({
+                    group: leafGroup,
+                    mesh: mesh,
+                    originalPositions: originalPositions,
+                    index: i,
+                    progress: 0,       // 当前翻转进度 0~1
+                    targetProgress: 0  // 目标翻转进度
+                });
+            }
+        }
+
+        // --- 翻页逻辑 ---
+        function turnPage(direction) {
+            if (direction === 'next' && currentSpread < config.maxLeaves) {
+                // 向左翻开一张
+                leaves[currentSpread].targetProgress = 1;
+                currentSpread++;
+            } else if (direction === 'prev' && currentSpread > 0) {
+                // 向右合上一张
+                currentSpread--;
+                leaves[currentSpread].targetProgress = 0;
+            }
+            updatePagination();
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+            // 总状态数为 maxLeaves + 1
+            for (let i = 0; i <= config.maxLeaves; i++) {
+                const dot = document.createElement('div');
+                dot.className = `dot ${i === currentSpread ? 'active' : ''}`;
+                // 点击小圆点快速跳转
+                dot.onclick = () => {
+                    while (currentSpread < i) turnPage('next');
+                    while (currentSpread > i) turnPage('prev');
+                };
+                pagination.appendChild(dot);
+            }
+        }
+
+        // --- 窗口适配 ---
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // --- 核心：动画与网格变形更新 ---
+        function animate() {
+            requestAnimationFrame(animate);
+
+            for (let i = 0; i < leaves.length; i++) {
+                const leaf = leaves[i];
+                
+                // 平滑插值进度
+                leaf.progress += (leaf.targetProgress - leaf.progress) * config.turnSpeed;
+
+                // 如果进度变化极小，可跳过计算以节省性能
+                if (Math.abs(leaf.targetProgress - leaf.progress) < 0.001) {
+                    leaf.progress = leaf.targetProgress;
+                }
+
+                // 1. 整体 Y 轴旋转：进度 0 时角度为 0（在右边），进度 1 时角度为 -180度（在左边）
+                leaf.group.rotation.y = -leaf.progress * Math.PI;
+
+                // 2. 动态 Z 轴高度 (防穿模并模拟物理堆叠)
+                // 在右侧时，底层 Z 值大；在左侧时，顶层 Z 值大。
+                const zRight = (config.maxLeaves - i) * config.thickness * 1.5;
+                const zLeft = (i + 1) * config.thickness * 1.5;
+                const baseZ = THREE.MathUtils.lerp(zRight, zLeft, leaf.progress);
+                
+                // 翻页过程中的抬起抛物线，防止穿过其他书页
+                const liftZ = Math.sin(leaf.progress * Math.PI) * 1.5; 
+                leaf.group.position.z = baseZ + liftZ;
+
+                // 3. 核心：顶点变形（模拟纸张弯曲）
+                const positionAttribute = leaf.mesh.geometry.attributes.position;
+                const origPos = leaf.originalPositions;
+                const vertexCount = positionAttribute.count;
+
+                // 弯曲强度峰值在进度 50% 时最大
+                const bendStrength = Math.sin(leaf.progress * Math.PI) * 1.2;
+
+                for (let j = 0; j < vertexCount; j++) {
+                    const idx = j * 3;
+                    const origX = origPos[idx];
+                    const origZ = origPos[idx + 2];
+                    
+                    // x 坐标相对于书页宽度的比例 (0 ~ 1)
+                    const normalizedX = origX / config.width; 
+
+                    // 计算基于 x 的曲线形变。这里使用正弦波让书页中间隆起，边缘自然下垂。
+                    const curve = Math.sin(normalizedX * Math.PI); 
+
+                    // 叠加原始 Z（厚度）和 弯曲 Z
+                    const newZ = origZ + (curve * bendStrength);
+
+                    positionAttribute.setZ(j, newZ);
+                }
+
+                // 标记顶点需要更新，并重新计算法线以保证光影正确
+                positionAttribute.needsUpdate = true;
+                leaf.mesh.geometry.computeVertexNormals();
+            }
+
+            renderer.render(scene, camera);
+        }
+
+        // 启动应用
+        init();
+
+    </script>
+</body>
+</html>

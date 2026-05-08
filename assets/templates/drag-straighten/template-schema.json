@@ -1,0 +1,40 @@
+{
+  "template_id": "drag-straighten",
+  "engine": "p5.js",
+  "description": "A draggable calming interaction where a noisy line is straightened section by section by pulling a knob across it.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "loading_text",
+    "headline_text",
+    "helper_text",
+    "footer_primary",
+    "footer_secondary",
+    "background_color",
+    "line_color",
+    "line_weight",
+    "knob_radius",
+    "num_points",
+    "noise_scale_low",
+    "noise_scale_high",
+    "noise_amplitude_x",
+    "noise_amplitude_y",
+    "high_frequency_amplitude",
+    "blend_width",
+    "spring_stiffness",
+    "spring_damping"
+  ],
+  "fit_tags": [
+    "anxiety",
+    "frustration",
+    "restlessness",
+    "tension-release",
+    "playful-regulation"
+  ],
+  "avoid_tags": [
+    "acute-crisis",
+    "heavy-grief",
+    "solemn-tone",
+    "dense-explanation"
+  ]
+}

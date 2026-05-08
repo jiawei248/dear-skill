@@ -1,0 +1,296 @@
+{
+  "id": "paper-house",
+  "name": "Paper House — Four Rooms at Night",
+  "description": "A scroll-through WebGL diorama of four small rooms that share a central corner. Each room has its own song (30s Apple Music preview), two lines of hand-composed lyrics in the user's language, falling word confetti, custom decoration stickers, a character figure, and ONE clickable hero item that opens a handwritten memory card. Originally built around couple memory anchors; adapts to any relationship where one evening-or-period can be split into four scenes.",
+  "preview": "preview.jpg",
+  "best_for": ["anniversary", "partner", "very-close-friend", "mother's-day", "love-letter-as-h5", "graduation-gift"],
+  "tone": ["intimate", "warm", "music-driven", "handcrafted", "diorama-like"],
+  "format": "h5",
+  "approx_size_mb": 25,
+  "status": "ready",
+
+  "canonical_html_reference": "template-source/night-four-the-turn.html",
+  "spec_doc": "SPEC.md",
+
+  "scenes_default": ["kitchen", "rooftop", "karaoke", "couch"],
+  "scenes_note": "These are the ORIGINAL scene ids. The 4 scenes can be re-themed per gift (library / supermarket / park / playground / studio / subway-car, etc.) as long as each is a 'small-room-like' space. When the scene theme changes, you MUST keep the scene IDs (kitchen/rooftop/karaoke/couch) because they are referenced throughout the template HTML; only swap the visual content, palette, song, lyrics, decor, figure, and hero item. Treat scene id as a stable slot key, not as semantic content.",
+
+  "room_geometry": {
+    "architecture": "4 quadrants sharing a single central corner (0,0,0). Each room occupies one horizontal quadrant with a LEFT radial wall and a RIGHT radial wall; the inner corner of every room is the same point, and adjacent rooms share their common wall.",
+    "must_preserve": "Do NOT change WALL_LEN / WALL_H / WALL_THK / ROOF_Y / ROOM_Y_OFFSET / room positions / shared-corner topology. The camera logic, snap angles, sticker coordinate system, and lyric layout all assume this geometry.",
+    "wall_texture_role": "The left and right walls and the floor are FLAT rectangular textures — they clothe the wall surface. Do not produce '3D room scenes' as wall textures. The texture IS the wall; perspective already comes from the 3D scene. Three-dimensional detail (a window frame, a picture on the wall, a hanging lamp) MAY be painted into the wall texture, but depth beyond the wall surface (a room receding into the distance) must not."
+  },
+
+  "slots": [
+    {
+      "id": "scene_theme",
+      "type": "ai_text",
+      "required": false,
+      "purpose": "Optional per-scene re-theming. Default is the original kitchen/rooftop/karaoke/couch. May be changed when the recipient brief strongly suggests a different four-scene split (e.g. library/bookshop/park/café for a reading-partner gift). The id stays the same; only the visual & textual theming changes.",
+      "output_fields_per_scene": {
+        "theme": "one short word describing the re-themed room, e.g. 'kitchen' / 'library' / 'boba-shop'",
+        "eyebrow": "small kicker line shown in UI, e.g. a date or phrase",
+        "note": "1-2 lines of narrator-voice text that frames the room's feeling"
+      }
+    },
+
+    {
+      "id": "room_walls_and_floor",
+      "type": "ai_generated_image",
+      "per_scene": true,
+      "count_per_scene": 3,
+      "components_per_scene": [
+        {
+          "component_id": "wall_left",
+          "filename_pattern": "{scene_id}_left.jpg",
+          "approx_size": [720, 1280],
+          "aspect_ratio": "9:16",
+          "prompt_role": "the LEFT radial wall of this room — flat wall content only"
+        },
+        {
+          "component_id": "wall_right",
+          "filename_pattern": "{scene_id}_right.jpg",
+          "approx_size": [720, 1280],
+          "aspect_ratio": "9:16",
+          "prompt_role": "the RIGHT radial wall of this room — flat wall content only; must feel like the same room as the left wall"
+        },
+        {
+          "component_id": "floor",
+          "filename_pattern": "{scene_id}_floor.jpg",
+          "approx_size": [1280, 720],
+          "aspect_ratio": "16:9",
+          "prompt_role": "top-down floor texture for this room (tile / rug / wood / concrete etc., whatever matches the scene)"
+        }
+      ],
+      "consistency_group": "paper-house-{scene_id}-walls-and-floor",
+      "physical_rules": [
+        "A wall image shows ONLY what would be painted/hung on that wall surface. No receding-into-space perspective.",
+        "3D detail painted onto the wall (window frame with visible depth, picture in a frame, hanging lamp, clock, shelf against the wall) is welcome and makes the room feel real.",
+        "Left and right walls must read as part of ONE cohesive room — same lighting direction, same palette, same style, same era.",
+        "Floor texture is viewed from above. It usually tiles or reads as a continuous ground plane."
+      ],
+      "style_anchor": "template-source/scene_{scene_id}.jpg (reference image — mood, palette, painterly storybook feel)",
+      "style_hint_default": "painterly storybook diorama, intimate human-scale lighting, slight film grain, medium saturation, paper-cutout feel rather than photoreal. Color palette must follow the per-scene palette defined in ROOMS[scene].palette."
+    },
+
+    {
+      "id": "scene_figure_image",
+      "type": "ai_generated_image",
+      "per_scene": true,
+      "count_per_scene_range": [1, 2],
+      "filename_pattern": "scene_{scene_id}[_{n}].png",
+      "purpose": "One to two figure sprites per room showing the protagonist(s) inside that scene. The figures are cut-out silhouette-like stickers that occlude characters with scene context (the user cooking / standing on the rooftop / singing / on the couch). Look at FIGURE_LAYOUT in the canonical HTML for positioning intent.",
+      "identity_rules": [
+        "If the user provided reference photos of the recipient (and optionally themselves), the AI-generated figure MUST preserve recognizable facial structure, hair, skin tone, and clothing style from the reference photo. Not merely 'a person' but 'this person'.",
+        "If no reference photo is available, generate consistent but non-specific figures across all 4 rooms — same body proportions, same clothing palette — so the viewer reads them as the same character(s).",
+        "Support 1 or 2 figures per scene. The rooftop in the canonical template has 2 figures; the others have 1."
+      ],
+      "pre_process_pipeline": [
+        {"step": "stylize-character", "params": {"outline_width": 6, "outline_color": "#ffffff", "note": "Applied only when this is a direct user photo; skip when it's an AI-generated scene-figure composition that already reads as a cutout."}}
+      ]
+    },
+
+    {
+      "id": "scene_decorations",
+      "type": "sticker_picks",
+      "per_scene": true,
+      "filename_pattern": "{scene_id}/{1..6}.png",
+      "count_range_per_scene": [5, 7],
+      "source_library": "base/stickers/",
+      "library_categories": ["decorations", "food", "furnitures", "household_goods", "music_player", "pets", "plants", "transportation"],
+      "placement_rules": [
+        "Place decorations inside each room's quadrant using the DECOR_LAYOUT schema in the canonical HTML (x/y/z/s/order/rot). Use the canonical layout as the starting point; only re-pick which sticker fills each slot based on user context.",
+        "Some stickers MAY intentionally occlude the character figure in the foreground — this is an allowed depth trick and makes the diorama feel layered.",
+        "If a sticker is a photo frame, picture frame, or any container that is meant to hold content, you must ALSO place a separate inner-content sticker on top of it — never deliver an empty frame."
+      ],
+      "hero_item_rule": "Exactly ONE sticker per room is the hero interactive item — the one users click to open the memory card. See `scene_hero_items` for the schema. Pick a hero sticker whose semantics clearly map to a memory the user shared."
+    },
+
+    {
+      "id": "scene_hero_items",
+      "type": "hotspot_map",
+      "count_per_scene": 1,
+      "popup_shape": "Matches STICKER_INTERACTIONS in the canonical HTML: each popup is a handwritten memory card with a title, kicker, background story-card image, paper color, accent color, overlay decals, and a handwritten text block.",
+      "scenes": {
+        "kitchen": [
+          {
+            "hotspot_id_template": "kitchen_{sticker_number}",
+            "default_sticker_number": 4,
+            "default_item": "fridge",
+            "layout": "layout-note",
+            "paper_default": "#f5e6c8",
+            "accent_default": "#d67845"
+          }
+        ],
+        "rooftop": [
+          {
+            "hotspot_id_template": "rooftop_{sticker_number}",
+            "default_sticker_number": 1,
+            "default_item": "suitcase",
+            "layout": "layout-split",
+            "paper_default": "#e8edf2",
+            "accent_default": "#6f8fc1"
+          }
+        ],
+        "karaoke": [
+          {
+            "hotspot_id_template": "karaoke_{sticker_number}",
+            "default_sticker_number": 3,
+            "default_item": "camera",
+            "layout": "layout-diagonal",
+            "paper_default": "#f7e3ef",
+            "accent_default": "#d85f9d"
+          }
+        ],
+        "couch": [
+          {
+            "hotspot_id_template": "couch_{sticker_number}",
+            "default_sticker_number": 6,
+            "default_item": "chess",
+            "layout": "layout-triangle",
+            "paper_default": "#eee4f4",
+            "accent_default": "#8f73aa"
+          }
+        ]
+      },
+      "popup_contract": {
+        "title": "short CJK title for the memory, 6-14 characters",
+        "kicker": "short room/item label, e.g. '厨房 / 冰箱门'",
+        "image": "path to a generated story card (see story_cards slot)",
+        "decals": "3-4 small overlay stickers around the card, each with src/x/y/w/r, positioned via percentage inside the card frame",
+        "text": "a handwritten-tone memory note addressed TO the recipient, in the user's primary language. 60-110 characters. Grounded in a specific detail from the user's intake material. Never generic; never guilt-tripping. See gifting-ethics.md.",
+        "layout_options": ["layout-note", "layout-split", "layout-diagonal", "layout-triangle"]
+      }
+    },
+
+    {
+      "id": "story_cards",
+      "type": "ai_generated_image",
+      "per_scene": true,
+      "count_per_scene": 1,
+      "filename_pattern": "story_cards/generated/{scene_id}-{item}.png",
+      "approx_size": [1024, 720],
+      "generation_contract": "Use the same identity-preserve + compositing approach documented in `template-source/story_cards/prompts/story_card_image_prompts.json`. Each card combines the protagonist reference photos, the clicked sticker, the room's mood-reference image, and 2-3 supporting sticker references. Must leave generous clean blank space in a specific region (right / lower-right / etc.) for a handwritten CJK text overlay. No readable text inside the image. No watermark, no extra people.",
+      "physical_rules": [
+        "The hero object (fridge, suitcase, camera, chess board) must be the visual center and correctly rendered — e.g. a fridge's door must connect to the fridge body; a chess board must have visible grid; a suitcase must have handle/hinges in the right places.",
+        "The protagonist(s) must be visible and recognizably the same people as the room figures. The same identity reference propagates to all 4 story cards.",
+        "Palette and lighting must match the corresponding room's palette (see ROOMS[scene].palette in the canonical HTML).",
+        "The scene must tell a small self-contained micro-moment involving the hero object and the people — not just the object alone, and not just the people alone."
+      ],
+      "model_hint": "Use a model that supports multi-image identity preservation. The existing pipeline uses `gemini-3.1-flash-image-preview` via litellm (see template-source/scripts/generate_story_cards_litellm.py)."
+    },
+
+    {
+      "id": "scene_song",
+      "type": "music_lookup",
+      "per_scene": true,
+      "count_per_scene": 1,
+      "source": "apple_music_search_api + preview_url",
+      "contract": {
+        "input_to_ai": "Per-scene mood + user memories + user-provided song hints (if any). If the user provided a specific song for this scene, use it. Otherwise, AI picks a song whose tone matches the scene's emotional beat from the recipient brief.",
+        "search_strategy": "Use the iTunes Search API (https://itunes.apple.com/search?term=<title>+<artist>&entity=song&limit=5) to resolve a candidate song to its 30s preview URL. Apple exposes these preview URLs publicly, so no auth key is required.",
+        "fields_written_to_html": {
+          "title": "song title (any language)",
+          "artist": "artist name",
+          "previewUrl": "the 30-second m4a preview URL returned by iTunes Search API"
+        }
+      },
+      "copyright_rule": "Only the 30s preview URL (hosted by Apple) is embedded. Do NOT download and re-host the preview audio. Do NOT generate or quote large spans of original copyrighted lyrics. See scene_lyrics for how lyrics are written."
+    },
+
+    {
+      "id": "scene_lyrics",
+      "type": "ai_text",
+      "per_scene": true,
+      "count_per_scene": 2,
+      "purpose": "Two long prose-lyric sentences per scene, used for the wavy text banner at the top of each room. These are the user's narrator-voice reflections, NOT the song's lyrics.",
+      "composition_rules": [
+        "Each scene has two sentences. Each sentence is roughly 80-140 CJK characters when the user's language is Chinese; calibrate proportionally for other languages.",
+        "The sentence MAY include ONE short phrase (up to ~12 CJK chars) lightly quoted from the song's lyrics in the form 'X's song «Song Title» 里那句「quoted phrase」' — this is the fair-use-sized reference, not a bulk quotation.",
+        "The remaining ~95% of the sentence is ORIGINAL text written in the user's voice: it anchors on concrete memories the user shared during intake. Every sentence must contain at least one specific detail that traces to the user's intake material.",
+        "Tone: intimate, present-tense, addressed to TA (second person) OR reflective about TA (third person) — pick per-gift based on whose point of view reads most naturally.",
+        "NEVER generate full verse/chorus rewrites. NEVER approximate or lightly paraphrase multiple lines of any copyrighted song. If the user wants a song's lyric to carry the gift, quote at most ~12 chars from it and build original text around that quote."
+      ],
+      "layout_rules": {
+        "font_consistency": "The two sentence lines and the scene's falling words must all use the SAME font family and same base size; glow intensity must be identical. Do not make the falling words larger/smaller or differently styled.",
+        "baseline_undulation": "Each sentence is laid out along a gentle wave. The middle portion of each sentence (near the center of the banner / room) should be flatter — closer to horizontal. The left and right edges should have more pronounced rise/fall. Think of a shallow wave that dips harder at the ends.",
+        "horizontal_asymmetry": "The characters' horizontal placements must be slightly varied — NOT evenly spaced. Introduce small lateral jitter so the line reads as handwritten-on-a-wave, not as typeset. Avoid any row that reads as a perfect rectangle.",
+        "rotation": "The sentence itself stays upright; only individual FALLING words (below) rotate."
+      }
+    },
+
+    {
+      "id": "scene_fall_words",
+      "type": "ai_text",
+      "per_scene": true,
+      "count_per_scene_range": [22, 28],
+      "purpose": "Short phrases that fall like confetti from the banner area.",
+      "rules": [
+        "Each fall-word MUST be a complete meaningful phrase — 2-6 characters typically, sometimes up to 10. Never a broken fragment of a longer thought.",
+        "Source: mix of (a) user-memory-derived specifics ('番茄香气', '你回头', '递过碗') and (b) general mood tokens ('很轻很久', '再靠近一点'). Roughly 60% specific, 40% mood.",
+        "Each falling word is rendered with a random rotation angle in [-20°, +20°] — never 0°, never > 20°. The rotation is per-word, random each page load is fine.",
+        "Fonts, sizes, and glow exactly match the main scene_lyrics band — see `font_consistency` rule there."
+      ]
+    }
+  ],
+
+  "dependencies": {
+    "python_packages": {
+      "required_for_character_cutout": ["rembg", "onnxruntime", "Pillow", "opencv-python", "numpy"],
+      "required_for_story_card_generation": ["requests", "urllib3", "Pillow"],
+      "required_for_resource_delivery_parsing": ["(uses python stdlib zipfile + xml.etree; no package needed)"],
+      "notes": "Install on demand in a local venv when running the template. See SPEC.md § Dependencies."
+    },
+    "rembg_models": {
+      "default_model": "isnet-general-use",
+      "size_mb": 170,
+      "download_location": "rembg auto-downloads to ~/.u2net by default, or to DEAR_REMBG_MODEL_HOME if set",
+      "notes": "First-time cutout takes a minute while the model downloads. Subsequent runs are fast."
+    },
+    "external_apis": {
+      "itunes_search": {
+        "url": "https://itunes.apple.com/search",
+        "auth": "none",
+        "rate_limit": "~20 requests / minute per IP (best-effort; use sparingly)"
+      },
+      "image_generation": {
+        "model_hint": "gemini-3.1-flash-image-preview via litellm (as used in template-source/scripts/generate_story_cards_litellm.py)",
+        "config_source": "The existing script expects litellm BaseUrl + Api key in a docx at /Users/liujiawei/Desktop/资源交付.docx. For re-use in the skill, the agent should either (a) read the same docx on macOS locally, or (b) pass LITELLM_BASE_URL + LITELLM_API_KEY env vars. See SPEC.md § Dependencies for fallback paths including direct Gemini API and OpenRouter."
+      }
+    }
+  },
+
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "",
+    "sha256": "",
+    "size_mb_estimated": 170,
+    "bundle_contents": [
+      "stickers/decorations/  (~165 PNGs, cut-out, transparent bg)",
+      "stickers/food/        (~29 PNGs)",
+      "stickers/furnitures/  (~76 PNGs)",
+      "stickers/household_goods/ (~74 PNGs)",
+      "stickers/music_player/ (~14 PNGs)",
+      "stickers/pets/        (~24 PNGs)",
+      "stickers/plants/      (~14 PNGs)",
+      "stickers/transportation/ (~5 PNGs)",
+      "fonts/荷塘月色手写体+Regular.ttf",
+      "fonts/我爱万伟伟手写体.ttf",
+      "fonts/张穸洛浮生楷体.ttf",
+      "reference/scene_*.{jpg,png}   (example scene backgrounds — mood reference)",
+      "reference/{room}_{left,right,floor}.jpg  (example wall/floor textures — physical-constraint reference)",
+      "reference/{room}/1..6.png + player.png   (example room sprite set — layout reference)",
+      "reference/ref_boy.jpg, ref_girl.jpg     (example character-identity references)",
+      "reference/story_cards/generated/*.png    (example story cards)"
+    ],
+    "upload_instructions": "See RELEASE.md in this folder."
+  },
+
+  "build_script": "template-source/build.py",
+  "build_contract": {
+    "input": "filled-slots.json containing resolved slot outputs",
+    "output": "index.html",
+    "single_file": true,
+    "inline_strategy": "base64 all images directly into HTML (build.py already does this)"
+  }
+}

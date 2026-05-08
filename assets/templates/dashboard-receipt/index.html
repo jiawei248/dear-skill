@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SYSOP Protocol Control Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['"Courier New"', 'Courier', 'monospace'],
+                    },
+                    colors: {
+                        'sys-bg': '#000000',
+                        'sys-paper': '#ffffff',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #000;
+            color: #000;
+            /* 确保字体的像素感和锐利度 */
+            -webkit-font-smoothing: none;
+            font-smoothing: none;
+        }
+
+        /* 顶部和底部的锯齿/撕纸边缘效果 */
+        .receipt-edges {
+            position: relative;
+            background: #ffffff;
+            margin-top: 24px;
+            margin-bottom: 24px;
+        }
+        
+        .receipt-edges::before, .receipt-edges::after {
+            content: "";
+            position: absolute;
+            left: 0; 
+            right: 0;
+            height: 12px;
+            background-size: 16px 16px;
+            z-index: 10;
+        }
+
+        .receipt-edges::before {
+            top: -12px;
+            background-image: linear-gradient(135deg, transparent 50%, #ffffff 50%),
+                              linear-gradient(225deg, transparent 50%, #ffffff 50%);
+            background-position: 0 0, 8px 0;
+        }
+
+        .receipt-edges::after {
+            bottom: -12px;
+            background-image: linear-gradient(135deg, #ffffff 50%, transparent 50%),
+                              linear-gradient(225deg, #ffffff 50%, transparent 50%);
+            background-position: 0 0, 8px 0;
+        }
+
+        /* 自定义虚线边框，比系统默认的更密集 */
+        .dashed-divider {
+            border-bottom: 1px dashed #000;
+            width: 100%;
+        }
+
+        /* 进度条未填充部分的点阵背景 */
+        .bg-dots {
+            background-image: radial-gradient(circle, #000 1px, transparent 1px);
+            background-size: 3px 3px;
+            background-position: center;
+        }
+
+        /* 修复极小屏幕滚动 */
+        .dashboard-container {
+            min-width: 900px;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8 font-mono overflow-auto">
+    <div id="app"></div>
+
+    <script type="module">
+        import { h, render } from 'https://esm.sh/preact@10.19.2';
+        import htm from 'https://esm.sh/htm@3.1.1';
+
+        const html = htm.bind(h);
+
+        // --- 子组件定义 ---
+
+        // 顶部故障风 Logo (使用原生文字加特效渲染，避免路径扭曲)
+        const SysopLogo = () => html`
+            <div class="flex justify-center mb-6">
+                <svg width="360" height="75" viewBox="0 0 360 75" class="block">
+                    <defs>
+                        <g id="sysop-text">
+                            <!-- 使用粗体无衬线字体获得标准的方块字形 -->
+                            <text x="180" y="60" font-family="'Arial Black', Impact, sans-serif" font-size="64" font-weight="900" text-anchor="middle" letter-spacing="6">SYSOP</text>
+                        </g>
+                    </defs>
+
+                    <!-- 3D 阴影层 -->
+                    <use href="#sysop-text" x="4" y="4" fill="none" stroke="black" stroke-width="1.5" />
+                    <use href="#sysop-text" x="8" y="8" fill="none" stroke="black" stroke-width="1.5" />
+
+                    <!-- 正面实体 -->
+                    <use href="#sysop-text" x="0" y="0" fill="black" />
+
+                    <!-- 镂空横线 (带黑色描边，完美还原原图的切割感) -->
+                    <g transform="translate(0, 2)">
+                        <rect x="25" y="24" width="310" height="4" fill="#ffffff" />
+                        <rect x="25" y="24" width="310" height="1" fill="black" />
+                        <rect x="25" y="27" width="310" height="1" fill="black" />
+
+                        <rect x="25" y="40" width="310" height="4" fill="#ffffff" />
+                        <rect x="25" y="40" width="310" height="1" fill="black" />
+                        <rect x="25" y="43" width="310" height="1" fill="black" />
+
+                        <rect x="25" y="56" width="310" height="4" fill="#ffffff" />
+                        <rect x="25" y="56" width="310" height="1" fill="black" />
+                        <rect x="25" y="59" width="310" height="1" fill="black" />
+                    </g>
+                </svg>
+            </div>
+        `;
+
+        // 数据行组件 (左侧 Vitals)
+        const VitalRow = ({ label, value }) => html`
+            <div class="flex justify-between items-center mb-[6px] text-[13px] uppercase">
+                <span>${label}</span>
+                <span>${value}</span>
+            </div>
+        `;
+
+        // 进度条组件 (右侧 Matrix)
+        const MatrixBar = ({ label, percentage }) => html`
+            <div class="grid grid-cols-[100px_1fr_40px] gap-4 items-center mb-[6px] text-[13px] uppercase">
+                <span>${label}</span>
+                <div class="h-3 flex w-full">
+                    <div class="bg-black h-full" style="width: ${percentage}%;"></div>
+                    <div class="bg-dots h-full" style="width: ${100 - percentage}%;"></div>
+                </div>
+                <span class="text-right">${percentage}%</span>
+            </div>
+        `;
+
+        // 热力图组件
+        const HeatmapGrid = () => {
+            // 手动映射截图中的深浅度数组 (14 x 4 = 56 个格子)
+            const shades = [
+                'bg-white', 'bg-white', 'bg-black', 'bg-black', 'bg-gray-600', 'bg-gray-400', 'bg-white', 'bg-gray-200', 'bg-gray-300', 'bg-black', 'bg-black', 'bg-gray-800', 'bg-white', 'bg-white',
+                'bg-gray-400', 'bg-gray-400', 'bg-black', 'bg-black', 'bg-black', 'bg-black', 'bg-white', 'bg-black', 'bg-gray-800', 'bg-gray-300', 'bg-gray-400', 'bg-gray-200', 'bg-white', 'bg-black',
+                'bg-black', 'bg-black', 'bg-black', 'bg-black', 'bg-gray-200', 'bg-white', 'bg-gray-800', 'bg-gray-600', 'bg-black', 'bg-gray-400', 'bg-gray-500', 'bg-white', 'bg-gray-200', 'bg-black',
+                'bg-white', 'bg-gray-400', 'bg-gray-400', 'bg-gray-400', 'bg-white', 'bg-white', 'bg-black', 'bg-black', 'bg-black', 'bg-black', 'bg-gray-400', 'bg-gray-300', 'bg-gray-600', 'bg-gray-400'
+            ];
+            
+            return html`
+                <div style="display: grid; grid-template-columns: repeat(14, minmax(0, 1fr)); gap: 2px;" class="w-full">
+                    ${shades.map(shade => html`<div class="aspect-square border border-black ${shade}"></div>`)}
+                </div>
+            `;
+        };
+
+        // 事件日志表组件
+        const EventLog = () => {
+            const logs = [
+                { time: '14:02:54', pid: 'PID_9942', action: 'AUTH_TOKEN_GEN', code: 'x200' },
+                { time: '14:02:51', pid: 'PID_011A', action: 'MEM_FLUSH_ROUTINE', code: 'x200' },
+                { time: '14:02:48', pid: 'PID_33F1', action: 'REQ_TIMEOUT_DROP', code: 'x408' },
+                { time: '14:02:45', pid: 'PID_9942', action: 'DB_QUERY_EXEC', code: 'x200' },
+                { time: '14:02:42', pid: 'PID_8B22', action: 'USER_SOCK_CONN', code: 'x201' },
+            ];
+            return html`
+                <table class="w-full text-left text-[12px] uppercase tracking-wide">
+                    <thead>
+                        <tr class="border-b border-black">
+                            <th class="font-normal pb-2">TIMESTAMP</th>
+                            <th class="font-normal pb-2">PROCESS ID</th>
+                            <th class="font-normal pb-2">ACTION</th>
+                            <th class="font-normal pb-2 text-right">CODE</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${logs.map(log => html`
+                            <tr>
+                                <td class="py-[4px] pt-[6px]">${log.time}</td>
+                                <td class="py-[4px] pt-[6px]">${log.pid}</td>
+                                <td class="py-[4px] pt-[6px]">${log.action}</td>
+                                <td class="py-[4px] pt-[6px] text-right">${log.code}</td>
+                            </tr>
+                        `)}
+                    </tbody>
+                </table>
+            `;
+        };
+
+        // --- 主应用组件 ---
+        const App = () => html`
+            <div class="w-full max-w-5xl mx-auto dashboard-container">
+                <div class="receipt-edges p-10 shadow-2xl">
+                    
+                    ${html`<${SysopLogo} />`}
+                    
+                    <div class="text-center text-[13px] tracking-widest mb-4">
+                        PROTOCOL CONTROL DASHBOARD
+                    </div>
+
+                    <div class="dashed-divider mb-4"></div>
+
+                    <!-- 顶部会话信息 -->
+                    <div class="grid grid-cols-4 gap-4 text-[12px] uppercase mb-4 tracking-wide">
+                        <div>SESSION: TERM-04A</div>
+                        <div class="text-center">LOC: US-EAST-1</div>
+                        <div class="text-center">STATUS: ONLINE</div>
+                        <div class="text-right">SYS_TIME: 14:02:55 UTC</div>
+                    </div>
+
+                    <div class="dashed-divider mb-10"></div>
+
+                    <!-- 核心监控数据双列布局 -->
+                    <div class="grid grid-cols-2 gap-12 mb-8">
+                        
+                        <!-- 左列：CORE VITALS -->
+                        <div>
+                            <div class="flex justify-between font-bold text-[14px] uppercase mb-4 tracking-wide">
+                                <span>CORE VITALS</span>
+                                <span>[CHK]</span>
+                            </div>
+                            <div class="dashed-divider mb-4"></div>
+                            
+                            <${VitalRow} label="SYS_LOAD" value="0.45, 0.62, 0.68" />
+                            <${VitalRow} label="MEM_ALLOC" value="24.5 GB / 32 GB" />
+                            <${VitalRow} label="SWAP_USE" value="0.00 KB" />
+                            <${VitalRow} label="DISK_IO" value="120 MB/s" />
+                            <${VitalRow} label="NET_TX" value="1.2 Gbps" />
+                            <${VitalRow} label="NET_RX" value="840 Mbps" />
+                            <${VitalRow} label="ACTIVE_CONN" value="4,092" />
+                            <${VitalRow} label="UPTIME" value="45d 12h 30m" />
+                        </div>
+
+                        <!-- 右列：RESOURCE MATRIX -->
+                        <div>
+                            <div class="flex justify-between font-bold text-[14px] uppercase mb-4 tracking-wide">
+                                <span>RESOURCE MATRIX</span>
+                                <span>%_CAPACITY</span>
+                            </div>
+                            <div class="dashed-divider mb-4"></div>
+
+                            <${MatrixBar} label="CLUSTER_A" percentage=${60} />
+                            <${MatrixBar} label="CLUSTER_B" percentage=${90} />
+                            <${MatrixBar} label="CACHE_X" percentage=${30} />
+                            <${MatrixBar} label="DB_POOL_1" percentage=${75} />
+                            <${MatrixBar} label="WORKERS" percentage=${100} />
+
+                            <div class="dashed-divider mt-6 mb-4"></div>
+                            
+                            <div class="flex justify-between text-[12px] uppercase">
+                                <span>MAX THRESHOLD REACHED ON WKR_NODE</span>
+                                <span>*CRITICAL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 中部波形图部分 -->
+                    <div class="mt-12">
+                        <div class="flex justify-between font-bold text-[14px] uppercase mb-4 tracking-wide">
+                            <span>SIGNAL TOPOLOGY // FREQUENCY OUTPUT</span>
+                            <span>HZ/MS</span>
+                        </div>
+                        <div class="dashed-divider mb-4"></div>
+
+                        <!-- 纯手工映射的波形 SVG -->
+                        <div class="w-full h-32 border border-black mb-4 relative">
+                            <svg viewBox="0 0 1000 150" class="w-full h-full block" preserveAspectRatio="none">
+                                <!-- 中间虚线基准线 -->
+                                <line x1="0" y1="75" x2="1000" y2="75" stroke="black" stroke-dasharray="6, 6" />
+                                <!-- 信号波形线 -->
+                                <polyline 
+                                    points="0,85 40,80 60,60 80,100 120,65 180,65 220,65 240,50 260,85 280,30 320,110 350,60 380,75 420,70 450,75 480,85 520,75 550,78 580,78 620,75 660,75 680,50 720,100 750,50 780,100 820,50 860,70 900,65 920,55 960,110 980,80 1000,50" 
+                                    fill="none" 
+                                    stroke="black" 
+                                    stroke-width="2.5" 
+                                    stroke-linejoin="bevel"
+                                />
+                            </svg>
+                        </div>
+
+                        <!-- 底部参数 -->
+                        <div class="grid grid-cols-3 text-[12px] uppercase tracking-wide">
+                            <div>AMP: 1.2V</div>
+                            <div class="text-center">FREQ: 2.4GHZ</div>
+                            <div class="text-right">NOISE: LOW</div>
+                        </div>
+                    </div>
+
+                    <div class="dashed-divider mt-8 mb-8"></div>
+
+                    <!-- 底部热力图和日志双列布局 -->
+                    <div class="grid grid-cols-2 gap-12">
+                        
+                        <!-- 左列：NODE SECTOR DENSITY (热力图) -->
+                        <div>
+                            <div class="flex justify-between font-bold text-[14px] uppercase mb-4 tracking-wide">
+                                <span>NODE SECTOR DENSITY</span>
+                                <span>ACTV/IDLE</span>
+                            </div>
+                            <div class="dashed-divider mb-4"></div>
+                            <${HeatmapGrid} />
+                        </div>
+
+                        <!-- 右列：SYSTEM EVENT LOG (日志表) -->
+                        <div>
+                            <div class="flex justify-between font-bold text-[14px] uppercase mb-4 tracking-wide">
+                                <span>SYSTEM EVENT LOG</span>
+                                <span>LAST_50</span>
+                            </div>
+                            <div class="dashed-divider mb-4"></div>
+                            <${EventLog} />
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        `;
+
+        render(html`<${App} />`, document.getElementById('app'));
+    </script>
+</body>
+</html>

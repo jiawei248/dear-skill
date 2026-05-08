@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Music Player Interface</title>
+  <!-- 引入 p5.js 库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      /* 模拟原图中极具质感的暗黑径向渐变背景 */
+      background: radial-gradient(circle at center, #181818 0%, #050505 100%);
+      color: white;
+      font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    // 定义全局变量
+    let coverTexture;
+    let uiLeftTexture, uiRightTexture;
+    let rotX = 0;
+    let rotY = 0;
+    
+    // 布局参数
+    let leftOffsetX = -280;
+    let rightOffsetX = 300;
+    let coverSize = 320; // 【更新】将原本的360缩小为320
+
+    // 为了保证 UI 文字和线条在 3D 模式下极度清晰，我们采用超采样（像素密度乘数）
+    let pd = 2; 
+
+    function setup() {
+      // 开启 WEBGL 模式并允许透明背景
+      setAttributes('alpha', true);
+      createCanvas(windowWidth, windowHeight, WEBGL);
+
+      // 1. 程序化生成高度还原的专辑封面（包含封套和黑胶唱片）
+      coverTexture = generateCover();
+
+      // 2. 创建高清左侧 UI 面板 (文字 + 进度条 + 控制器)
+      uiLeftTexture = createGraphics(400 * pd, 200 * pd);
+      uiLeftTexture.scale(pd); // 缩放画布，后续代码按标准像素编写
+      drawLeftUI(uiLeftTexture);
+
+      // 3. 创建高清右侧 UI 面板 (播放列表)
+      uiRightTexture = createGraphics(450 * pd, 600 * pd);
+      uiRightTexture.scale(pd);
+      drawRightUI(uiRightTexture);
+    }
+
+    function draw() {
+      // 清除画布，透出背后的 CSS 渐变背景
+      clear();
+      
+      // 设置柔和的环境光和定向光增加 3D 质感
+      ambientLight(200);
+      directionalLight(255, 255, 255, 0.5, 0.5, -1);
+
+      // ==========================================
+      // 左侧模块：专辑封面 (动态 3D) + 播放控制UI (扁平)
+      // ==========================================
+      push();
+      translate(leftOffsetX, 0, 0);
+
+      // ---- a. 带有 3D 悬停反馈的专辑封面 ----
+      push();
+      translate(0, -90, 0); // 【更新】向上偏移量从-60调整至-90
+
+      // 计算鼠标相对于封面中心的坐标
+      let imgCenterX = width / 2 + leftOffsetX;
+      let imgCenterY = height / 2 - 90; // 【更新】同步匹配碰撞检测的中心Y坐标
+      let dx = mouseX - imgCenterX;
+      let dy = mouseY - imgCenterY;
+
+      // 碰撞检测：鼠标是否在封面区域内
+      let isHovering = abs(dx) < coverSize / 2 && abs(dy) < coverSize / 2;
+      let targetRotX = 0;
+      let targetRotY = 0;
+
+      if (isHovering) {
+        // 映射鼠标位置到旋转角度 (最大倾斜角度为 PI/12，约 15 度)
+        targetRotY = map(dx, -coverSize/2, coverSize/2, -PI/12, PI/12);
+        targetRotX = map(dy, -coverSize/2, coverSize/2, PI/12, -PI/12);
+      }
+
+      // 缓动动画算法，使倾斜和回弹平滑进行
+      rotX += (targetRotX - rotX) * 0.1;
+      rotY += (targetRotY - rotY) * 0.1;
+
+      rotateX(rotX);
+      rotateY(rotY);
+
+      // 封面阴影层（略微向后偏移）
+      push();
+      translate(15, 15, -5);
+      fill(0, 150);
+      noStroke();
+      plane(coverSize, coverSize);
+      pop();
+
+      // 渲染主封面
+      noStroke();
+      texture(coverTexture);
+      plane(coverSize, coverSize);
+      pop();
+
+      // ---- b. 左侧控制 UI ----
+      push();
+      translate(0, 200, 0); // 维持控制面板的位置不变，给上方留出间隙
+      noStroke();
+      texture(uiLeftTexture);
+      plane(400, 200);
+      pop();
+
+      pop(); // 结束左侧模块
+
+      // ==========================================
+      // 右侧模块：播放列表 (带静态 3D 透视)
+      // ==========================================
+      push();
+      translate(rightOffsetX, 0, 0);
+      rotateY(-0.25); // 静态透视倾斜 (左近右远)
+      noStroke();
+      texture(uiRightTexture);
+      plane(450, 600);
+      pop();
+    }
+
+    // 窗口尺寸自适应
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+
+    // ========================================================
+    // 绘图辅助函数：左侧播放控件
+    // ========================================================
+    function drawLeftUI(g) {
+      g.clear();
+
+      // 歌曲名称 (字间距通过插入空格模拟)
+      g.textFont('Helvetica Neue, Helvetica, Arial, sans-serif');
+      g.fill(255);
+      g.textSize(14);
+      g.textStyle(BOLD);
+      g.textAlign(CENTER, TOP);
+      g.text("A N A L O G   F R E Q U E N C Y", 200, 20);
+
+      // 电台信息 【更新】使用更细的字体栈，并将颜色稍微变暗一点来实现视觉变细
+      g.textFont('"Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, sans-serif');
+      g.fill(120); 
+      g.textSize(11);
+      g.textStyle(NORMAL);
+      g.text("Station 94.2 • Live Broadcast", 200, 45);
+
+      // 进度条背景
+      g.stroke(50);
+      g.strokeWeight(2);
+      g.line(40, 100, 360, 100);
+      
+      // 进度条高亮
+      g.stroke(255);
+      g.line(40, 100, 130, 100);
+      
+      // 进度条圆点
+      g.noStroke();
+      g.fill(255);
+      g.circle(130, 100, 6);
+
+      // 播放控制器图标
+      g.fill(160);
+      let cy = 150;
+
+      // 音量图标
+      g.triangle(45, cy-4, 45, cy+4, 53, cy);
+      g.rect(40, cy-2, 5, 4);
+
+      // 暂停按钮 (两道竖线)
+      g.rect(190, cy-6, 3, 12);
+      g.rect(198, cy-6, 3, 12);
+
+      // 上一首
+      g.triangle(110, cy, 120, cy-5, 120, cy+5);
+      g.rect(108, cy-5, 2, 10);
+
+      // 下一首
+      g.triangle(280, cy-5, 280, cy+5, 290, cy);
+      g.rect(290, cy-5, 2, 10);
+
+      // 循环模式 (右侧菱形小图标)
+      g.push();
+      g.translate(355, cy);
+      g.rotate(PI/4);
+      g.rect(-4, -4, 8, 8);
+      g.pop();
+    }
+
+    // ========================================================
+    // 绘图辅助函数：右侧播放列表
+    // ========================================================
+    function drawRightUI(g) {
+      g.clear();
+      g.textFont('Helvetica Neue, Helvetica, Arial, sans-serif');
+
+      // 标题 "UP NEXT"
+      g.fill(100);
+      g.textSize(10);
+      g.textStyle(BOLD);
+      g.textAlign(LEFT, TOP);
+      g.text("U P   N E X T", 20, 10);
+
+      let startY = 40;
+      let rowH = 55;
+      
+      // 歌单数据
+      let tracks = [
+        { t: "Midnight Tokyo", a: "Akira System", act: true },
+        { t: "Concrete Waves", a: "Brutalist.fm", act: false },
+        { t: "Static Interference", a: "Null Object", act: false },
+        { t: "Deep Space Echo", a: "Voyager 1", act: false },
+        { t: "Rain on Glass", a: "Ambient Loop", act: false },
+        { t: "Neon Noir", a: "Synth Collective", act: false },
+        { t: "Subway Jazz", a: "Underground", act: false }
+      ];
+
+      for(let i=0; i<tracks.length; i++) {
+        let y = startY + i * rowH;
+        let tr = tracks[i];
+
+        // 高亮当前播放项
+        if (tr.act) {
+          g.fill(255, 255, 255, 15);
+          g.rect(0, y, 450, rowH); // 浅灰色高亮条
+          g.fill(255);
+          g.rect(0, y+10, 2, rowH-20); // 最左侧的白色竖条指示器
+        }
+
+        // 歌曲名
+        g.textAlign(LEFT, CENTER);
+        g.textSize(13);
+        g.textStyle(NORMAL);
+        g.fill(tr.act ? 255 : 150); // 激活态更亮
+        g.text(tr.t, 20, y + rowH/2);
+
+        // 艺术家
+        g.textAlign(RIGHT, CENTER);
+        g.textSize(11);
+        g.fill(tr.act ? 150 : 80);
+        g.text(tr.a, 430, y + rowH/2);
+
+        // 分割线
+        g.stroke(255, 255, 255, 10);
+        g.strokeWeight(1);
+        g.line(0, y + rowH, 450, y + rowH);
+        g.noStroke();
+      }
+    }
+
+    // ========================================================
+    // 程序化生成极具质感的黑胶封面（替代外部图片）
+    // ========================================================
+    function generateCover() {
+      let g = createGraphics(800, 800); // 使用高分辨率保证清晰度
+      g.background(240); // 封套背景色
+
+      // 1. 绘制右侧露出的黑胶唱片
+      g.push();
+      g.translate(550, 400); // 唱片圆心偏右侧
+      g.fill(20);
+      g.circle(0, 0, 700); // 黑胶主体
+      
+      // 唱片纹理 (同心圆圈)
+      g.noFill();
+      g.stroke(40);
+      for(let r=200; r<680; r+=15) {
+        g.strokeWeight(map(r, 200, 680, 1, 3.5)); // 外圈凹槽稍微粗一点
+        g.circle(0, 0, r);
+      }
+      
+      // 内部橙黑混合的渐变/花纹标签 (模拟参考图原样)
+      g.fill(220, 90, 20); // 亮橙色
+      g.noStroke();
+      g.circle(0, 0, 250);
+      // 一点黑色的混合斑点
+      g.fill(30, 25, 20);
+      g.arc(0, 0, 250, 250, 0, PI);
+      
+      // 中心孔洞
+      g.fill(240);
+      g.circle(0, 0, 25);
+      g.pop();
+
+      // 2. 绘制左侧深色专辑封套
+      g.fill(15, 20, 22);
+      g.rect(0, 0, 480, 800); 
+
+      // 红色书脊装饰
+      g.fill(230, 40, 40);
+      g.rect(20, 20, 70, 760);
+
+      // "THE ACT" 排版
+      g.fill(15, 20, 22); // 暗色文字
+      g.textAlign(CENTER, CENTER);
+      g.textSize(65);
+      g.textStyle(BOLD);
+      g.textFont('Impact, Arial Black, sans-serif');
+      g.push();
+      g.translate(55, 400);
+      g.rotate(-PI/2);
+      g.text("THE ACT", 0, 0);
+      g.pop();
+
+      // 封套上的抽象艺术插画模拟 (绿色暗渊)
+      g.fill(10, 40, 30);
+      g.rect(100, 20, 360, 760);
+      g.fill(20, 65, 55);
+      g.circle(280, 400, 320);
+      g.fill(15, 25, 20);
+      g.circle(280, 400, 160);
+
+      return g;
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,391 @@
+# Templates
+
+A **template** is a pre-designed gift shape that the user can fill with their own context. Templates exist for two reasons:
+
+1. The user already knows what they want — a specific concept that's been done well — and just needs to personalize it
+2. Some gift shapes are visually elaborate enough that producing them from scratch every time would be expensive, slow, or unstable
+
+When a template is used, the skill bypasses the from-scratch creative pipeline (Stage 1 / 2 / 2.5 / Format Selection) and goes straight to filling the template's slots with the user's content.
+
+## How Template Mode Differs From the Default Flow
+
+| Default flow (creative path) | Template mode |
+|---|---|
+| User provides recipient + moment context | User picks a template + provides recipient context |
+| Stage 1: editorial judgment decides weight + direction | **Skipped** — template encodes both |
+| Stage 2 + 2.5: synthesis + 5 concept candidates | **Skipped** — concept is the template |
+| Format Selection | **Skipped** — template's format is fixed |
+| Stage 3: visual strategy | **Reduced** — template's visual is fixed; only per-gift assets are planned |
+| Stage 4: rendering from concept | **Replaced** by template build pipeline |
+
+Template mode is closer to "visualization-only" than to a full gift, but with one key difference: **the matching of user content to template slots is itself a creative act** done by the skill.
+
+## Template Discovery
+
+Available templates live in `{baseDir}/assets/templates/<template-id>/`. Each subdirectory containing a `template.json` is an installed template.
+
+To list available templates, scan that directory and read each `template.json`'s `name`, `description`, and `best_for` fields.
+
+When the user says "有什么模板" / "list templates" / "show me templates", the skill responds with a brief list:
+
+```
+Available templates:
+
+📦 paper-house — Night in Four Acts
+   An interactive layered scene of 4 small rooms. Click items to reveal memories.
+   Best for: anniversaries, partners, very-close-friends, love-letter-as-H5.
+
+(... other templates as added ...)
+```
+
+If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
+
+## Template Triggering
+
+Three triggers, all valid:
+
+### Explicit
+```
+/dear --template paper-house ~/Desktop/for-mia/
+/dear 用 paper-house 模板给 Mia 做 ~/Desktop/for-mia/
+```
+Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
+
+### Browse → Pick
+```
+/dear 有什么模板可以用？
+  → skill lists templates
+  → user: 用 paper-house
+  → skill: 把素材放进一个文件夹然后告诉我路径，或者直接贴在这里
+```
+
+### Implicit Recommendation (Optional)
+During a normal creative-path run, at Format Selection the skill scans the template registry. If a template's `best_for` and `tone` strongly match the locked concept, the skill may say:
+
+> 我刚发现 paper-house 模板基本就是你这个想法 — 4 个房间 + 点击回忆。要不直接用那个？比从头做更稳，素材也更完整。
+
+If the user says yes, switch to template mode. If no, continue the creative path.
+
+Never force this recommendation — it's an offer, not a redirect.
+
+## The `template.json` Manifest
+
+Every template directory MUST contain a `template.json` with this shape:
+
+```json
+{
+  "id": "<short-slug, matches dirname>",
+  "name": "<human-friendly title>",
+  "description": "<one paragraph: what this template is, what experience it delivers>",
+  "preview": "preview.jpg",
+  "best_for": ["anniversary", "partner", "..."],
+  "tone": ["intimate", "warm", "..."],
+  "format": "h5" | "image" | "text",
+  "approx_size_mb": <number>,
+
+  "slots": [ ... see Slot Types below ... ],
+
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "https://github.com/<user>/<repo>/releases/download/<tag>/<file>.zip",
+    "sha256": "<optional, recommended>",
+    "size_mb": <number>
+  },
+
+  "build_script": "build.py",
+  "build_contract": {
+    "input": "filled-slots.json",
+    "output": "index.html"
+  }
+}
+```
+
+### Slot Types
+
+Slots describe **what content the template needs and where it comes from**. There are five canonical slot types:
+
+#### `ai_generated_image`
+The skill generates a brand-new image at gift-time, sized to the slot.
+
+```json
+{
+  "id": "kitchen_wall_left",
+  "type": "ai_generated_image",
+  "aspect_ratio": "9:16",
+  "approx_size": [720, 1280],
+  "prompt_hint": "wall of a small intimate apartment kitchen at night, warm lamp light from off-screen, painterly storybook style",
+  "style_anchor": "{baseDir}/assets/templates/paper-house/style-reference.jpg",
+  "consistency_group": "paper-house-room-walls"
+}
+```
+
+Notes:
+- `prompt_hint` is the SEED — slot-matching may enrich it with user-context details
+- `style_anchor` is an optional reference image the generation prompt should anchor on, for visual consistency across slots in the same template
+- `consistency_group` lets the skill pass the same seed/style across related slots so that all walls in the same template look like one world
+- The skill uses the existing image-generation path (`render-image.sh` or in-Claude image generation when available)
+
+#### `sticker_picks`
+The skill picks N stickers from the template's library based on the user's recipient context. N is variable — the AI chooses how many fit visually.
+
+```json
+{
+  "id": "kitchen_decorations",
+  "type": "sticker_picks",
+  "library_subpaths": ["stickers/food/", "stickers/plants/", "stickers/pets/"],
+  "count_range": [3, 8],
+  "placement_zone": "kitchen_floor_area",
+  "selection_hint": "things that suggest cooking together — utensils, food, a small plant on the counter"
+}
+```
+
+Notes:
+- `library_subpaths` are paths inside the template's `base/` bundle
+- `count_range` is a soft hint — the skill picks based on what looks good
+- `placement_zone` corresponds to a named region in the template HTML
+- Stickers are PNGs with alpha; the skill positions them with the template's layout logic
+
+#### `user_image_processed`
+The user provides a photo; the skill processes it through a deterministic pipeline (no generation).
+
+```json
+{
+  "id": "character_portrait",
+  "type": "user_image_processed",
+  "count": "1-2",
+  "required": false,
+  "purpose": "A photo of TA (and optionally the user) used as the character figure in each scene.",
+  "pipeline": [
+    {"step": "stylize-character", "params": {"outline_width": 6, "outline_color": "#ffffff"}}
+  ],
+  "fallback_when_missing": "skip"
+}
+```
+
+The `pipeline` is a list of `{step, params}` operations. Available steps:
+- `stylize-character` — runs `scripts/stylize-character.sh` (cutout + outline)
+- `crop-to-aspect` — crops to a given aspect ratio
+- (more can be added)
+
+`fallback_when_missing` controls behavior when the user provides no photo:
+- `skip` — the slot is empty, character figure is omitted
+- `default` — use a default asset bundled in `base/`
+
+#### `ai_text`
+AI-written text, generated from the recipient brief and any user-provided source material.
+
+```json
+{
+  "id": "kitchen_lyrics",
+  "type": "ai_text",
+  "lines": 2,
+  "max_chars_per_line": 70,
+  "style_hint": "lyrics-like, intimate, present-tense, in the language the user uses with the recipient",
+  "source_priority": [
+    "user_provided_song_lyrics",
+    "ai_pick_from_song_in_recipient_brief",
+    "ai_compose_from_memories"
+  ],
+  "scene_id": "kitchen"
+}
+```
+
+`source_priority` is the search order:
+1. If the user provides explicit lyrics for this slot, use them verbatim
+2. Else, if the recipient brief mentions a specific song, AI picks 2 fitting lines from it
+3. Else, AI composes 2 original lines from the user's memories that fit this scene
+
+#### `hotspot_map`
+Clickable interactive zones inside a scene, each tied to a memory popup.
+
+```json
+{
+  "id": "scene_hotspots",
+  "type": "hotspot_map",
+  "scenes": {
+    "kitchen": [
+      {"hotspot_id": "stove", "label": "灶台"},
+      {"hotspot_id": "fridge", "label": "冰箱"},
+      {"hotspot_id": "mug", "label": "马克杯"}
+    ],
+    "rooftop": [
+      {"hotspot_id": "telescope", "label": "望远镜"},
+      {"hotspot_id": "fence", "label": "栏杆"}
+    ]
+  },
+  "popup_contract": {
+    "max_chars": 80,
+    "tone": "specific, personal, not abstract",
+    "source": "ai_assigns_memories_to_hotspots"
+  }
+}
+```
+
+The skill maps each user memory snippet to the hotspot whose label feels closest, optionally consulting the user during the edit loop.
+
+## Asset Bundle Convention (OSS)
+
+For templates with > ~5MB of skeleton assets, do NOT bundle assets in the skill repo. Use the `asset_bundle` URL pattern.
+
+### Recommended host: GitHub Release assets
+
+GitHub Release assets are free, have a 2GB per-file limit, and serve fast direct download URLs.
+
+To prepare a bundle:
+1. Organize the template's skeleton assets in a folder, in the directory layout the template's `build.py` expects
+2. Zip it: `cd folder && zip -r ../bundle.zip .`
+3. On GitHub: Releases → Create a new release → tag `assets-<template-id>-v1`
+4. Drag the zip into the release asset uploader → Publish
+5. The download URL is: `https://github.com/<user>/<repo>/releases/download/<tag>/<file>.zip`
+6. Compute sha256: `shasum -a 256 bundle.zip` and put it in `template.json`
+
+To version up assets (e.g. add 50 new stickers):
+- Cut a new release (`assets-<id>-v2`) with the new zip
+- Update `template.json`'s `url` and `sha256`
+- Users will re-fetch on next use
+
+### How the skill fetches a bundle
+
+When entering template mode the skill checks if `assets/templates/<id>/base/` exists and is non-empty. If not:
+1. Read `template.json.asset_bundle.url`
+2. Download zip via `curl` to a temp file
+3. (If `sha256` is set) verify
+4. Unzip into `assets/templates/<id>/base/`
+5. Cache permanently — never re-fetch unless the user runs `--refresh-template <id>` or the manifest's `sha256` differs
+
+`scripts/fetch-asset-bundle.sh` is the runtime entry. It supports both the existing per-category bundle pattern and template bundles via `--template <id>`.
+
+## The Slot-Matching Flow
+
+This is the new "Stage 0.5" specific to template mode. It happens after intake and before build.
+
+```
+Read template.json
+   ↓
+Read all user material from intake (folder, brief, attached images)
+   ↓
+For each slot in template.json:
+   - ai_generated_image:    queue for generation; consult recipient brief to enrich prompt
+   - sticker_picks:         scan recipient brief for matches against stickers in declared library_subpaths
+   - user_image_processed:  find matching photo in intake, queue for pipeline run
+   - ai_text:               apply source_priority chain
+   - hotspot_map:           pull memory snippets from notes/chat, score each against each hotspot label, assign best matches
+   ↓
+Show the user a "fill preview" — markdown-formatted list of every filled slot with its content
+   ↓
+Enter the natural-language edit loop (see below)
+   ↓
+On user "可以" / "ok" / "go" → run template build_script
+```
+
+### The Fill Preview
+
+Show the user a clear, scannable preview before building. Example:
+
+```
+我准备这样填 paper-house 给 Mia：
+
+🍳 kitchen
+   主图：会重新生成（painterly nighttime apartment kitchen）
+   贴纸：bowl, steam-cloud, plant, blue-mug, pot, oven-mitt（6 个，从 food/plants/ 里选的）
+   歌词：「fall back into place, tender is the night」
+        「falling through the atmosphere, it was just you and me」
+   点击物品：
+     · stove → "我给你做的第一锅番茄意面你吃了三碗"
+     · fridge → "你看到过期酸奶笑了好久"
+     · mug → "蓝色那个被你顺走了"
+
+🌆 rooftop
+   ...
+
+人物：mia-IMG_2341.jpg → 抠图 + 白描边
+
+---
+要我就这么开始做？还是想调整哪里？
+```
+
+### The Natural-Language Edit Loop
+
+Accept any of:
+- "可以" / "ok" / "开始做" → proceed to build
+- Anything that mentions a specific slot to change → re-fill that slot, show updated preview, ask again
+- Anything ambiguous → ask one short clarifying question
+
+Examples and how to interpret:
+
+| User says | Skill interprets |
+|---|---|
+| "kitchen 的歌词换一首" | re-fill `kitchen_lyrics` slot, possibly with a different song or original composition |
+| "把 stove 那条改成 ___" | replace specific hotspot popup text |
+| "我不想用这首歌" | mark `user_provided_song_lyrics` as cleared, regenerate all `ai_text` slots that depend on it |
+| "Mia 的照片用 0087 那张" | switch `character_portrait` source, re-run pipeline |
+| "rooftop 的贴纸太少了" | re-pick `rooftop_decorations` with higher count |
+| "整体感觉太冷了" | broader feedback — adjust style hints across multiple slots |
+
+After every edit, re-show only the changed slots in the preview, not the whole thing.
+
+Never use structured commands (`/edit`, `--slot`). User speaks naturally; skill parses.
+
+The loop has no hard turn limit. It ends when the user says they're ready.
+
+## Build Pipeline
+
+Each template provides a `build.py` (or whatever script its `build_script` field points to). Contract:
+
+**Input**: a single `filled-slots.json` file in the working dir, containing every slot's resolved value:
+```json
+{
+  "kitchen_wall_left": {"resolved_path": "/tmp/dear-build-x/kitchen_wall_left.png"},
+  "kitchen_decorations": {"resolved_paths": ["...stove.png", "...pot.png", ...]},
+  "kitchen_lyrics": {"lines": ["fall back into place...", "falling through..."]},
+  "scene_hotspots": {"kitchen": [{"hotspot_id": "stove", "popup": "我给你做..."}, ...]},
+  ...
+}
+```
+
+**Output**: a single `index.html` in the working dir's `./gifts/<date>-<recipient-slug>/` folder, with all assets base64-inlined (per the existing single-file H5 rule).
+
+The skill orchestrates: prepares filled-slots.json → invokes build.py → moves output to the gift folder → continues to delivery.
+
+## Where Each Slot Type's Asset Comes From
+
+| Slot type | Comes from | Cost |
+|---|---|---|
+| `ai_generated_image` | Image generation API at gift-time | High per-gift cost; bounded by number of slots |
+| `sticker_picks` | Template's bundled `base/stickers/` (downloaded once from OSS) | Zero per-gift |
+| `user_image_processed` | User's intake folder | Local processing only (cutout + outline) |
+| `ai_text` | Claude in-context | Cheap |
+| `hotspot_map` | Claude in-context, mapping user memories to template-defined zones | Cheap |
+
+The intent: **stickers are bundled (free per use), walls/floors are AI-generated (variable per use), text is Claude (cheap), character is local processing (deterministic)**. No generic web image search — that breaks visual cohesion.
+
+## Adding New Templates
+
+To add a template:
+
+1. Create `assets/templates/<id>/`
+2. Write `template.json` following the schema above
+3. Write `template.html` with placeholder zones the build script will fill
+4. Write `build.py` that reads `filled-slots.json` and emits `index.html`
+5. Stage skeleton assets (stickers, optional defaults) into a folder mirroring the structure declared in `library_subpaths`
+6. Zip + upload to GitHub Release as described above
+7. Add the URL and sha256 back to `template.json.asset_bundle`
+8. Add a one-paragraph entry to this file under "Available Templates" below
+
+The skill needs no code changes per new template — it reads `template.json` and obeys.
+
+## Available Templates
+
+### `paper-house` — Night in Four Acts
+
+A WebGL scroll-through diorama of four small rooms that share a central corner. Each room gets its own Apple Music preview, lyric-wave text, falling-word confetti, custom decorations picked from a bundled sticker library, and exactly one clickable hero item that opens a handwritten memory card. Designed for anniversaries, partners, very-close-friends, mother's day gifts, love-letters-as-H5 — anywhere a shared period or a single evening splits naturally into four emotional beats.
+
+**The four scenes can be re-themed per gift** (library / supermarket / park / studio / boba-shop / wherever fits the relationship), as long as each feels like a small enclosed space. The scene IDs (`kitchen`/`rooftop`/`karaoke`/`couch`) stay as stable slot keys; only the visual and textual content changes per gift.
+
+Canonical authored HTML: `{baseDir}/assets/templates/paper-house/template-source/night-four-the-turn.html`.
+
+Production spec (8 rules, asset manifest, per-gift checklist, failure modes): `{baseDir}/assets/templates/paper-house/SPEC.md`. **Read this before attempting to produce a paper-house gift.**
+
+Asset bundle: ~170 MB of stickers, fonts, and reference examples, fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. The bundle URL lives in `template.json.asset_bundle.url` — see `{baseDir}/assets/templates/paper-house/RELEASE.md` for how to build and publish it on GitHub Releases.
+
+Format: `h5`. Status: ready once the asset bundle URL is populated.

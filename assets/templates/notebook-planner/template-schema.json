@@ -1,0 +1,34 @@
+{
+  "template_id": "notebook-planner",
+  "engine": "vanilla-css + js",
+  "description": "Two-page spread planner/notebook on warm paper background. Left page has daily schedule timeline with event blocks. Right page has priorities checklist and journal notes. Metal binder rings, month tabs with 3D page-flip animation.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Playfair Display, Inter). All assets inline.",
+  "customizable_fields": [
+    "page_title",
+    "schedule_events",
+    "priority_items",
+    "journal_text",
+    "month_tabs",
+    "current_month",
+    "paper_color",
+    "accent_color",
+    "event_colors",
+    "date_display"
+  ],
+  "fit_tags": [
+    "planning",
+    "organization",
+    "memory-shelf",
+    "data-viz",
+    "daily-review",
+    "structured",
+    "warm"
+  ],
+  "avoid_tags": [
+    "dark-mood",
+    "grief",
+    "abstract",
+    "chaotic",
+    "high-energy"
+  ]
+}

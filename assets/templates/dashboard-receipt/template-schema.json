@@ -1,0 +1,34 @@
+{
+  "template_id": "dashboard-receipt",
+  "engine": "vanilla-css + svg",
+  "description": "Thermal receipt-style data dashboard. White receipt strip on black background with zigzag torn edges. Glitchy monospace typography, data tables, dot-fill progress bars, SVG waveform chart, heatmap grid, event log. Retro terminal/hacker aesthetic.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Courier Prime). All assets inline or SVG.",
+  "customizable_fields": [
+    "page_title",
+    "logo_text",
+    "vitals_data",
+    "resource_bars",
+    "waveform_data",
+    "heatmap_data",
+    "event_log_entries",
+    "receipt_width",
+    "background_color",
+    "text_color"
+  ],
+  "fit_tags": [
+    "data-viz",
+    "tech",
+    "hacker",
+    "brutalist",
+    "terminal",
+    "gifted-data-viz",
+    "analytical"
+  ],
+  "avoid_tags": [
+    "romantic",
+    "soft",
+    "floral",
+    "cute",
+    "warm-cozy"
+  ]
+}

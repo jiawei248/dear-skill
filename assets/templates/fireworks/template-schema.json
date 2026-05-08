@@ -1,0 +1,35 @@
+{
+  "template_id": "fireworks",
+  "engine": "p5.js",
+  "description": "Interactive sparkler effect with flame cursor ignition. Characters burst as glowing particles with physics. User lights sparklers by moving flame to their tips.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "spark_characters",
+    "hint_text",
+    "sparkler_count",
+    "sparkler_positions",
+    "sparkler_color",
+    "burn_speed",
+    "particle_colors",
+    "background_color",
+    "gravity",
+    "decay_rate",
+    "ignition_radius"
+  ],
+  "fit_tags": [
+    "celebration",
+    "milestone",
+    "joy",
+    "high-energy",
+    "interactive-delight",
+    "birthday"
+  ],
+  "avoid_tags": [
+    "grief",
+    "contemplation",
+    "gentle-quiet",
+    "text-heavy",
+    "reading-focused"
+  ]
+}

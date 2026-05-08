@@ -1,0 +1,533 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GiftBrief",
+  "type": "object",
+  "required": [
+    "should_send",
+    "gift_weight",
+    "output_language",
+    "memory_lookup",
+    "narrative_role",
+    "tone",
+    "tone_rationale",
+    "core_thesis",
+    "gift_thesis",
+    "creative_concept",
+    "content_direction",
+    "why_today",
+    "time_significance",
+    "today_theme",
+    "emotion_peaks",
+    "historical_echo",
+    "open_loop",
+    "lobster_judgment",
+    "preference_hint",
+    "interaction_goal",
+    "visual_metaphor",
+    "pattern_hint",
+    "output_shape_hint",
+    "source_material",
+    "copy_blocks",
+    "safety_notes"
+  ],
+  "properties": {
+    "should_send": {
+      "type": "boolean"
+    },
+    "gift_weight": {
+      "type": "string",
+      "enum": ["light", "standard", "heavy"]
+    },
+    "output_language": {
+      "type": "string",
+      "description": "Primary language for the final H5 content."
+    },
+    "memory_lookup": {
+      "type": "object",
+      "required": ["needed", "reason"],
+      "properties": {
+        "needed": {
+          "type": "boolean"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "sources_checked": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "narrative_role": {
+      "type": "string",
+      "enum": ["seeing", "explaining", "uplifting", "connecting", "celebrating"]
+    },
+    "tone": {
+      "type": "string"
+    },
+    "tone_rationale": {
+      "type": "string",
+      "description": "Why this tone fits the user's habits, Hermes voice, and today's event."
+    },
+    "core_thesis": {
+      "type": "string"
+    },
+    "gift_thesis": {
+      "type": "object",
+      "required": ["thesis_statement", "anchor", "return_value", "primary_slots", "context_slots"],
+      "properties": {
+        "thesis_statement": {
+          "type": "string",
+          "description": "A concise statement of what the gift is actually about, including both anchor and return."
+        },
+        "anchor": {
+          "type": "string",
+          "description": "The moment, detail, or signal the gift is centering."
+        },
+        "return_value": {
+          "type": "string",
+          "description": "What Hermes wants to give back about the anchor: a new angle, interpretation, reframe, unseen perspective, or small piece of knowledge."
+        },
+        "primary_slots": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": {
+            "type": "string",
+            "enum": [
+              "today_theme",
+              "emotion_peaks",
+              "historical_echo",
+              "open_loop",
+              "lobster_judgment",
+              "preference_hint"
+            ]
+          },
+          "description": "The one or two synthesis slots that deserve primary attention in the final gift."
+        },
+        "context_slots": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "today_theme",
+              "emotion_peaks",
+              "historical_echo",
+              "open_loop",
+              "lobster_judgment",
+              "preference_hint"
+            ]
+          },
+          "description": "Remaining synthesis slots that may appear only as supporting context, captions, or easter eggs."
+        },
+        "return_type": {
+          "type": "string",
+          "description": "Optional short tag for the kind of return being offered, such as reframe, interpretation, comfort, humor, recognition, or perspective."
+        },
+        "special_day_override": {
+          "type": "boolean",
+          "description": "True only when a genuinely commemorative day justifies broader coverage."
+        },
+        "override_reason": {
+          "type": "string",
+          "description": "Why broader coverage is justified when special_day_override is true."
+        }
+      },
+      "additionalProperties": true
+    },
+    "creative_concept": {
+      "type": "object",
+      "required": ["candidate_concepts", "chosen_concept", "selection_reason"],
+      "properties": {
+        "candidate_concepts": {
+          "type": "array",
+          "minItems": 5,
+          "items": {
+            "type": "object",
+            "required": ["thinking_angle", "concept_sentence"],
+            "properties": {
+              "thinking_angle": {
+                "type": "string",
+                "description": "The main ideation angle used for this candidate, such as metaphor flip, format mashup, impossible action, scale shift, role reversal, time distortion, or cultural remix."
+              },
+              "concept_sentence": {
+                "type": "string",
+                "description": "One-sentence concrete gift idea."
+              }
+            },
+            "additionalProperties": true
+          },
+          "description": "At least five meaningfully different candidate gift concepts explored before choosing the final one."
+        },
+        "chosen_concept": {
+          "type": "string",
+          "description": "The final one-sentence creative concept that will guide format choice and rendering."
+        },
+        "selection_reason": {
+          "type": "string",
+          "description": "Why this concept was chosen over the other candidates: surprising, emotionally fitting, and achievable."
+        },
+        "novelty_note": {
+          "type": "string",
+          "description": "Brief note on why this concept feels like something the user has probably never received before."
+        }
+      },
+      "additionalProperties": true
+    },
+    "why_today": {
+      "type": "string"
+    },
+    "time_significance": {
+      "type": "object",
+      "required": ["is_special_time", "notes"],
+      "properties": {
+        "is_special_time": {
+          "type": "boolean"
+        },
+        "occasion_type": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "today_theme": {
+      "type": "object",
+      "required": ["summary", "why_it_matters"],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "why_it_matters": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "emotion_peaks": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["label", "moment", "emotional_direction"],
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "moment": {
+            "type": "string"
+          },
+          "emotional_direction": {
+            "type": "string"
+          },
+          "source_quote_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "historical_echo": {
+      "type": "object",
+      "required": ["used", "summary"],
+      "properties": {
+        "used": {
+          "type": "boolean"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "memory_date": {
+          "type": "string"
+        },
+        "why_it_connects": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "open_loop": {
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "importance": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "lobster_judgment": {
+      "type": "object",
+      "required": ["summary", "confidence"],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string",
+          "enum": ["low", "medium", "high"]
+        }
+      },
+      "additionalProperties": true
+    },
+    "preference_hint": {
+      "type": "object",
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string"
+        },
+        "supporting_signal": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true
+    },
+    "interaction_goal": {
+      "type": "string"
+    },
+    "visual_metaphor": {
+      "type": "string"
+    },
+    "pattern_hint": {
+      "type": "string"
+    },
+    "output_shape_hint": {
+      "type": "string",
+      "description": "Early suggestion for the gift's likely output-shape category. Prefer a recommended category when it fits, otherwise use a new stable high-level label rather than an overly specific one-off description."
+    },
+    "content_direction": {
+      "type": "string",
+      "description": "High-level content direction chosen during editorial judgment, such as witness, extension, encouragement, portrait, comfort, gift-from-elsewhere, play, utility, curation, real-world-nudge, or delayed-payoff. Apply the balancing rules from editorial-judgment.md and creative-concept.md rather than defaulting to the witness cluster."
+    },
+    "scene_description": {
+      "type": "string",
+      "description": "Concrete scene description for image rendering paths."
+    },
+    "image_genre": {
+      "type": "string",
+      "description": "Image genre when the selected format is image."
+    },
+    "style_hint": {
+      "type": "string",
+      "description": "Style hint for image generation."
+    },
+    "aspect_ratio_hint": {
+      "type": "string",
+      "description": "Optional aspect ratio guidance for image generation."
+    },
+    "text_overlay_spec": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "placement": {
+          "type": "string"
+        },
+        "size_hint": {
+          "type": "string"
+        },
+        "font_style_hint": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": true,
+      "description": "Optional guidance for text that should appear inside a generated image."
+    },
+    "future_link": {
+      "type": "string",
+      "description": "Optional note on how today relates to the user's future, next step, or unfolding arc."
+    },
+    "source_material": {
+      "type": "object",
+      "required": ["important_quotes", "important_images"],
+      "properties": {
+        "important_quotes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "text", "reason"],
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "speaker": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "important_images": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["description", "reason"],
+            "properties": {
+              "description": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string"
+              },
+              "visual_relevance": {
+                "type": "string"
+              },
+              "asset_reference": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "copy_blocks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      }
+    },
+    "asset_hints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "safety_notes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "send_decision_rationale": {
+      "type": "string",
+      "description": "Why this day deserves a gift, or why it should be skipped."
+    }
+  },
+  "examples": [
+    {
+      "should_send": true,
+      "gift_weight": "standard",
+      "output_language": "zh-CN",
+      "memory_lookup": {
+        "needed": false,
+        "reason": "Today's signal is already sufficient without a deeper callback."
+      },
+      "narrative_role": "uplifting",
+      "tone": "warm-wry",
+      "tone_rationale": "The user sounded slightly drained but still playful enough to receive one companionable recommendation without it feeling preachy.",
+      "core_thesis": "Tonight does not need a recap. It needs one well-chosen continuation that turns the day's mood into something the user can carry forward.",
+      "gift_thesis": {
+        "thesis_statement": "Anchor: the user's rainy late-night coding mood. Return: one adjacent song recommendation that makes the night feel more held and cinematic.",
+        "anchor": "Late-night coding with rain outside.",
+        "return_value": "A small continuation: one song that fits the exact mood and makes the night feel intentionally inhabited instead of merely tired.",
+        "primary_slots": ["today_theme", "preference_hint"],
+        "context_slots": ["emotion_peaks"]
+      },
+      "creative_concept": {
+        "candidate_concepts": [
+          {
+            "thinking_angle": "metaphor flip",
+            "concept_sentence": "A rainy terminal window that compiles tonight's mood into one playable song cassette."
+          },
+          {
+            "thinking_angle": "format mashup",
+            "concept_sentence": "A late-night radio plus code editor hybrid where one tuned station reveals the song Hermes picked for this exact hour."
+          },
+          {
+            "thinking_angle": "impossible action",
+            "concept_sentence": "The rain outside the screen can be dragged into a tiny music player until it condenses into one track recommendation."
+          },
+          {
+            "thinking_angle": "time distortion",
+            "concept_sentence": "A bedside clock that only unlocks one song at this exact minute because it belongs to this version of the night."
+          },
+          {
+            "thinking_angle": "cultural remix",
+            "concept_sentence": "A fortune-cookie wrapper that opens to reveal tonight's song recommendation instead of a proverb."
+          }
+        ],
+        "chosen_concept": "A late-night radio plus code editor hybrid where one tuned station reveals the song Hermes picked for this exact hour.",
+        "selection_reason": "It is specific, world-like, emotionally fitting, and naturally supports an extension-style gift without sounding instructional.",
+        "novelty_note": "This feels like a small device with its own logic, not just a recommendation card."
+      },
+      "content_direction": "extension",
+      "why_today": "The user already lived the day; the gift should extend it with one carefully chosen continuation rather than replay it.",
+      "time_significance": {
+        "is_special_time": false,
+        "notes": "Ordinary day, but the late-night mood is specific enough to justify a small gift."
+      },
+      "today_theme": {
+        "summary": "Late-night coding in a rainy mood.",
+        "why_it_matters": "The mood was specific, aesthetic, and easy to extend without overexplaining."
+      },
+      "emotion_peaks": [
+        {
+          "label": "tired-but-still-there",
+          "moment": "The user kept working late into the night.",
+          "emotional_direction": "mixed"
+        }
+      ],
+      "historical_echo": {
+        "used": false,
+        "summary": "No memory callback used."
+      },
+      "open_loop": {
+        "summary": "The night still feels open and unfinished."
+      },
+      "lobster_judgment": {
+        "summary": "A tiny continuation would land better than analysis tonight.",
+        "confidence": "high"
+      },
+      "preference_hint": {
+        "summary": "The user often responds well to aesthetic, taste-forward continuation gifts.",
+        "supporting_signal": "They enjoy mood-first artifacts more than didactic advice."
+      },
+      "interaction_goal": "Let the user feel they discovered a small hidden continuation rather than receiving a recommendation list.",
+      "visual_metaphor": "A bedside radio glowing beside a code editor in the rain.",
+      "pattern_hint": "extension",
+      "output_shape_hint": "object-reveal",
+      "scene_description": "A dimly lit late-night desk with rain on the window, a tiny radio, and a soft code-editor glow.",
+      "style_hint": "dark but not terminal-heavy; warm amber highlights; intimate night-radio mood.",
+      "source_material": {
+        "important_quotes": [],
+        "important_images": []
+      },
+      "copy_blocks": [
+        "今晚这首应该归你。",
+        "听说你喜欢这种夜，那这个你可能也会喜欢。"
+      ],
+      "safety_notes": [
+        "Keep recommendation density low.",
+        "Avoid any mentor or homework energy."
+      ],
+      "send_decision_rationale": "There is enough emotional specificity for a light extension gift."
+    }
+  ],
+  "additionalProperties": true
+}

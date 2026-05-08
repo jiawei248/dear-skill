@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Burn Reveal</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #000;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255, 255, 255, 0.85);
+      font-family: Georgia, serif;
+      font-size: 16px;
+      letter-spacing: 1px;
+      background: #111;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    #ui-hint {
+      position: absolute;
+      bottom: 20px;
+      width: 100%;
+      text-align: center;
+      color: rgba(0, 0, 0, 0.4);
+      font-family: sans-serif;
+      font-size: 14px;
+      pointer-events: none;
+      letter-spacing: 2px;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Preparing paper fibers and heat traces...</div>
+  <div id="ui-hint">Click anywhere to start a new burn</div>
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Burn Reveal",
+      interactionHint: "Click anywhere to start a new burn",
+      loadingText: "Preparing paper fibers and heat traces...",
+      topLayerText:
+        "This page holds the version of the story that has already gone stale. It keeps repeating the irritation, the complaint, the line you are done carrying. It sounds heavier than it deserves to be. It acts as if the bad moment should define the whole day. It keeps pretending that one annoying thing gets to narrate everything. Burn through it. Let the old script char and split. Let the soot keep the memory of heat, but not the authority to remain in charge.",
+      bottomLayerText:
+        "Underneath, a steadier page waits. The bad part was real, but it does not get the whole archive. What stays is clearer: your judgment, your humor, your refusal to keep worshipping nonsense, and the small clean fact that you can leave one burnt version behind and keep moving.",
+      basePaperColor: [252, 252, 252],
+      topPaperColor: [242, 238, 228],
+      baseTextColor: [30, 30, 30],
+      topTextColor: [190, 185, 175],
+      textureDots: 30000,
+      fontFamily: "Georgia",
+      textSize: 18,
+      textLeading: 30,
+      textPaddingX: 40,
+      textPaddingY: 40,
+      autoBurnCount: 18,
+      autoBurnDelayMsMax: 4000,
+      burnRadiusMin: 40,
+      burnRadiusMax: 85,
+      burnDurationMin: 150,
+      burnDurationMax: 250,
+      holeSegments: 40,
+      holeNoiseSeedScale1: 1.5,
+      holeNoiseSeedScale2: 4.0,
+      outerGlowOffset: 25,
+      outerGlowNoiseFreq: 4.0,
+      outerGlowNoiseAmp: 25,
+      middleGlowOffset: 10,
+      middleGlowNoiseFreq: 2.5,
+      middleGlowNoiseAmp: 12,
+      innerCharOffset: 3,
+      innerCharNoiseFreq: 1.5,
+      innerCharNoiseAmp: 4,
+      eraseOffset: -1,
+      sparkProbabilityScale: 0.6,
+      ashProbabilityScale: 0.45,
+      maxAshes: 800,
+      initialBurnXMin: 0.15,
+      initialBurnXMax: 0.85,
+      initialBurnYMin: 0.1,
+      initialBurnYMax: 0.9
+    };
+
+    let baseTextLayer;
+    let fadedTextLayer;
+    let overlayGraphics;
+
+    let holes = [];
+    let sparks = [];
+    let ashes = [];
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      const loadingEl = document.getElementById("loading");
+      const hintEl = document.getElementById("ui-hint");
+      if (loadingEl) loadingEl.textContent = TEMPLATE_DATA.loadingText;
+      if (hintEl) hintEl.textContent = TEMPLATE_DATA.interactionHint;
+
+      createCanvas(windowWidth, windowHeight);
+      baseTextLayer = createGraphics(width, height);
+      fadedTextLayer = createGraphics(width, height);
+      overlayGraphics = createGraphics(width, height);
+
+      generateStaticLayers();
+
+      for (let i = 0; i < TEMPLATE_DATA.autoBurnCount; i += 1) {
+        setTimeout(() => {
+          holes.push(
+            new BurnHole(
+              random(width * TEMPLATE_DATA.initialBurnXMin, width * TEMPLATE_DATA.initialBurnXMax),
+              random(height * TEMPLATE_DATA.initialBurnYMin, height * TEMPLATE_DATA.initialBurnYMax)
+            )
+          );
+        }, random(0, TEMPLATE_DATA.autoBurnDelayMsMax));
+      }
+
+      if (loadingEl) {
+        loadingEl.style.display = "none";
+      }
+    }
+
+    function draw() {
+      background(TEMPLATE_DATA.basePaperColor[0], TEMPLATE_DATA.basePaperColor[1], TEMPLATE_DATA.basePaperColor[2]);
+
+      for (const h of holes) {
+        h.update();
+      }
+
+      image(baseTextLayer, 0, 0);
+
+      overlayGraphics.clear();
+      overlayGraphics.image(fadedTextLayer, 0, 0);
+      overlayGraphics.noStroke();
+
+      overlayGraphics.fill(255, 130, 0, 70);
+      overlayGraphics.drawingContext.shadowBlur = 20;
+      overlayGraphics.drawingContext.shadowColor = "rgba(255, 100, 0, 0.8)";
+      for (const h of holes) {
+        drawHoleShape(
+          overlayGraphics,
+          h,
+          TEMPLATE_DATA.outerGlowOffset,
+          TEMPLATE_DATA.outerGlowNoiseFreq,
+          TEMPLATE_DATA.outerGlowNoiseAmp
+        );
+      }
+
+      overlayGraphics.fill(160, 25, 5, 200);
+      overlayGraphics.drawingContext.shadowBlur = 5;
+      overlayGraphics.drawingContext.shadowColor = "rgba(200, 0, 0, 0.5)";
+      for (const h of holes) {
+        drawHoleShape(
+          overlayGraphics,
+          h,
+          TEMPLATE_DATA.middleGlowOffset,
+          TEMPLATE_DATA.middleGlowNoiseFreq,
+          TEMPLATE_DATA.middleGlowNoiseAmp
+        );
+      }
+
+      overlayGraphics.drawingContext.shadowBlur = 0;
+      overlayGraphics.fill(30, 15, 10, 255);
+      for (const h of holes) {
+        drawHoleShape(
+          overlayGraphics,
+          h,
+          TEMPLATE_DATA.innerCharOffset,
+          TEMPLATE_DATA.innerCharNoiseFreq,
+          TEMPLATE_DATA.innerCharNoiseAmp
+        );
+      }
+
+      overlayGraphics.erase();
+      for (const h of holes) {
+        drawHoleShape(
+          overlayGraphics,
+          h,
+          TEMPLATE_DATA.eraseOffset,
+          TEMPLATE_DATA.innerCharNoiseFreq,
+          TEMPLATE_DATA.innerCharNoiseAmp
+        );
+      }
+      overlayGraphics.noErase();
+
+      image(overlayGraphics, 0, 0);
+
+      noStroke();
+      for (const ash of ashes) {
+        fill(ash.r, ash.g, ash.b, ash.alpha);
+        ellipse(
+          ash.x,
+          ash.y,
+          ash.size * random(0.8, 1.2),
+          ash.size * random(0.8, 1.2)
+        );
+      }
+
+      blendMode(ADD);
+      for (let i = sparks.length - 1; i >= 0; i -= 1) {
+        const s = sparks[i];
+        s.update();
+        s.draw();
+        if (s.life <= 0) {
+          sparks.splice(i, 1);
+        }
+      }
+      blendMode(BLEND);
+    }
+
+    function drawHoleShape(pg, hole, offsetScale, noiseFreq = 0, noiseAmp = 0) {
+      pg.beginShape();
+      for (const pt of hole.baseShape) {
+        let flicker = 0;
+        if (noiseAmp > 0) {
+          const nx = cos(pt.angle) * noiseFreq;
+          const ny = sin(pt.angle) * noiseFreq;
+          flicker = (noise(nx + hole.seed, ny + hole.seed, frameCount * 0.08) - 0.5) * noiseAmp;
+        }
+
+        let currentR = hole.currentR + pt.rMod * hole.progress + offsetScale + flicker;
+        if (currentR < 0) currentR = 0;
+
+        const px = hole.x + cos(pt.angle) * currentR;
+        const py = hole.y + sin(pt.angle) * currentR;
+        pg.vertex(px, py);
+      }
+      pg.endShape(CLOSE);
+    }
+
+    function mousePressed() {
+      holes.push(new BurnHole(mouseX, mouseY));
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      baseTextLayer.resizeCanvas(width, height);
+      fadedTextLayer.resizeCanvas(width, height);
+      overlayGraphics.resizeCanvas(width, height);
+      generateStaticLayers();
+    }
+
+    function generateStaticLayers() {
+      let fullTopText = TEMPLATE_DATA.topLayerText;
+      while (fullTopText.length < 5000) {
+        fullTopText += "\n\n" + TEMPLATE_DATA.topLayerText;
+      }
+
+      let fullBottomText = TEMPLATE_DATA.bottomLayerText;
+      while (fullBottomText.length < 5000) {
+        fullBottomText += "\n\n" + TEMPLATE_DATA.bottomLayerText;
+      }
+
+      baseTextLayer.background(
+        TEMPLATE_DATA.basePaperColor[0],
+        TEMPLATE_DATA.basePaperColor[1],
+        TEMPLATE_DATA.basePaperColor[2]
+      );
+      baseTextLayer.fill(
+        TEMPLATE_DATA.baseTextColor[0],
+        TEMPLATE_DATA.baseTextColor[1],
+        TEMPLATE_DATA.baseTextColor[2]
+      );
+      baseTextLayer.textFont(TEMPLATE_DATA.fontFamily);
+      baseTextLayer.textSize(TEMPLATE_DATA.textSize);
+      baseTextLayer.textLeading(TEMPLATE_DATA.textLeading);
+      baseTextLayer.textAlign(LEFT, TOP);
+      baseTextLayer.text(
+        fullBottomText,
+        TEMPLATE_DATA.textPaddingX,
+        TEMPLATE_DATA.textPaddingY,
+        width - TEMPLATE_DATA.textPaddingX * 2,
+        height * 3
+      );
+
+      fadedTextLayer.background(
+        TEMPLATE_DATA.topPaperColor[0],
+        TEMPLATE_DATA.topPaperColor[1],
+        TEMPLATE_DATA.topPaperColor[2]
+      );
+
+      fadedTextLayer.noStroke();
+      for (let i = 0; i < TEMPLATE_DATA.textureDots; i += 1) {
+        fadedTextLayer.fill(0, 0, 0, random(2, 6));
+        fadedTextLayer.circle(random(width), random(height), random(1, 2));
+      }
+
+      fadedTextLayer.fill(
+        TEMPLATE_DATA.topTextColor[0],
+        TEMPLATE_DATA.topTextColor[1],
+        TEMPLATE_DATA.topTextColor[2]
+      );
+      fadedTextLayer.textFont(TEMPLATE_DATA.fontFamily);
+      fadedTextLayer.textSize(TEMPLATE_DATA.textSize);
+      fadedTextLayer.textLeading(TEMPLATE_DATA.textLeading);
+      fadedTextLayer.textAlign(LEFT, TOP);
+      fadedTextLayer.text(
+        fullTopText,
+        TEMPLATE_DATA.textPaddingX,
+        TEMPLATE_DATA.textPaddingY,
+        width - TEMPLATE_DATA.textPaddingX * 2,
+        height * 3
+      );
+    }
+
+    class BurnHole {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.time = 0;
+        this.duration = random(TEMPLATE_DATA.burnDurationMin, TEMPLATE_DATA.burnDurationMax);
+        this.maxR = random(TEMPLATE_DATA.burnRadiusMin, TEMPLATE_DATA.burnRadiusMax);
+        this.progress = 0;
+        this.currentR = 0;
+        this.seed = random(1000);
+        this.baseShape = [];
+
+        for (let a = 0; a < TWO_PI; a += TWO_PI / TEMPLATE_DATA.holeSegments) {
+          const n1 = noise(
+            cos(a) * TEMPLATE_DATA.holeNoiseSeedScale1 + this.seed,
+            sin(a) * TEMPLATE_DATA.holeNoiseSeedScale1 + this.seed
+          );
+          const n2 = noise(
+            cos(a) * TEMPLATE_DATA.holeNoiseSeedScale2 + this.seed,
+            sin(a) * TEMPLATE_DATA.holeNoiseSeedScale2 + this.seed
+          );
+          this.baseShape.push({
+            angle: a,
+            rMod: n1 * 30 + n2 * 15
+          });
+        }
+      }
+
+      update() {
+        if (this.time < 1.0) {
+          this.time += 1.0 / this.duration;
+          if (this.time > 1.0) this.time = 1.0;
+
+          this.progress = 1 - Math.pow(1 - this.time, 3);
+          this.currentR = this.maxR * this.progress;
+
+          if (random() < TEMPLATE_DATA.sparkProbabilityScale * (1 - this.time)) {
+            const a = random(TWO_PI);
+            const edgeR = this.currentR + 10;
+            sparks.push(new Spark(this.x + cos(a) * edgeR, this.y + sin(a) * edgeR));
+          }
+
+          if (random() < TEMPLATE_DATA.ashProbabilityScale) {
+            const a = random(TWO_PI);
+            const innerR = this.currentR * random(0.1, 0.95);
+            const type = random();
+            let r;
+            let g;
+            let b;
+
+            if (type < 0.4) {
+              r = 30;
+              g = 20;
+              b = 15;
+            } else if (type < 0.7) {
+              r = 180;
+              g = 40;
+              b = 10;
+            } else {
+              r = 240;
+              g = 130;
+              b = 20;
+            }
+
+            ashes.push({
+              x: this.x + cos(a) * innerR,
+              y: this.y + sin(a) * innerR,
+              size: random(1.5, 4.0),
+              r,
+              g,
+              b,
+              alpha: random(150, 255)
+            });
+
+            if (ashes.length > TEMPLATE_DATA.maxAshes) {
+              ashes.shift();
+            }
+          }
+        }
+      }
+    }
+
+    class Spark {
+      constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.vx = random(-1.5, 1.5);
+        this.vy = random(-3, -0.5);
+        this.life = 255;
+        this.decay = random(3, 8);
+        this.size = random(2, 5);
+      }
+
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        this.life -= this.decay;
+        this.size *= 0.95;
+      }
+
+      draw() {
+        noStroke();
+        fill(255, random(100, 200), 0, this.life);
+        circle(this.x, this.y, this.size);
+      }
+    }
+  </script>
+</body>
+</html>

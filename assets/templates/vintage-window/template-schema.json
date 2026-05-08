@@ -1,0 +1,34 @@
+{
+  "template_id": "vintage-window",
+  "engine": "p5.js",
+  "description": "A retro OS desktop with overlapping windows, terminal text, pixel art viewer, and blueprint aesthetic. All content canvas-drawn in a single-color theme. Personal content as vintage software artifact.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "window_titles",
+    "display_text",
+    "terminal_lines",
+    "secondary_text",
+    "pixel_art_grid",
+    "sidebar_icons",
+    "menu_items",
+    "system_name",
+    "theme_color",
+    "background_color",
+    "canvas_dimensions"
+  ],
+  "fit_tags": [
+    "tech-nostalgia",
+    "borrowed-media",
+    "multi-section",
+    "digital-artifact",
+    "structured-data",
+    "playful-formal"
+  ],
+  "avoid_tags": [
+    "organic-warmth",
+    "nature-themed",
+    "gentle-intimacy",
+    "simple-message"
+  ]
+}

@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wind Scatter</title>
+  <!-- Final delivered gifts should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable,
+       but images and custom assets should remain inline. -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background-color: #f0f0f0;
+    }
+
+    canvas {
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    #loading {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(207, 226, 255, 0.96);
+      color: rgba(255, 255, 255, 0.92);
+      letter-spacing: 0.08em;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 2;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">Gathering the text into the wind...</div>
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Wind Scatter",
+      textField: "Throughthestormysea穿过风浪的海",
+      centerDot: {
+        x: 270,
+        y: 300,
+        currentX: 150,
+        currentY: 500,
+        radius: 5,
+        color: "#FFFFFF"
+      },
+      textConfig: {
+        fontSize: 12,
+        fillColor: "#FFFFFF",
+        innerLetterSpacing: 8,
+        outerLetterSpacing: 2,
+        layerSpacing: 15,
+        maxLayers: 10,
+        lineColor: "#FFFFFF",
+        lineWeight: 0.4,
+        initialVelocityX: [-2, 5],
+        initialVelocityY: [-4, -1],
+        maxLineLength: 25,
+        flyingTriggerInterval: 2,
+        flyingCountMin: 2,
+        flyingCountMax: 5,
+        centerDotMoveInterval: 10,
+        centerDotMoveDuration: 60,
+        centerDotMoveSpeed: 0.8,
+        centerDotXRange: [-15, 15],
+        centerDotYRange: [-10, 10],
+        outsideLineStartX: 50,
+        outsideLineStartY: 850,
+        outsideLineColor: "#DBFFDC",
+        outsideLineWeight: 1.5,
+        canvasWidth: 600,
+        canvasHeight: 800,
+        bgGradientStart: "#2196F3",
+        bgGradientEnd: "#CFE2FF",
+        gradientStartY: 0,
+        gradientEndY: 800,
+        flyingStartDelay: 120,
+        charFloatRange: 5,
+        charFloatSpeed: [0.05, 0.1]
+      }
+    };
+
+    let characters = [];
+    let ringCharacters = [];
+    let lastFlyingFrame = 0;
+    let startFrame = 0;
+
+    let moveStartFrame = 0;
+    let moveTargetX = 0;
+    let moveTargetY = 0;
+    let moveOriginalX = 0;
+    let moveOriginalY = 0;
+
+    let colorStart;
+    let colorEnd;
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+
+      createCanvas(TEMPLATE_DATA.textConfig.canvasWidth, TEMPLATE_DATA.textConfig.canvasHeight);
+      startFrame = frameCount;
+      colorStart = color(TEMPLATE_DATA.textConfig.bgGradientStart);
+      colorEnd = color(TEMPLATE_DATA.textConfig.bgGradientEnd);
+
+      initRingCharacters();
+
+      moveOriginalX = TEMPLATE_DATA.centerDot.currentX;
+      moveOriginalY = TEMPLATE_DATA.centerDot.currentY;
+      moveTargetX = TEMPLATE_DATA.centerDot.x;
+      moveTargetY = TEMPLATE_DATA.centerDot.y;
+
+      document.getElementById("loading").style.display = "none";
+    }
+
+    function draw() {
+      drawGradient();
+      updateCenterDot();
+      drawOutsideLine();
+
+      noStroke();
+      fill(TEMPLATE_DATA.centerDot.color);
+      circle(TEMPLATE_DATA.centerDot.currentX, TEMPLATE_DATA.centerDot.currentY, TEMPLATE_DATA.centerDot.radius * 2);
+
+      drawRingCharacters();
+      triggerFlying();
+      updateAndDrawFlyingCharacters();
+      drawPosterTypography();
+    }
+
+    function initRingCharacters() {
+      let charIndex = 0;
+      for (let layer = 1; layer <= TEMPLATE_DATA.textConfig.maxLayers; layer += 1) {
+        let currentAngle = 0;
+        const spacing = map(
+          layer,
+          1,
+          TEMPLATE_DATA.textConfig.maxLayers,
+          TEMPLATE_DATA.textConfig.innerLetterSpacing,
+          TEMPLATE_DATA.textConfig.outerLetterSpacing
+        );
+
+        while (currentAngle < 360) {
+          const randomSpacing = spacing + random(-2, 2);
+          const c = TEMPLATE_DATA.textField.charAt(charIndex % TEMPLATE_DATA.textField.length);
+          ringCharacters.push({
+            char: c,
+            layer,
+            baseAngle: currentAngle,
+            noiseOffsetX: random(1000),
+            noiseOffsetY: random(1000)
+          });
+
+          currentAngle += randomSpacing;
+          charIndex += 1;
+        }
+      }
+    }
+
+    function drawGradient() {
+      noFill();
+      for (let y = 0; y <= height; y += 1) {
+        const inter = map(
+          y,
+          TEMPLATE_DATA.textConfig.gradientStartY,
+          TEMPLATE_DATA.textConfig.gradientEndY,
+          0,
+          1
+        );
+        const c = lerpColor(colorStart, colorEnd, inter);
+        stroke(c);
+        line(0, y, width, y);
+      }
+    }
+
+    function updateCenterDot() {
+      if (frameCount > moveStartFrame + TEMPLATE_DATA.textConfig.centerDotMoveDuration) {
+        moveStartFrame = frameCount;
+        moveOriginalX = TEMPLATE_DATA.centerDot.currentX;
+        moveOriginalY = TEMPLATE_DATA.centerDot.currentY;
+        moveTargetX =
+          TEMPLATE_DATA.centerDot.x +
+          random(TEMPLATE_DATA.textConfig.centerDotXRange[0], TEMPLATE_DATA.textConfig.centerDotXRange[1]);
+        moveTargetY =
+          TEMPLATE_DATA.centerDot.y +
+          random(TEMPLATE_DATA.textConfig.centerDotYRange[0], TEMPLATE_DATA.textConfig.centerDotYRange[1]);
+      }
+
+      let amt = (frameCount - moveStartFrame) / TEMPLATE_DATA.textConfig.centerDotMoveDuration;
+      amt = constrain(amt, 0, 1);
+      const easeAmt = amt < 0.5 ? 2 * amt * amt : -1 + (4 - 2 * amt) * amt;
+
+      TEMPLATE_DATA.centerDot.currentX = lerp(moveOriginalX, moveTargetX, easeAmt);
+      TEMPLATE_DATA.centerDot.currentY = lerp(moveOriginalY, moveTargetY, easeAmt);
+    }
+
+    function drawOutsideLine() {
+      stroke(TEMPLATE_DATA.textConfig.outsideLineColor);
+      strokeWeight(TEMPLATE_DATA.textConfig.outsideLineWeight);
+      line(
+        TEMPLATE_DATA.textConfig.outsideLineStartX,
+        TEMPLATE_DATA.textConfig.outsideLineStartY,
+        TEMPLATE_DATA.centerDot.currentX,
+        TEMPLATE_DATA.centerDot.currentY
+      );
+    }
+
+    function drawRingCharacters() {
+      stroke(TEMPLATE_DATA.textConfig.lineColor);
+      strokeWeight(TEMPLATE_DATA.textConfig.lineWeight);
+      fill(TEMPLATE_DATA.textConfig.fillColor);
+      textSize(TEMPLATE_DATA.textConfig.fontSize);
+      textAlign(CENTER, CENTER);
+
+      for (const rc of ringCharacters) {
+        const radius = rc.layer * TEMPLATE_DATA.textConfig.layerSpacing;
+
+        const speedX = random(TEMPLATE_DATA.textConfig.charFloatSpeed[0], TEMPLATE_DATA.textConfig.charFloatSpeed[1]);
+        const speedY = random(TEMPLATE_DATA.textConfig.charFloatSpeed[0], TEMPLATE_DATA.textConfig.charFloatSpeed[1]);
+        const nx = map(
+          noise(rc.noiseOffsetX + frameCount * speedX),
+          0,
+          1,
+          -TEMPLATE_DATA.textConfig.charFloatRange,
+          TEMPLATE_DATA.textConfig.charFloatRange
+        );
+        const ny = map(
+          noise(rc.noiseOffsetY + frameCount * speedY),
+          0,
+          1,
+          -TEMPLATE_DATA.textConfig.charFloatRange,
+          TEMPLATE_DATA.textConfig.charFloatRange
+        );
+
+        const cx = TEMPLATE_DATA.centerDot.currentX + cos(radians(rc.baseAngle)) * radius + nx;
+        const cy = TEMPLATE_DATA.centerDot.currentY + sin(radians(rc.baseAngle)) * radius + ny;
+
+        stroke(TEMPLATE_DATA.textConfig.lineColor);
+        strokeWeight(TEMPLATE_DATA.textConfig.lineWeight);
+        line(TEMPLATE_DATA.centerDot.currentX, TEMPLATE_DATA.centerDot.currentY, cx, cy);
+
+        noStroke();
+        push();
+        translate(cx, cy);
+        rotate(radians(rc.baseAngle + 90));
+        text(rc.char, 0, 0);
+        pop();
+      }
+    }
+
+    function triggerFlying() {
+      if (frameCount > startFrame + TEMPLATE_DATA.textConfig.flyingStartDelay) {
+        if (frameCount - lastFlyingFrame > TEMPLATE_DATA.textConfig.flyingTriggerInterval) {
+          const flyCount = floor(
+            random(TEMPLATE_DATA.textConfig.flyingCountMin, TEMPLATE_DATA.textConfig.flyingCountMax + 1)
+          );
+
+          for (let i = 0; i < flyCount; i += 1) {
+            if (ringCharacters.length > 0) {
+              const idx = floor(random(ringCharacters.length));
+              const rc = ringCharacters.splice(idx, 1)[0];
+
+              const radius = rc.layer * TEMPLATE_DATA.textConfig.layerSpacing;
+              const cx = TEMPLATE_DATA.centerDot.currentX + cos(radians(rc.baseAngle)) * radius;
+              const cy = TEMPLATE_DATA.centerDot.currentY + sin(radians(rc.baseAngle)) * radius;
+
+              characters.push({
+                char: rc.char,
+                x: cx,
+                y: cy,
+                vx: random(
+                  TEMPLATE_DATA.textConfig.initialVelocityX[0],
+                  TEMPLATE_DATA.textConfig.initialVelocityX[1]
+                ),
+                vy: random(
+                  TEMPLATE_DATA.textConfig.initialVelocityY[0],
+                  TEMPLATE_DATA.textConfig.initialVelocityY[1]
+                ),
+                angle: rc.baseAngle
+              });
+            }
+          }
+          lastFlyingFrame = frameCount;
+        }
+      }
+    }
+
+    function updateAndDrawFlyingCharacters() {
+      for (let i = characters.length - 1; i >= 0; i -= 1) {
+        const fc = characters[i];
+
+        fc.x += fc.vx;
+        fc.y += fc.vy;
+
+        const speed = sqrt(fc.vx * fc.vx + fc.vy * fc.vy);
+        const dirX = fc.vx / speed;
+        const dirY = fc.vy / speed;
+        const tailX = fc.x - dirX * TEMPLATE_DATA.textConfig.maxLineLength;
+        const tailY = fc.y - dirY * TEMPLATE_DATA.textConfig.maxLineLength;
+
+        stroke(TEMPLATE_DATA.textConfig.lineColor);
+        strokeWeight(TEMPLATE_DATA.textConfig.lineWeight);
+        line(fc.x, fc.y, tailX, tailY);
+
+        noStroke();
+        fill(TEMPLATE_DATA.textConfig.fillColor);
+        push();
+        translate(fc.x, fc.y);
+        rotate(radians(fc.angle + 90));
+        text(fc.char, 0, 0);
+        pop();
+
+        if (fc.x < -100 || fc.x > width + 100 || fc.y < -100 || fc.y > height + 100) {
+          characters.splice(i, 1);
+        }
+      }
+    }
+
+    function drawPosterTypography() {
+      noStroke();
+      fill(30, 80, 100, 200);
+      textAlign(RIGHT, BOTTOM);
+      textStyle(ITALIC);
+      textStyle(NORMAL);
+    }
+  </script>
+</body>
+</html>

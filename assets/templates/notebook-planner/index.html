@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Digital Planner (Preact + HTM)</title>
+  
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- 引入字体 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,500&display=swap" rel="stylesheet">
+
+  <style>
+    /* 全局字体设置 */
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .font-serif-title {
+      font-family: 'Playfair Display', serif;
+    }
+    .font-handwriting {
+      font-family: 'Playfair Display', serif; /* 原图中笔记其实更偏向优美的衬线斜体，而非完全的连笔字 */
+      font-style: italic;
+    }
+
+    /* 翻页 3D 效果相关 CSS */
+    .perspective-1000 {
+      perspective: 1200px;
+    }
+    .transform-origin-left {
+      transform-origin: left center;
+    }
+    @keyframes pageFlip {
+      0% { transform: rotateY(0deg); opacity: 1; filter: brightness(1); }
+      50% { transform: rotateY(-30deg) scale(0.98); opacity: 0.8; filter: brightness(0.95); }
+      100% { transform: rotateY(0deg); opacity: 1; filter: brightness(1); }
+    }
+    .animate-page-flip {
+      animation: pageFlip 0.4s cubic-bezier(0.4, 0.0, 0.2, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-[#f4f1eb] flex items-center justify-center p-8">
+  
+  <!-- Preact 挂载点 -->
+  <div id="app"></div>
+
+  <!-- 使用 ES Modules 引入 Preact 和 HTM -->
+  <script type="module">
+    import { h, Component, render } from 'https://esm.sh/preact@10.19.3';
+    import { useState, useEffect } from 'https://esm.sh/preact@10.19.3/hooks';
+    import htm from 'https://esm.sh/htm@3.1.1';
+
+    // 绑定 Preact 的 h 函数到 htm
+    const html = htm.bind(h);
+
+    // --- 图标组件 (替代 lucide-react) ---
+    const CheckIcon = ({ size = 10, color = "white", strokeWidth = 3 }) => html`
+      <svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    `;
+
+    // --- 数据模型 ---
+    const plannerData = {
+      JAN: { title: "January", color: "#a8b5e6" },
+      FEB: { title: "February", color: "#e6a8d6" },
+      MAR: {
+        title: "March",
+        color: "#d68c8c",
+        date: "March 21st, 2024",
+        day: "Thursday",
+        week: "WEEK 12",
+        season: "SPRING EQUINOX",
+        schedule: [
+          { start: "09:00", end: "10:30", title: "Botanical Sourcing & Vendor Calls", top: 10, height: 15, type: 'block-pink' },
+          // 修复了 Lunch Break，添加了 block-gray 样式
+          { start: "11:50", end: "12:30", title: "Lunch Break", top: 38.3, height: 8, type: 'block-gray' },
+          { start: "14:30", end: "16:00", title: "Review Q2 Floral Arrangements Design Mockups", top: 65, height: 15, type: 'block-pink' }
+        ],
+        currentTimeTop: 33, 
+        priorities: [
+          { id: 1, text: "Finalize color palette for the 'Flower Friendly' landing page campaign.", tag: "DESIGN", done: true },
+          { id: 2, text: "Update inventory counts for Peonies and Ranunculus arrivals.", tag: "OPERATIONS", time: "Due 2:00 PM", done: false },
+          { id: 3, text: "Draft copy for the bespoke wedding bouquet brochure.", tag: null, time: null, done: false }
+        ],
+        notes: "Remember to ask Sarah about the new ceramic vases...\nThe matte finish works beautifully with the soft pinks."
+      },
+      APR: { title: "April", color: "#a8e6b5" },
+      MAY: { title: "May", color: "#e6d5a8" }
+    };
+
+    const tabs = ['JAN', 'FEB', 'MAR', 'APR', 'MAY'];
+
+    // --- 核心 App 组件 ---
+    function App() {
+      const [activeTab, setActiveTab] = useState('MAR');
+      const [isFlipping, setIsFlipping] = useState(false);
+      const [displayData, setDisplayData] = useState(plannerData['MAR']);
+
+      const handleTabClick = (tab) => {
+        if (tab === activeTab) return;
+        setIsFlipping(true);
+        
+        setTimeout(() => {
+          setActiveTab(tab);
+          setDisplayData(plannerData[tab].date ? plannerData[tab] : { ...plannerData.MAR, title: plannerData[tab].title, season: tab + " OVERVIEW" });
+        }, 150);
+
+        setTimeout(() => {
+          setIsFlipping(false);
+        }, 400);
+      };
+
+      // 渲染每个日程块的函数
+      const renderScheduleItem = (item, idx) => {
+        let baseClass = "absolute left-0 w-[90%] transition-all duration-500 ease-in-out pl-3 py-2 ";
+        let titleColor = "text-[#4a4745]";
+        let timeColor = "text-[#d68c8c]";
+
+        if (item.type === 'block-pink') {
+          baseClass += "bg-[#faebeb] border-l-[3px] border-[#d68c8c]";
+        } else if (item.type === 'block-gray') {
+          // 修复：Lunch Break 的灰色背景和边框
+          baseClass += "bg-[#f4f2f0] border-l-[3px] border-[#b8b3ae]";
+          timeColor = "text-[#8a8580]"; // 灰色区块的时间文字颜色变灰
+        }
+
+        return html`
+          <div key=${idx} 
+               class="${baseClass}"
+               style=${{ top: `${item.top}%`, height: `${item.height}%` }}>
+            <div class="text-[9px] font-medium mb-0.5 ${timeColor}">${item.start} - ${item.end}</div>
+            <div class="text-xs leading-tight ${titleColor}">${item.title}</div>
+          </div>
+        `;
+      };
+
+      // 渲染金属装订环的函数
+      const renderBinderRings = () => {
+        return Array.from({ length: 6 }).map((_, i) => html`
+          <div key=${i} class="relative flex justify-between w-full px-2">
+            <!-- 左侧打孔 -->
+            <div class="w-[14px] h-[14px] rounded-full shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3),inset_-1px_-1px_2px_rgba(255,255,255,0.7)] bg-[#e6e1db]"></div>
+            
+            <!-- SVG 金属线圈 -->
+            <svg class="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[46px] h-[20px] drop-shadow-md" viewBox="0 0 46 20">
+              <defs>
+                <linearGradient id="metal-${i}" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" stopColor="#fdfdfd" />
+                  <stop offset="30%" stopColor="#d4d4d4" />
+                  <stop offset="50%" stopColor="#f4f4f4" />
+                  <stop offset="75%" stopColor="#a3a3a3" />
+                  <stop offset="100%" stopColor="#6e6e6e" />
+                </linearGradient>
+                <filter id="ringShadow-${i}" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="1" dy="3" stdDeviation="1.5" floodOpacity="0.25" />
+                </filter>
+              </defs>
+              <path d="M 4,10 Q 23,-4 42,10" fill="none" stroke="url(#metal-${i})" stroke-width="3.5" stroke-linecap="round" filter="url(#ringShadow-${i})" />
+              <path d="M 4,9.5 Q 23,-3.5 42,9.5" fill="none" stroke="#ffffff" stroke-width="1" opacity="0.8" />
+            </svg>
+
+            <!-- 右侧打孔 -->
+            <div class="w-[14px] h-[14px] rounded-full shadow-[inset_2px_2px_4px_rgba(0,0,0,0.3),inset_-1px_-1px_2px_rgba(255,255,255,0.7)] bg-[#e6e1db]"></div>
+          </div>
+        `);
+      };
+
+      return html`
+        <div class="relative w-full max-w-[1000px] h-[700px] flex drop-shadow-2xl">
+          
+          <!-- === 左侧页面 (日程表) === -->
+          <div class="relative w-1/2 h-full bg-[#fcfbf9] rounded-l-lg shadow-inner z-10 overflow-hidden"
+               style=${{ boxShadow: 'inset -15px 0 30px rgba(0,0,0,0.03)' }}>
+            <div class="p-12 h-full flex flex-col">
+              
+              <!-- 头部信息 -->
+              <div class="flex justify-between items-end mb-4 text-[10px] tracking-widest font-semibold text-[#a09a96]">
+                <span>${displayData.week || 'WEEK --'}</span>
+                <span class="text-[#d68c8c]">${displayData.season || 'SEASON'}</span>
+              </div>
+              
+              <h1 class="text-4xl text-[#2c2a29] mb-1 font-serif-title">
+                ${displayData.day || displayData.title}
+              </h1>
+              <p class="text-[#88837f] text-sm mb-10">${displayData.date || 'No date set'}</p>
+
+              <!-- 时间线容器 -->
+              <div class="relative flex-grow flex">
+                <!-- 时间刻度 -->
+                <div class="w-12 flex flex-col justify-between text-[10px] text-[#b5b0ab] h-full pb-4">
+                  ${['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'].map(time => html`
+                    <div key=${time} class="relative w-full text-right pr-4">
+                      <span class="-translate-y-1/2 block absolute right-4 top-0">${time}</span>
+                      <div class="absolute top-0 left-full w-[400px] h-[1px] bg-[#f0eae4]"></div>
+                    </div>
+                  `)}
+                </div>
+
+                <!-- 日程区块区域 -->
+                <div class="relative flex-grow ml-4 h-full">
+                  ${displayData.schedule && displayData.schedule.map(renderScheduleItem)}
+
+                  <!-- 当前时间红线 -->
+                  ${displayData.currentTimeTop && html`
+                    <div class="absolute left-[-24px] w-[calc(100%+24px)] flex items-center z-20 transition-all duration-1000" style=${{ top: `${displayData.currentTimeTop}%` }}>
+                      <div class="w-2 h-2 rounded-full bg-[#cc5a5a]"></div>
+                      <div class="h-[1px] bg-[#cc5a5a] flex-grow"></div>
+                    </div>
+                  `}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- === 中间装订环区域 (Spine) === -->
+          <div class="absolute left-1/2 -translate-x-1/2 top-0 h-full w-16 z-30 pointer-events-none flex flex-col justify-evenly py-16">
+             <!-- 模拟纸张中间的凹陷阴影 -->
+             <div class="absolute inset-0 bg-gradient-to-r from-transparent via-[rgba(0,0,0,0.08)] to-transparent w-8 left-1/2 -translate-x-1/2"></div>
+             ${renderBinderRings()}
+          </div>
+
+          <!-- === 右侧页面 (待办与笔记) === -->
+          <div class="relative w-1/2 h-full z-20 perspective-1000">
+            <div class="w-full h-full bg-[#fcfbf9] rounded-r-lg shadow-inner relative overflow-hidden transition-transform duration-400 transform-origin-left ${isFlipping ? 'animate-page-flip' : ''}"
+                 style=${{ boxShadow: 'inset 15px 0 30px rgba(0,0,0,0.03)' }}>
+              
+              <div class="p-12 h-full flex flex-col pl-16">
+                
+                <!-- 右上角页码装饰 -->
+                <div class="absolute top-12 right-12 flex gap-1">
+                  <div class="w-1 h-1 rounded-full bg-[#f0d4d4]"></div>
+                  <div class="w-1 h-1 rounded-full bg-[#f0d4d4]"></div>
+                </div>
+
+                <!-- Priorities 模块 -->
+                <div class="mb-12">
+                  <h2 class="text-2xl text-[#2c2a29] mb-6 font-semibold font-serif-title">Priorities</h2>
+                  <div class="space-y-5">
+                    ${displayData.priorities && displayData.priorities.map(item => html`
+                      <div key=${item.id} class="flex items-start group cursor-pointer">
+                        <div class="mt-0.5 w-4 h-4 rounded-full flex items-center justify-center border mr-4 shrink-0 transition-colors ${item.done ? 'bg-[#d68c8c] border-[#d68c8c]' : 'border-[#ccc] group-hover:border-[#d68c8c]'}">
+                          ${item.done ? html`<${CheckIcon} />` : null}
+                        </div>
+                        
+                        <div class="flex-grow">
+                          <p class="text-sm text-[#4a4745] leading-snug transition-all ${item.done ? 'line-through text-[#a09a96]' : ''}">
+                            ${item.text}
+                          </p>
+                          <div class="flex items-center gap-3 mt-2">
+                            ${item.tag && html`
+                              <span class="px-2 py-0.5 bg-[#f2efe9] text-[#9a948f] text-[9px] font-semibold tracking-wider rounded-sm">
+                                ${item.tag}
+                              </span>
+                            `}
+                            ${item.time && html`
+                              <span class="text-[10px] text-[#a09a96]">${item.time}</span>
+                            `}
+                          </div>
+                        </div>
+                      </div>
+                    `)}
+                  </div>
+                </div>
+
+                <!-- Journal & Notes 模块 (带横线背景) -->
+                <div class="flex-grow flex flex-col relative">
+                  <h2 class="text-2xl text-[#2c2a29] mb-4 font-semibold font-serif-title">Journal & Notes</h2>
+                  
+                  <div class="flex-grow relative w-full mt-2" 
+                       style=${{ 
+                         backgroundImage: 'repeating-linear-gradient(transparent, transparent 31px, #e8e3df 31px, #e8e3df 32px)',
+                         backgroundPosition: '0 0'
+                       }}>
+                    <p class="absolute top-0 left-0 w-full text-[#6b6764] text-[17px] leading-[32px] pt-[2px] font-handwriting">
+                      ${displayData.notes ? displayData.notes.split('\n').map((line, i) => html`<span key=${i}>${line}<br/></span>`) : ''}
+                    </p>
+                  </div>
+
+                  <!-- 背景花瓣水印 -->
+                  <svg class="absolute bottom-0 right-0 w-64 h-64 opacity-[0.03] pointer-events-none transform translate-x-8 translate-y-8" viewBox="0 0 100 100" fill="currentColor">
+                    <path d="M50,100 C50,100 0,60 0,30 C0,10 20,0 40,10 C50,15 50,15 50,15 C50,15 50,15 60,10 C80,0 100,10 100,30 C100,60 50,100 50,100 Z" />
+                  </svg>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- === 右侧侧边栏标签 (Tabs) === -->
+          <div class="absolute -right-8 top-12 flex flex-col gap-2 z-0">
+            ${tabs.map(tab => {
+              const isActive = tab === activeTab;
+              return html`
+                <button
+                  key=${tab}
+                  onClick=${() => handleTabClick(tab)}
+                  class="relative w-10 py-4 flex items-center justify-center rounded-r-md transition-all duration-300 ease-out shadow-sm
+                    ${isActive ? 'bg-[#fcfbf9] text-[#d68c8c] z-10 w-11 shadow-md font-bold' : 'bg-[#f0ebe5] text-[#b5b0ab] hover:bg-[#f5f1ed] hover:w-11'}
+                  "
+                  style=${{ writingMode: 'vertical-rl', transform: 'rotate(180deg)' }}
+                >
+                  <div class="absolute top-0 bottom-0 right-0 w-2 ${isActive ? 'bg-[#fcfbf9]' : 'bg-[#f0ebe5]'}"></div>
+                  <span class="text-xs tracking-[0.2em]">${tab}</span>
+                </button>
+              `;
+            })}
+          </div>
+
+        </div>
+      `;
+    }
+
+    // 挂载应用
+    render(html`<${App} />`, document.getElementById('app'));
+  </script>
+</body>
+</html>

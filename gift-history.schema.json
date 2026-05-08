@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "DearGiftHistoryRecord",
+  "description": "Single record in ./gift-history.jsonl. Written once per delivered gift. Fields are used for repetition awareness and optional personal history.",
+  "type": "object",
+  "required": [
+    "recorded_at",
+    "recipient",
+    "summary"
+  ],
+  "properties": {
+    "recorded_at": {
+      "type": "string",
+      "description": "ISO 8601 timestamp for when this record was created."
+    },
+    "recipient": {
+      "type": "object",
+      "description": "Who the gift was for.",
+      "properties": {
+        "slug": {
+          "type": "string",
+          "description": "Stable short identifier for repetition tracking, e.g. 'mom', 'xiao-a', 'ren'. Should match the folder slug under ./gifts/."
+        },
+        "name_or_nickname": {
+          "type": "string",
+          "description": "The name or nickname the user uses for this person."
+        },
+        "relationship": {
+          "type": "string",
+          "description": "Relationship type, e.g. parent, partner, friend, colleague, kid, sibling, self."
+        }
+      }
+    },
+    "trigger": {
+      "type": "string",
+      "enum": [
+        "inspiration",
+        "milestone",
+        "visualization-only",
+        "unknown"
+      ],
+      "description": "Why the user invoked the skill."
+    },
+    "gift_weight": {
+      "type": "string",
+      "enum": [
+        "light",
+        "standard",
+        "heavy"
+      ]
+    },
+    "content_direction": {
+      "type": "string",
+      "description": "High-level content direction such as witness, extension, encouragement, portrait, comfort, gift-from-elsewhere, play, utility, curation, real-world-nudge, or delayed-payoff."
+    },
+    "format": {
+      "type": "string",
+      "enum": [
+        "h5",
+        "image",
+        "text",
+        "text-play"
+      ]
+    },
+    "output_shape": {
+      "type": "string",
+      "description": "Compact output-shape category used for repetition control."
+    },
+    "visual_style": {
+      "type": "string",
+      "description": "High-level visual-style category such as dark-terminal, dark-cinematic, light-warm, colorful-playful, minimal-poster, pixel-retro, photographic."
+    },
+    "visual_elements": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Dominant visual ingredients actually visible in the artifact, e.g. ['paper-texture', 'handwriting-blue', 'red-stamp']."
+    },
+    "concept_family": {
+      "type": "string",
+      "enum": [
+        "borrowed-media",
+        "interactive-object",
+        "transformation",
+        "narrative",
+        "data-viz",
+        "game-puzzle",
+        "real-world",
+        "poetic-literary"
+      ]
+    },
+    "concept_theme": {
+      "type": "string",
+      "description": "Short tag for the real-world domain the concept borrows from, e.g. 'airport', 'medical', 'music', 'cooking'."
+    },
+    "tone": {
+      "type": "string"
+    },
+    "content_tags": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "emotional_intent": {
+      "type": "string",
+      "description": "What the user wanted the recipient to feel, e.g. seen, comforted, amused, remembered."
+    },
+    "artifact_path": {
+      "type": "string",
+      "description": "Path to the generated artifact, relative to the working directory."
+    },
+    "hosted_url": {
+      "type": "string",
+      "description": "Public URL for hosted H5 gifts, if deployed."
+    },
+    "summary": {
+      "type": "string",
+      "description": "One-line summary of the gift's concept and anchor."
+    },
+    "text_play_type": {
+      "type": "string",
+      "description": "Subtype for text-play gifts, e.g. worldbuilder, riddle, micro-story, roleplay."
+    },
+    "text_play_turn_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "text_play_completed": {
+      "type": "boolean"
+    }
+  },
+  "additionalProperties": true
+}

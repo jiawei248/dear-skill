@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>发光数字烟花棒 (Glowing Sparklers)</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #050505; /* 初始深色背景 */
+            cursor: none; /* 隐藏默认鼠标，用火苗代替 */
+        }
+        canvas {
+            display: block;
+        }
+    </style>
+    <!-- 引入 p5.js 库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+    <script>
+        let sparklers = [];
+        let particles = [];
+        let mouseFlameParticles = [];
+        const CHARS = '01234567890123456789PHANEW'; // 提高数字的比例，混入少量字母
+        let isAnyBurning = false;
+
+        function setup() {
+            createCanvas(windowWidth, windowHeight);
+            
+            // 初始化两根烟花棒 (参数: 底部X, 底部Y, 顶部X, 顶部Y)
+            // 摆放成类似 / \ 的角度
+            let stickLength = height * 0.5;
+            sparklers.push(new Sparkler(width * 0.3, height * 0.9, width * 0.45, height * 0.9 - stickLength));
+            sparklers.push(new Sparkler(width * 0.7, height * 0.9, width * 0.55, height * 0.9 - stickLength));
+        }
+
+        function draw() {
+            isAnyBurning = sparklers.some(s => s.isBurning);
+
+            // 1. 绘制背景与闪烁效果
+            if (isAnyBurning && random() > 0.7) {
+                // 燃烧时，背景随机产生微弱的暖色闪光
+                background(random(15, 30), random(5, 10), random(0, 5));
+            } else {
+                // 长期背景色：极深的炭黑色
+                background(10, 10, 12);
+            }
+
+            // 2. 绘制烟花棒
+            for (let s of sparklers) {
+                s.update();
+                s.draw();
+            }
+
+            // 3. 绘制迸射的数字粒子
+            for (let i = particles.length - 1; i >= 0; i--) {
+                particles[i].update();
+                particles[i].draw();
+                if (particles[i].isDead()) {
+                    particles.splice(i, 1);
+                }
+            }
+
+            // 4. 绘制鼠标交互火苗
+            drawMouseFlame();
+
+            // 5. 绘制提示文字 (如果没有烟花棒在燃烧且进度为0)
+            let allPristine = sparklers.every(s => s.progress === 0 && !s.isBurning);
+            if (allPristine) {
+                push();
+                textAlign(CENTER, CENTER);
+                textSize(24);
+                fill(255, 255, 255, 150 + sin(frameCount * 0.05) * 100); // 呼吸灯效果
+                noStroke();
+                text("移动鼠标，将火苗触碰烟花棒顶端点燃", width / 2, height * 0.2);
+                pop();
+            }
+        }
+
+        // ================= 核心类定义 =================
+
+        class Sparkler {
+            constructor(bx, by, tx, ty) {
+                this.bx = bx; // 底部 (bottom)
+                this.by = by;
+                this.tx = tx; // 顶部 (top)
+                this.ty = ty;
+                this.progress = 0; // 燃烧进度 0 -> 1
+                this.isBurning = false;
+                this.burnSpeed = 0.0015; // 燃烧速度
+                this.stickColor = color(200, 30, 30); // 燃烧后的红杆子颜色
+            }
+
+            update() {
+                // 点燃检测
+                if (!this.isBurning && this.progress < 1) {
+                    let d = dist(mouseX, mouseY, this.tx, this.ty);
+                    if (d < 40) { // 鼠标靠近顶部一定范围则点燃
+                        this.isBurning = true;
+                    }
+                }
+
+                // 燃烧过程
+                if (this.isBurning) {
+                    this.progress += this.burnSpeed;
+                    if (this.progress >= 1) {
+                        this.progress = 1;
+                        this.isBurning = false;
+                    }
+
+                    // 计算当前燃烧点坐标
+                    let currentX = lerp(this.tx, this.bx, this.progress);
+                    let currentY = lerp(this.ty, this.by, this.progress);
+
+                    // 持续生成迸射粒子
+                    let spawnCount = floor(random(3, 8)); // 每一帧喷发数量
+                    for (let i = 0; i < spawnCount; i++) {
+                        particles.push(new TextParticle(currentX, currentY));
+                    }
+                    // 额外生成一些小亮点增加层次感
+                    for (let i = 0; i < 2; i++) {
+                        particles.push(new DotParticle(currentX, currentY));
+                    }
+                }
+            }
+
+            draw() {
+                push();
+                
+                // 1. 画底部的红色细杆 (光秃秃的铁丝)
+                stroke(this.stickColor);
+                strokeWeight(4);
+                line(this.tx, this.ty, this.bx, this.by);
+
+                // 当前燃烧点
+                let currentX = lerp(this.tx, this.bx, this.progress);
+                let currentY = lerp(this.ty, this.by, this.progress);
+
+                // 2. 画未燃烧部分的厚重涂层 (白色颗粒感)
+                if (this.progress < 1) {
+                    // 主体白色涂层
+                    stroke(240);
+                    strokeWeight(12);
+                    line(currentX, currentY, this.bx, this.by);
+                    
+                    // 模拟表面的凹凸和颗粒感
+                    strokeWeight(2);
+                    for (let i = this.progress; i < 1; i += 0.005) {
+                        let px = lerp(this.tx, this.bx, i);
+                        let py = lerp(this.ty, this.by, i);
+                        let noiseVal = noise(px * 0.1, py * 0.1);
+                        if (noiseVal > 0.5) {
+                            stroke(150); // 灰色斑点
+                            point(px + random(-5, 5), py + random(-5, 5));
+                        }
+                    }
+                }
+
+                // 3. 画燃烧核心点 (耀眼的光芒)
+                if (this.isBurning) {
+                    noStroke();
+                    drawingContext.shadowBlur = 40;
+                    drawingContext.shadowColor = 'rgba(255, 150, 50, 1)';
+                    fill(255, 255, 200);
+                    ellipse(currentX, currentY, random(12, 20), random(12, 20)); // 闪烁的核心
+                    drawingContext.shadowBlur = 0; // 重置阴影
+                }
+
+                pop();
+            }
+        }
+
+        // 迸射出的数字/字母粒子
+        class TextParticle {
+            constructor(x, y) {
+                this.pos = createVector(x + random(-10, 10), y + random(-10, 10));
+                
+                // 爆发状的初始速度
+                let angle = random(TWO_PI);
+                let speed = random(2, 8);
+                // 给一个稍微向上的偏好
+                if (random() > 0.6) angle = random(PI, TWO_PI); 
+                
+                this.vel = p5.Vector.fromAngle(angle).mult(speed);
+                this.acc = createVector(0, 0.15); // 重力
+                
+                this.life = 255;
+                this.decay = random(3, 7); // 消失速度
+                this.char = CHARS.charAt(floor(random(CHARS.length)));
+                this.size = random(10, 24);
+                this.rotation = random(TWO_PI);
+                this.rotationSpeed = random(-0.1, 0.1);
+
+                // 随机高亮发光颜色
+                let r = random();
+                if (r < 0.6) this.color = color(255, random(150, 220), 50); // 暖黄/橙
+                else if (r < 0.8) this.color = color(255, 60, 60); // 霓虹红
+                else if (r < 0.9) this.color = color(255, 255, 255); // 纯白
+                else this.color = color(100, 200, 255); // 冰蓝
+            }
+
+            update() {
+                this.vel.add(this.acc); // 应用重力
+                this.vel.mult(0.96);    // 空气阻力
+                this.pos.add(this.vel);
+                this.life -= this.decay;
+                this.rotation += this.rotationSpeed;
+            }
+
+            draw() {
+                push();
+                translate(this.pos.x, this.pos.y);
+                rotate(this.rotation);
+                
+                // 设置发光效果
+                drawingContext.shadowBlur = 15;
+                drawingContext.shadowColor = this.color.toString();
+                
+                fill(red(this.color), green(this.color), blue(this.color), this.life);
+                noStroke();
+                textSize(this.size);
+                textAlign(CENTER, CENTER);
+                text(this.char, 0, 0);
+                pop();
+            }
+
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        // 迸射出的纯光点粒子 (增加画面丰富度)
+        class DotParticle extends TextParticle {
+            constructor(x, y) {
+                super(x, y);
+                this.size = random(2, 6);
+            }
+            draw() {
+                push();
+                drawingContext.shadowBlur = 10;
+                drawingContext.shadowColor = this.color.toString();
+                fill(red(this.color), green(this.color), blue(this.color), this.life);
+                noStroke();
+                ellipse(this.pos.x, this.pos.y, this.size);
+                pop();
+            }
+        }
+
+        // ================= 鼠标火苗交互 =================
+
+        function drawMouseFlame() {
+            // 在鼠标位置添加小火星
+            mouseFlameParticles.push(new MouseSpark(mouseX, mouseY));
+
+            // 更新和绘制小火星
+            for (let i = mouseFlameParticles.length - 1; i >= 0; i--) {
+                mouseFlameParticles[i].update();
+                mouseFlameParticles[i].draw();
+                if (mouseFlameParticles[i].isDead()) {
+                    mouseFlameParticles.splice(i, 1);
+                }
+            }
+
+            // 画火苗中心高亮
+            push();
+            drawingContext.shadowBlur = 20;
+            drawingContext.shadowColor = 'rgba(255, 100, 0, 0.8)';
+            noStroke();
+            fill(255, 200, 100, 200);
+            ellipse(mouseX, mouseY, 10, 10);
+            pop();
+        }
+
+        // 鼠标跟随的小火星
+        class MouseSpark {
+            constructor(x, y) {
+                this.pos = createVector(x + random(-5, 5), y + random(-5, 5));
+                this.vel = createVector(random(-1, 1), random(-3, -1)); // 向上飘
+                this.life = 255;
+                this.size = random(3, 8);
+            }
+            update() {
+                this.pos.add(this.vel);
+                this.life -= 15;
+                this.size *= 0.9;
+            }
+            draw() {
+                noStroke();
+                fill(255, random(100, 150), 0, this.life);
+                ellipse(this.pos.x, this.pos.y, this.size);
+            }
+            isDead() {
+                return this.life <= 0;
+            }
+        }
+
+        // 窗口大小调整
+        function windowResized() {
+            resizeCanvas(windowWidth, windowHeight);
+            // 重新计算烟花棒位置
+            let stickLength = height * 0.5;
+            sparklers[0].bx = width * 0.3; sparklers[0].by = height * 0.9;
+            sparklers[0].tx = width * 0.45; sparklers[0].ty = height * 0.9 - stickLength;
+            
+            sparklers[1].bx = width * 0.7; sparklers[1].by = height * 0.9;
+            sparklers[1].tx = width * 0.55; sparklers[1].ty = height * 0.9 - stickLength;
+        }
+    </script>
+</body>
+</html>

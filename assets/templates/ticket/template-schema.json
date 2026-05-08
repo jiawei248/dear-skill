@@ -1,0 +1,40 @@
+{
+  "template_id": "ticket",
+  "engine": "p5.js",
+  "description": "A techno-industrial event ticket card with Perlin noise particle flow animation and structured monospaced data fields. Borrowed-media format that reframes personal content as formal event credentials.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "event_name",
+    "event_volume",
+    "type_value",
+    "access_value",
+    "date_value",
+    "venue_value",
+    "city_value",
+    "act_lines",
+    "footer_text",
+    "ticket_id",
+    "card_background",
+    "label_color",
+    "value_color",
+    "particle_color",
+    "noise_speed",
+    "grid_spacing",
+    "card_dimensions"
+  ],
+  "fit_tags": [
+    "milestone",
+    "recognition",
+    "cool-sophisticated",
+    "borrowed-media",
+    "data-presentation",
+    "formal-playful"
+  ],
+  "avoid_tags": [
+    "acute-grief",
+    "vulnerability",
+    "gentle-intimacy",
+    "warm-cozy"
+  ]
+}

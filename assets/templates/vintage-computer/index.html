@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fig Mint 3D Interactive Computer</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #F0ECE1; /* 复古米色背景 */
+      font-family: 'Courier New', Courier, monospace;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    #canvas-container {
+      width: 100vw;
+      height: 100vh;
+      outline: none;
+    }
+    /* 侧边提示文案 */
+    #info {
+      position: absolute;
+      left: 8%;
+      top: 50%;
+      transform: translateY(-50%);
+      max-width: 320px;
+      pointer-events: none;
+      z-index: 10;
+    }
+    #info h1 {
+      font-family: Georgia, serif;
+      font-size: 3.5rem;
+      margin-bottom: 15px;
+      color: #1a1a1a;
+      line-height: 1.05;
+      letter-spacing: -1.5px;
+    }
+    #info p {
+      font-size: 1.05rem;
+      color: #4a4a4a;
+      line-height: 1.6;
+    }
+  </style>
+  <!-- 引入 p5.js 库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+
+  <div id="info">
+    <h1>Introducing<br><i>Fig Mint.</i></h1>
+    <p>网页加载后，<b>透明人会自动演示打字</b>。<br><br>👉 随时<b>点击一下画面并敲击键盘</b>即可接管控制权，体验真实的物理按键反馈。<br><br>👉 将鼠标移动到右侧电脑区域，视角会自动平滑转为正视。</p>
+  </div>
+
+  <div id="canvas-container"></div>
+
+  <script>
+    let screenGraphics;
+    let typedText = ""; // 初始为空，由透明人自动输入
+    
+    // --- 新增：自动打字（透明人）状态 ---
+    let ghostText = "Good morning. Your memo\nis drafted, your files\nare sorted, and your\ncalendar is set. Ready\nwhen you are.";
+    let ghostIndex = 0;
+    let isGhostTyping = true;
+    let ghostTimer = 60; // 延迟 60 帧后开始自动打字
+    
+    // 视角控制
+    let currentRotY = -Math.PI / 4.5; 
+    let targetRotY = -Math.PI / 4.5;
+
+    // 键盘物理模型数据
+    let keys = [];
+    let keyMap = {}; 
+
+    function setup() {
+      let canvas = createCanvas(windowWidth, windowHeight, WEBGL);
+      canvas.parent('canvas-container');
+      
+      screenGraphics = createGraphics(500, 380);
+      screenGraphics.pixelDensity(2);
+
+      initKeyboard();
+    }
+
+    function draw() {
+      background('#F0ECE1');
+
+      // --- 新增：透明人自动打字逻辑 ---
+      if (isGhostTyping && frameCount > ghostTimer) {
+        if (ghostIndex < ghostText.length) {
+          let char = ghostText.charAt(ghostIndex);
+          
+          // 1. 触发 3D 键盘物理凹陷动画
+          let k = char.toLowerCase();
+          if (char === '\n') {
+            if (keyMap['enter']) keyMap['enter'].trigger();
+          } else if (char === ' ') {
+            if (keyMap[' ']) keyMap[' '].trigger();
+          } else if (keyMap[k]) {
+            keyMap[k].trigger();
+          }
+
+          // 2. 更新屏幕文本
+          typedText += char;
+          ghostIndex++;
+          
+          // 随机化敲击间隔，模拟真人打字的节奏 (2~6帧)
+          ghostTimer = frameCount + floor(random(2, 6)); 
+          
+          // 停顿效果：遇到句号、逗号或换行稍微停顿一下
+          if (char === '.' || char === ',' || char === '\n') {
+            ghostTimer += 15;
+          }
+        } else {
+          isGhostTyping = false; // 自动打字完成
+        }
+      }
+
+      // 1. 交互逻辑：平滑切换正/侧面视角
+      let isHovering = mouseX > width / 2 - 250 && mouseX < width && mouseY > height / 5 && mouseY < height * 0.9;
+      targetRotY = isHovering ? 0 : -PI / 4.5;
+      currentRotY = lerp(currentRotY, targetRotY, 0.08);
+
+      // 2. 光照系统 (调低了正面强光，防止白色过曝)
+      ambientLight(150, 145, 135); 
+      directionalLight(180, 175, 165, 0.5, 0.8, -0.6); // 顶部倾斜光，制造键盘缝隙阴影
+      directionalLight(100, 95, 90, -1, -0.4, -1); 
+      pointLight(160, 155, 145, 0, -200, 400); 
+
+      // 3. 全局变换 (居中偏右)
+      translate(width * 0.15, -30, 0); 
+      rotateY(currentRotY);
+      
+      // 4. 底部的假阴影
+      push();
+      translate(0, 260, -20);
+      rotateX(HALF_PI);
+      fill(0, 0, 0, 12);
+      noStroke();
+      plane(440, 380);
+      pop();
+
+      // 5. 绘制显示器
+      drawMonitor();
+
+      // 6. 绘制键盘
+      drawKeyboardBase();
+    }
+
+    // 圆角盒子辅助函数
+    function drawRoundedBox(w, h, d, r) {
+      push();
+      noStroke();
+      box(w, h - 2*r, d);
+      box(w - 2*r, h, d);
+      let dx = w/2 - r;
+      let dy = h/2 - r;
+      rotateX(HALF_PI); 
+      push(); translate(dx, 0, -dy); cylinder(r, d, 24, 1); pop(); 
+      push(); translate(-dx, 0, -dy); cylinder(r, d, 24, 1); pop(); 
+      push(); translate(dx, 0, dy); cylinder(r, d, 24, 1); pop(); 
+      push(); translate(-dx, 0, dy); cylinder(r, d, 24, 1); pop(); 
+      pop();
+    }
+
+    function drawMonitor() {
+      push();
+      translate(0, -60, 0);
+      
+      // --- 电脑外壳 ---
+      noStroke();
+      fill(235, 232, 222); // 使用 fill 替代 specularMaterial 防止过曝
+      drawRoundedBox(270, 320, 220, 18); 
+
+      // --- 屏幕部分 ---
+      push();
+      translate(0, -25, 111); 
+      
+      // 浅灰色外边框 
+      fill('#DCD8CD'); 
+      box(230, 180, 4);
+
+      // 实时更新的 2D 屏幕纹理
+      updateScreenGraphics();
+      translate(0, 0, 3); 
+      texture(screenGraphics);
+      noStroke();
+      plane(210, 160); 
+      pop();
+
+      // --- 软驱槽口 ---
+      push();
+      translate(50, 100, 111);
+      fill('#222222');
+      box(80, 6, 2);
+      pop();
+
+      // --- 散热孔 ---
+      push();
+      translate(100, 130, 111);
+      fill('#222222');
+      for(let i=0; i<2; i++) {
+        for(let j=0; j<4; j++) {
+          rect(-15 + j*8, -8 + i*8, 4, 4);
+        }
+      }
+      pop();
+
+      drawStickers();
+      pop();
+    }
+
+    function drawStickers() {
+      push();
+      translate(0, 0, 112); 
+      noStroke(); 
+      
+      // 橙色圆球 + 蓝星星贴纸
+      push();
+      translate(-90, 95, 0);
+      fill('#D9703A');
+      circle(0, 0, 24);
+      translate(10, -5, 1);
+      fill(255);
+      rectMode(CENTER);
+      rotate(PI/8);
+      rect(0, 0, 22, 22, 4);
+      fill('#2C5C9E');
+      textSize(16);
+      textAlign(CENTER, CENTER);
+      text("★", 0, 0);
+      pop();
+
+      // 红色矩形贴纸
+      push();
+      translate(-20, 120, 0);
+      fill('#DE4B39');
+      rectMode(CENTER);
+      rect(0, 0, 60, 25);
+      pop();
+
+      // 彩虹胶囊小贴纸
+      push();
+      translate(-90, 135, 0);
+      fill('#A6E05C'); arc(0, 0, 14, 14, PI, 0, CHORD);
+      fill('#F2D04B'); rect(-7, 0, 14, 4);
+      fill('#E8863A'); rect(-7, 4, 14, 4);
+      fill('#D84A3B'); rect(-7, 8, 14, 4);
+      fill('#5C82E0'); arc(0, 12, 14, 14, 0, PI, CHORD);
+      fill(40); rect(-1, -10, 2, 4);
+      pop();
+
+      pop();
+    }
+
+    function updateScreenGraphics() {
+      let g = screenGraphics;
+      let w = g.width;
+      let h = g.height;
+      
+      g.background('#2B2C30');
+      
+      g.textFont('monospace');
+      g.textSize(15);
+      g.textAlign(LEFT, TOP);
+      g.noStroke();
+      
+      let menuItems = ["System", "Disk A", "Trash", "Write", "Think"];
+      let colors = ['#3083DC', '#ED7D31', '#7A7A7A', '#7A7A7A', '#7A7A7A'];
+      
+      for(let i=0; i<menuItems.length; i++) {
+        g.fill(colors[i]);
+        g.circle(45, 60 + i*35, 12); 
+        g.fill('#A0A0A0'); 
+        g.text(menuItems[i], 65, 53 + i*35);
+      }
+
+      g.stroke('#555555');
+      g.strokeWeight(1.5);
+      g.line(160, 40, 160, 340);
+
+      g.noStroke();
+      g.fill('#A0A0A0');
+      g.text("FigOS 1.0", 180, 50);
+
+      g.fill('#F8F8F8');
+      g.rect(175, 90, 290, 230, 4); 
+      
+      g.fill('#111111');
+      g.text("Untitled.txt", 190, 100);
+      g.text("[x]", 430, 100);
+      
+      g.stroke('#444444');
+      g.strokeWeight(2);
+      g.drawingContext.setLineDash([2, 3]); 
+      g.line(190, 122, 445, 122);
+      g.drawingContext.setLineDash([]); 
+      
+      g.stroke('#D0D0D0');
+      g.strokeWeight(1);
+      for(let y = 145; y < 310; y += 22) {
+        g.line(185, y, 450, y);
+      }
+
+      g.noStroke();
+      g.fill('#111111');
+      g.textSize(16);
+      g.textLeading(22); 
+      let cursor = (frameCount % 60 < 30) ? "█" : "";
+      g.text(typedText + cursor, 190, 128, 260, 180);
+
+      // CRT 弧形倒角遮罩
+      g.noFill();
+      g.stroke('#DCD8CD'); 
+      g.strokeWeight(30);  
+      g.rect(0, 0, w, h, 60); 
+    }
+
+    // ==========================================
+    // 键盘核心重构部分
+    // ==========================================
+    function drawKeyboardBase() {
+      push();
+      translate(0, 190, 180);
+      rotateX(-PI / 10.5); 
+      
+      // 1. 键盘大底座 (放大尺寸包容所有按键)
+      noStroke();
+      fill(235, 232, 222);
+      box(440, 22, 160);
+
+      // 2. 核心优化：绘制深色的“键盘托盘” (按键下方的深色凹槽)
+      // 这样按键之间的缝隙就是深灰色，彻底告别死白一片
+      push();
+      translate(0, -11, 0); // 移动到大底座的表面
+      fill(120, 115, 105); // 深灰色
+      box(410, 4, 140); 
+      pop();
+
+      // 3. 绘制各个按键
+      translate(-195, -13, -56); // 精确偏移，使所有按键居中在深色托盘内
+      for (let keyObj of keys) {
+        keyObj.update();
+        keyObj.display();
+      }
+      pop();
+    }
+
+    class PhysicalKey {
+      constructor(x, z, w, h, chars) {
+        this.x = x;
+        this.z = z;
+        this.w = w;
+        this.h = h;
+        this.chars = chars; 
+        
+        this.depression = 0; 
+      }
+
+      trigger() {
+        this.depression = 1.0; 
+      }
+
+      update() {
+        this.depression = lerp(this.depression, 0, 0.25);
+      }
+
+      display() {
+        push();
+        // 增加动态幅度：正常时 Y 悬浮在托盘上，按下时陷入托盘
+        let yOffset = -7 + (this.depression * 7); 
+        translate(this.x + this.w/2, yOffset, this.z + this.h/2);
+        
+        // 核心优化：增加极细的描边，勾勒按键轮廓
+        stroke(200, 195, 185);
+        strokeWeight(1);
+        
+        if (this.depression > 0.1) {
+           fill(215, 210, 200); // 按下时变灰暗
+        } else {
+           fill(250, 248, 242); // 正常时偏白
+        }
+        
+        // 按键模型 (略小于网格空间，形成自然间隙)
+        box(this.w - 4, 14, this.h - 4);
+        pop();
+      }
+    }
+
+    function initKeyboard() {
+      // 重新计算精确的按键排布尺寸，确保不超出 440 的底座
+      let rowOffsets = [0, 15, 25, 35, 105]; 
+      let keySize = 24; // 按键标准尺寸
+      let gap = 4;      // 键位缝隙
+      
+      let layout = [
+        "1234567890-=",
+        "qwertyuiop[]",
+        "asdfghjkl;'\\",
+        "zxcvbnm,./",
+        " " 
+      ];
+
+      for (let r = 0; r < layout.length; r++) {
+        let rowStr = layout[r];
+        let currentX = rowOffsets[r];
+        let currentZ = r * (keySize + gap);
+
+        for (let c = 0; c < rowStr.length; c++) {
+          let char = rowStr[c];
+          let kw = keySize;
+          
+          if (char === ' ') {
+            kw = 180; // 空格键宽度
+          }
+
+          let pKey = new PhysicalKey(currentX, currentZ, kw, keySize, [char]);
+          keys.push(pKey);
+          
+          keyMap[char.toLowerCase()] = pKey;
+          currentX += kw + gap;
+        }
+
+        // 添加长功能键，填补右侧空隙
+        if (r === 0) {
+          let bk = new PhysicalKey(currentX, currentZ, 45, keySize, ['backspace']);
+          keys.push(bk); keyMap['backspace'] = bk;
+        } else if (r === 1) {
+          let enter = new PhysicalKey(currentX, currentZ, 55, keySize, ['enter']);
+          keys.push(enter); keyMap['enter'] = enter;
+        }
+      }
+    }
+
+    function keyPressed() {
+      // 新增：一旦玩家手动按下任何键，立刻打断透明人的自动打字
+      isGhostTyping = false;
+
+      // 触发 3D 动画
+      let k = key.toLowerCase();
+      if (keyMap[k]) {
+        keyMap[k].trigger();
+      } else if (keyCode === ENTER && keyMap['enter']) {
+        keyMap['enter'].trigger();
+      } else if (keyCode === BACKSPACE && keyMap['backspace']) {
+        keyMap['backspace'].trigger();
+      } else if (key === ' ' && keyMap[' ']) {
+        keyMap[' '].trigger();
+      }
+
+      // 文本输入
+      if (keyCode === BACKSPACE) {
+        typedText = typedText.substring(0, typedText.length - 1);
+      } else if (keyCode === ENTER) {
+        typedText += '\n';
+      } else if (key.length === 1) { 
+        typedText += key;
+        if (typedText.length > 180) {
+          typedText = typedText.substring(typedText.length - 180);
+        }
+      }
+      
+      if(keyCode === 32 || keyCode === DOWN_ARROW || keyCode === UP_ARROW) {
+        return false;
+      }
+    }
+
+    // 新增：确保点击画布时获取焦点，解决部分环境下无法输入的问题
+    function mousePressed() {
+      if (mouseX > 0 && mouseX < width && mouseY > 0 && mouseY < height) {
+        window.focus(); 
+      }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+    }
+  </script>
+</body>
+</html>

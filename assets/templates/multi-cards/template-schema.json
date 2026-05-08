@@ -1,0 +1,33 @@
+{
+  "template_id": "multi-cards",
+  "engine": "vanilla-css",
+  "description": "Three side-by-side tall cards on dark background. Vintage luxury aesthetic with serif typography, perforated ticket edges, watermark stamps, and SVG cutout art. 1920s hotel/postal document feel.",
+  "final_delivery_requirement": "Export as single HTML file. Uses Google Fonts (Playfair Display, DM Sans). All assets inline.",
+  "customizable_fields": [
+    "page_title",
+    "card_count",
+    "card_contents",
+    "card_colors",
+    "typography_text",
+    "ticket_details",
+    "stamp_text",
+    "svg_art",
+    "background_color"
+  ],
+  "fit_tags": [
+    "luxury",
+    "vintage",
+    "editorial",
+    "collage",
+    "kinetic-collage",
+    "milestone",
+    "sophisticated"
+  ],
+  "avoid_tags": [
+    "playful",
+    "casual",
+    "cute",
+    "tech",
+    "data-heavy"
+  ]
+}

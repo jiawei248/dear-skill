@@ -1,0 +1,34 @@
+{
+  "template_id": "vintage-computer",
+  "engine": "p5.js-webgl",
+  "description": "A 3D interactive retro computer with auto-typing ghost text, physical key animations, and perspective transitions. Message appears as if typed on a charming vintage machine.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "ghost_text",
+    "side_heading",
+    "side_description",
+    "os_name",
+    "menu_items",
+    "file_name",
+    "case_color",
+    "screen_background",
+    "page_background",
+    "typing_speed",
+    "sticker_decorations"
+  ],
+  "fit_tags": [
+    "message-reveal",
+    "nostalgia",
+    "warmth",
+    "letter",
+    "tech-charm",
+    "borrowed-media"
+  ],
+  "avoid_tags": [
+    "heavy-data",
+    "long-text",
+    "mobile-critical",
+    "fast-pace"
+  ]
+}

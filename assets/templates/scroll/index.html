@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wanderlust App</title>
+    <!-- 引入 Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 注入全局字体和波点背景样式 -->
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+        
+        body {
+            font-family: 'Space Mono', monospace;
+            background-color: #FDE8C4;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .pattern-dots {
+            background-image: radial-gradient(#F36676 1.5px, transparent 1.5px);
+            background-size: 8px 8px;
+        }
+        
+        /* 隐藏滚动条但保留滚动功能 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</head>
+<body>
+    <!-- Preact 挂载点 -->
+    <div id="app"></div>
+    
+    <!-- 使用 type="module" 支持 ES Modules 引入 Preact 和 HTM -->
+    <script type="module">
+        import { h, render } from 'https://esm.sh/preact';
+        import htm from 'https://esm.sh/htm';
+
+        // 初始化 HTM 以使用 Preact 的 h 函数
+        const html = htm.bind(h);
+
+        const App = () => {
+            return html`
+                <div class="min-h-screen font-mono selection:bg-[#F36676] selection:text-white">
+                    <!-- 移动端模拟容器 -->
+                    <div class="max-w-md mx-auto relative bg-[#FDE8C4] min-h-screen overflow-hidden shadow-2xl border-x-4 border-black/10">
+                        
+                        <!-- 顶部导航 -->
+                        <header class="flex justify-between items-center p-6 sticky top-0 bg-[#FDE8C4] z-40">
+                            <button class="w-10 h-10 rounded-full border-[2px] border-[#2C61AD] flex items-center justify-center text-[#2C61AD] hover:bg-[#2C61AD]/10 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <span class="font-bold tracking-[0.2em] text-[#2C61AD] text-sm">WANDERLUST</span>
+                            <button class="w-10 h-10 rounded-full border-[2px] border-[#2C61AD] flex items-center justify-center text-[#2C61AD] hover:bg-[#2C61AD]/10 transition-colors">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="4" x2="20" y1="12" y2="12"/><line x1="4" x2="20" y1="6" y2="6"/><line x1="4" x2="20" y1="18" y2="18"/></svg>
+                            </button>
+                        </header>
+
+                        <!-- 可滚动的主内容区 -->
+                        <main class="pb-32 h-full overflow-y-auto no-scrollbar">
+                            
+                            <!-- Hero 标题 -->
+                            <h1 class="px-6 text-[2.5rem] font-bold leading-[1.1] text-[#2C61AD] mt-2 mb-8 uppercase tracking-tighter">
+                                There's always<br />a good time to<br />explore
+                            </h1>
+
+                            <!-- 推荐卡片 (BARCELONA) -->
+                            <div class="relative mx-6 my-10">
+                                <div class="absolute inset-0 bg-[#FACA16] rounded-2xl transform -rotate-[2deg] scale-[1.03] translate-y-1"></div>
+                                
+                                <div class="relative bg-[#2C61AD] rounded-xl overflow-hidden flex flex-col min-h-[360px]">
+                                    <div class="absolute top-0 right-0 w-[50%] h-full pattern-dots z-0"></div>
+                                    
+                                    <div class="relative z-10 p-4 flex flex-col h-full">
+                                        <img 
+                                            src="https://images.unsplash.com/photo-1516483638261-f40889240eb9?auto=format&fit=crop&w=600&q=80" 
+                                            alt="Santorini" 
+                                            class="w-[55%] h-56 object-cover rounded-xl shadow-lg mb-4 border border-black/10" 
+                                        />
+                                        
+                                        <div class="mt-auto">
+                                            <h2 class="text-white text-4xl font-bold uppercase tracking-widest" style="text-shadow: 2px 2px 0px rgba(0,0,0,0.2)">
+                                                BARCELONA
+                                            </h2>
+                                            <div class="flex justify-between items-end mt-1">
+                                                <p class="text-[#FACA16] font-bold w-[60%] uppercase leading-tight text-sm tracking-wider">
+                                                    Find your place in Europe
+                                                </p>
+                                                <button class="bg-[#FACA16] text-[#2C61AD] font-bold py-2 px-6 rounded-lg relative overflow-hidden active:scale-95 transition-transform">
+                                                    <div class="absolute inset-0 pattern-dots opacity-80 mix-blend-multiply"></div>
+                                                    <span class="relative z-10 text-lg tracking-wider">GO!</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 热门目的地分隔线 -->
+                            <div class="mx-6 mt-14 mb-8">
+                                <h3 class="text-[#2C61AD] text-lg font-bold tracking-[0.1em] uppercase mb-2">
+                                    Popular Destinations
+                                </h3>
+                                <div class="relative h-12 w-full flex items-center -mt-4">
+                                    <div class="w-full h-[2px] bg-[#2C61AD] absolute top-1/2 -translate-y-1/2"></div>
+                                    <div class="absolute right-0 top-0 bottom-0 flex gap-[6px] items-center bg-[#FDE8C4] pl-3">
+                                        ${[...Array(9)].map((_, i) => html`
+                                            <div class="w-[2px] bg-[#2C61AD] ${[1, 4, 7].includes(i) ? 'h-[120%]' : 'h-[80%]'}"></div>
+                                        `)}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 横向滚动卡片区 -->
+                            <div class="flex gap-6 px-6 overflow-x-auto no-scrollbar pb-8 pt-2">
+                                
+                                <!-- PARIS 卡片 -->
+                                <div class="relative min-w-[170px] shrink-0">
+                                    <div class="absolute inset-0 bg-[#F36676] rounded-2xl -translate-x-1.5 translate-y-1.5"></div>
+                                    <div class="relative bg-white rounded-2xl p-4 flex flex-col h-full border border-gray-100">
+                                        <img 
+                                            src="https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&w=400&q=80" 
+                                            alt="Taj Mahal" 
+                                            class="w-full h-36 object-cover rounded-xl mb-4" 
+                                        />
+                                        <h4 class="text-[#2C61AD] font-bold text-xl tracking-wider">PARIS</h4>
+                                        <p class="text-[#2C61AD] text-sm font-bold opacity-80 mt-1">$499</p>
+                                    </div>
+                                </div>
+
+                                <!-- TOKYO 卡片 -->
+                                <div class="relative min-w-[170px] shrink-0">
+                                    <div class="absolute inset-0 bg-[#FACA16] rounded-2xl translate-x-2.5 translate-y-2.5"></div>
+                                    <div class="relative bg-white border-[2px] border-[#2C61AD] rounded-2xl p-4 flex flex-col h-full">
+                                        <div class="w-full h-36 border border-gray-300 rounded-xl mb-4 flex items-start p-2 bg-white">
+                                            <div class="flex items-center gap-1.5">
+                                                <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                                </svg>
+                                                <span class="text-black font-sans text-sm">Tokyo</span>
+                                            </div>
+                                        </div>
+                                        <h4 class="text-[#2C61AD] font-bold text-xl tracking-wider">TOKYO</h4>
+                                        <p class="text-[#2C61AD] text-sm font-bold opacity-80 mt-1">$899</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- 占位元素保持滚动边距 -->
+                                <div class="min-w-[10px] shrink-0"></div>
+                            </div>
+
+                            <!-- 旅行提示分隔线 -->
+                            <div class="mx-6 mt-6 mb-8 border-b-[2px] border-[#2C61AD] pb-3">
+                                <h3 class="text-[#2C61AD] text-lg font-bold tracking-[0.1em] uppercase">
+                                    Travel Tips
+                                </h3>
+                            </div>
+
+                            <!-- 旅行提示卡片 -->
+                            <div class="mx-6 relative mb-14">
+                                <div class="absolute inset-0 bg-[#2C61AD] rounded-xl -translate-x-2 translate-y-2.5"></div>
+                                <div class="relative bg-[#FACA16] rounded-xl p-6 border-[2px] border-[#2C61AD]">
+                                    <div class="flex justify-between items-start mb-4">
+                                        <h4 class="text-[#2C61AD] text-2xl font-bold uppercase tracking-wider">Pack Light</h4>
+                                        <svg class="w-6 h-6 text-[#F36676] fill-[#F36676]" viewBox="0 0 24 24">
+                                            <path d="M12 0L14.5 9.5L24 12L14.5 14.5L12 24L9.5 14.5L0 12L9.5 9.5L12 0Z" />
+                                        </svg>
+                                    </div>
+                                    <p class="text-[#2C61AD] font-bold text-[1.1rem] leading-relaxed tracking-tight">
+                                        Essential tips for minimalist travel. Bring only what you need.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- 搜索框区 -->
+                            <div class="mx-6 relative mb-8">
+                                <div class="absolute inset-0 border-[2px] border-[#2C61AD] rounded-xl translate-y-2 translate-x-1.5"></div>
+                                <div class="relative bg-[#FDE8C4] border-[2px] border-[#2C61AD] rounded-xl flex items-center p-2.5">
+                                    <div class="flex flex-col text-[#2C61AD] font-bold text-[0.65rem] px-2 leading-[1.1] tracking-wider">
+                                        <span>FIND</span>
+                                        <span>YOUR</span>
+                                    </div>
+                                    <input
+                                        type="text"
+                                        placeholder="DESTINATION"
+                                        class="flex-1 bg-transparent outline-none placeholder-[#2C61AD]/50 text-[#2C61AD] font-bold px-2 uppercase tracking-widest w-full"
+                                    />
+                                    <button class="bg-[#2C61AD] text-white font-bold py-3 px-5 rounded-lg text-sm tracking-wider active:bg-[#2C61AD]/90">
+                                        SEARCH
+                                    </button>
+                                </div>
+                            </div>
+
+                        </main>
+
+                        <!-- 固定底部导航栏 -->
+                        <nav class="absolute bottom-0 left-0 right-0 bg-[#FDE8C4] border-t-[2px] border-[#2C61AD] z-50">
+                            <div class="flex justify-around items-center pt-5 pb-3">
+                                <button class="flex flex-col items-center gap-1.5 text-[#2C61AD] hover:scale-110 transition-transform">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                                    <span class="text-xs font-bold tracking-widest">HOME</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-1.5 text-[#2C61AD] hover:scale-110 transition-transform">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <span class="text-xs font-bold tracking-widest">EXPLORE</span>
+                                </button>
+                                <button class="flex flex-col items-center gap-1.5 text-[#2C61AD] hover:scale-110 transition-transform">
+                                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                                    <span class="text-xs font-bold tracking-widest">PROFILE</span>
+                                </button>
+                            </div>
+                            <!-- 底部小字注脚 -->
+                            <div class="flex justify-between px-8 pb-5 text-[#2C61AD] font-bold text-xs tracking-widest">
+                                <span>WANDERLUST</span>
+                                <span>003</span>
+                            </div>
+                        </nav>
+
+                    </div>
+                </div>
+            `;
+        };
+
+        // 渲染到页面
+        render(html`<${App} />`, document.getElementById('app'));
+    </script>
+</body>
+</html>

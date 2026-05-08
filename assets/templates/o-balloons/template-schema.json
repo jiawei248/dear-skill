@@ -1,0 +1,40 @@
+{
+  "template_id": "o-balloons",
+  "engine": "p5.js",
+  "description": "An airy release animation where o-shaped letters become balloons, lift nearby text, and carry the page upward.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "loading_text",
+    "source_text",
+    "background_color",
+    "paper_color",
+    "paper_stroke_color",
+    "font_family",
+    "font_size",
+    "line_height",
+    "paper_width",
+    "paper_y_ratio",
+    "balloon_radius_lowercase",
+    "balloon_radius_uppercase",
+    "string_length_min",
+    "string_length_max",
+    "sway_speed_min",
+    "sway_speed_max",
+    "cycle_duration_seconds",
+    "loop_animation"
+  ],
+  "fit_tags": [
+    "gentle-release",
+    "soft-closure",
+    "lightness",
+    "airy-romance",
+    "unburdening"
+  ],
+  "avoid_tags": [
+    "intense-anger",
+    "acute-grief",
+    "dense-explanation",
+    "language-independent-final-pattern"
+  ]
+}

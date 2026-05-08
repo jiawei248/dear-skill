@@ -1,0 +1,38 @@
+{
+  "template_id": "burn-reveal",
+  "engine": "p5.js",
+  "description": "A paper-burning reveal effect where an old surface chars away and a clearer message is exposed beneath it.",
+  "final_delivery_requirement": "Export the final user-facing gift as a single HTML file. Pinned CDN delivery for p5.js is acceptable; images and custom assets should remain inline.",
+  "customizable_fields": [
+    "page_title",
+    "interaction_hint",
+    "top_layer_text",
+    "bottom_layer_text",
+    "base_paper_color",
+    "top_paper_color",
+    "base_text_color",
+    "top_text_color",
+    "font_family",
+    "text_size",
+    "text_leading",
+    "auto_burn_count",
+    "auto_burn_delay_ms_max",
+    "burn_radius_min",
+    "burn_radius_max",
+    "spark_probability_scale",
+    "ash_probability_scale"
+  ],
+  "fit_tags": [
+    "anger",
+    "release",
+    "reframing",
+    "reset",
+    "renewal"
+  ],
+  "avoid_tags": [
+    "quiet-grief",
+    "dense-explanation",
+    "soft-memory-piece",
+    "formal-report"
+  ]
+}

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wet Letter</title>
+  <!-- Final delivery should follow references/html-spec.md.
+       Pinned CDN delivery for libraries like p5.js is acceptable, but images and
+       custom assets should remain inline in the final artifact. -->
+  <style>
+    :root {
+      --background-color: #0d56f1;
+      --loading-color: #ffffff;
+      --font-family: monospace;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--background-color);
+    }
+
+    body {
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+      width: 100vw;
+      height: 100vh;
+    }
+
+    #loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: var(--loading-color);
+      font-family: var(--font-family);
+      font-size: 1.1rem;
+      pointer-events: none;
+      text-align: center;
+      white-space: nowrap;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js"></script>
+</head>
+<body>
+  <div id="loading">正在让雨水落在字里行间...</div>
+
+  <script>
+    const TEMPLATE_DATA = {
+      pageTitle: "Wet Letter",
+      loadingText: "正在让雨水落在字里行间...",
+      backgroundColor: "#0d56f1",
+      textColor: 255,
+      sourceText: (
+        "Some words are still here even after the rain starts. " +
+        "Not every feeling wants to be erased. Some only want to be touched differently. " +
+        "If this page looks softened, it is because something landed here. " +
+        "Disappointment does that. So does care. So does remembering. " +
+        "Maybe what was said today did not hold the shape you hoped for. " +
+        "Maybe the sentence broke where you wanted it to stay whole. " +
+        "Still, I can stay with the page long enough for the words to settle again. "
+      ),
+      textRepeatCount: 6,
+      textSize: 20,
+      textLeading: 32,
+      textMargin: 20,
+      particleStep: 3,
+      dropSpawnProbability: 0.02,
+      maxDrops: 150,
+      dropTargetRadiusRange: [30, 90],
+      clickDropTargetRadiusRange: [40, 120],
+      dropSpeedRange: [0.04, 0.08],
+      allowTapDrops: true
+    };
+
+    let particles = [];
+    let drops = [];
+    let pg;
+
+    function buildFullText() {
+      let fullText = TEMPLATE_DATA.sourceText;
+      for (let i = 0; i < TEMPLATE_DATA.textRepeatCount; i += 1) {
+        fullText += "\n\n" + TEMPLATE_DATA.sourceText;
+      }
+      return fullText;
+    }
+
+    function buildDrop(x, y, radiusRange) {
+      return {
+        x,
+        y,
+        r: 0,
+        targetR: random(radiusRange[0], radiusRange[1]),
+        speed: random(TEMPLATE_DATA.dropSpeedRange[0], TEMPLATE_DATA.dropSpeedRange[1]),
+        noiseSeedX: random(1000),
+        noiseSeedY: random(1000),
+        noiseMax: random(0.8, 1.5)
+      };
+    }
+
+    function rebuildTextField(w, h) {
+      pg = createGraphics(w, h);
+      pg.pixelDensity(1);
+      pg.background(0);
+      pg.fill(TEMPLATE_DATA.textColor);
+      pg.textFont("monospace");
+      pg.textSize(TEMPLATE_DATA.textSize);
+      pg.textLeading(TEMPLATE_DATA.textLeading);
+      pg.textAlign(LEFT, TOP);
+      pg.text(
+        buildFullText(),
+        TEMPLATE_DATA.textMargin,
+        TEMPLATE_DATA.textMargin,
+        w - TEMPLATE_DATA.textMargin * 2,
+        h - TEMPLATE_DATA.textMargin * 2
+      );
+
+      pg.loadPixels();
+      particles = [];
+      noiseSeed(99);
+
+      for (let y = 0; y < h; y += TEMPLATE_DATA.particleStep) {
+        for (let x = 0; x < w; x += TEMPLATE_DATA.particleStep) {
+          const index = (x + y * w) * 4;
+          if (pg.pixels[index] > 100) {
+            const clusterNoise = noise(x * 0.02, y * 0.02);
+            const thicknessOffset = map(clusterNoise, 0, 1, -12, 15);
+
+            particles.push({
+              pos: createVector(x, y),
+              origin: createVector(x, y),
+              thicknessOffset,
+              fixedJitterX: random(-0.8, 0.8),
+              fixedJitterY: random(-0.8, 0.8)
+            });
+          }
+        }
+      }
+    }
+
+    function setup() {
+      document.title = TEMPLATE_DATA.pageTitle;
+      const loading = document.getElementById("loading");
+      loading.textContent = TEMPLATE_DATA.loadingText;
+
+      const w = max(100, windowWidth || window.innerWidth || 800);
+      const h = max(100, windowHeight || window.innerHeight || 600);
+      createCanvas(w, h);
+      pixelDensity(1);
+      rebuildTextField(w, h);
+      loading.style.display = "none";
+    }
+
+    function draw() {
+      background(TEMPLATE_DATA.backgroundColor);
+
+      if (random(1) < TEMPLATE_DATA.dropSpawnProbability && drops.length < TEMPLATE_DATA.maxDrops) {
+        drops.push(buildDrop(random(width), random(height), TEMPLATE_DATA.dropTargetRadiusRange));
+      }
+
+      for (const drop of drops) {
+        const diff = drop.targetR - drop.r;
+        drop.r += diff * drop.speed;
+      }
+
+      stroke(255);
+      strokeWeight(1.5);
+
+      for (const p of particles) {
+        p.pos.x = p.origin.x;
+        p.pos.y = p.origin.y;
+
+        for (const drop of drops) {
+          if (drop.r < 1) continue;
+
+          const dx = p.pos.x - drop.x;
+          const dy = p.pos.y - drop.y;
+          const maxPossibleR = drop.r * 1.4;
+          if (abs(dx) > maxPossibleR || abs(dy) > maxPossibleR) continue;
+
+          const dSq = dx * dx + dy * dy;
+          const d = sqrt(dSq);
+          if (d === 0) continue;
+
+          const angle = atan2(dy, dx);
+          const nx = map(cos(angle), -1, 1, 0, drop.noiseMax);
+          const ny = map(sin(angle), -1, 1, 0, drop.noiseMax);
+          const nVal = noise(nx + drop.noiseSeedX, ny + drop.noiseSeedY);
+
+          const distortedR = drop.r * map(nVal, 0, 1, 0.7, 1.3);
+          const finalTargetR = distortedR + p.thicknessOffset;
+          const pushDist = finalTargetR - d;
+
+          if (pushDist > 0) {
+            p.pos.x += (dx / d) * pushDist * 0.4 + p.fixedJitterX;
+            p.pos.y += (dy / d) * pushDist * 0.4 + p.fixedJitterY;
+          }
+        }
+
+        point(p.pos.x, p.pos.y);
+      }
+    }
+
+    function mousePressed() {
+      if (!TEMPLATE_DATA.allowTapDrops) return;
+      drops.push(buildDrop(mouseX, mouseY, TEMPLATE_DATA.clickDropTargetRadiusRange));
+    }
+
+    function touchStarted() {
+      if (!TEMPLATE_DATA.allowTapDrops) return false;
+      drops.push(buildDrop(mouseX, mouseY, TEMPLATE_DATA.clickDropTargetRadiusRange));
+      return false;
+    }
+
+    function windowResized() {
+      const loading = document.getElementById("loading");
+      loading.style.display = "block";
+      const w = max(100, windowWidth || window.innerWidth || 800);
+      const h = max(100, windowHeight || window.innerHeight || 600);
+      resizeCanvas(w, h);
+      drops = [];
+      rebuildTextField(w, h);
+      loading.style.display = "none";
+    }
+  </script>
+</body>
+</html>
