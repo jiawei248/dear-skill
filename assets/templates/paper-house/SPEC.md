@@ -347,7 +347,7 @@ These files ship with the skill and are never modified per gift. They are the au
 | Path | Role |
 |---|---|
 | `template-source/night-four-the-turn.html` | Canonical golden output (23 MB, all assets inlined). Use as reference for layout / palette / lyric wave / particle settings. |
-| `template-source/build.py` | Rebuilds the HTML from an authored source HTML + asset directory. Modify data, not this file's logic. |
+| `template-source/build.py` | Runtime builder. Reads the canonical HTML as a read-only source, applies `filled-slots.json`, and writes the final gift HTML to `--out`; never writes back into `template-source/`. |
 | `template-source/patch_*.py` | Historical patches showing HOW visual decisions were made (depth layers, earphone lines, hide-inactive-rooms, etc.). Read for understanding; re-running them is optional. |
 | `template-source/scripts/batch_cutout_new_stickers.py` | Pipeline for turning raw assets into sticker PNGs (rembg + alpha clean + trim). Use when adding NEW stickers not in the bundle. |
 | `template-source/scripts/generate_story_cards_litellm.py` | Per-gift story card image generator. Reads `story_cards/prompts/story_card_image_prompts.json`, calls an image model via litellm, outputs 4 cards. |
@@ -378,17 +378,58 @@ Fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. Cached 
 
 Total bundle size: ~170 MB.
 
-### Generated per gift (in the working gift folder)
+### Generated per gift (in `./gifts/<YYYY-MM-DD>-<recipient-slug>/paper-house-work/`)
 
-Produced fresh every time. Written to `./gifts/<YYYY-MM-DD>-<recipient-slug>/`.
+All per-gift working assets live under a single staging directory. The final shareable artifact is written one level above it as `./gifts/<YYYY-MM-DD>-<recipient-slug>/index.html`.
+
+```
+./gifts/<YYYY-MM-DD>-<recipient-slug>/
+├── index.html
+└── paper-house-work/
+    ├── filled-slots.json
+    ├── walls/
+    │   ├── kitchen_left.jpg
+    │   ├── kitchen_right.jpg
+    │   ├── rooftop_left.jpg
+    │   ├── rooftop_right.jpg
+    │   ├── karaoke_left.jpg
+    │   ├── karaoke_right.jpg
+    │   ├── couch_left.jpg
+    │   └── couch_right.jpg
+    ├── floors/
+    │   ├── kitchen_floor.jpg
+    │   ├── rooftop_floor.jpg
+    │   ├── karaoke_floor.jpg
+    │   └── couch_floor.jpg
+    ├── figures/
+    │   ├── scene_kitchen.png
+    │   ├── scene_rooftop.png
+    │   ├── scene_karaoke.png
+    │   └── scene_couch.png
+    ├── stickers/
+    │   ├── kitchen/1.png ... 6.png
+    │   ├── rooftop/1.png ... 6.png
+    │   ├── karaoke/1.png ... 6.png
+    │   └── couch/1.png ... 6.png
+    └── story_cards/
+        ├── generated/
+        │   ├── kitchen-fridge.png
+        │   ├── rooftop-suitcase.png
+        │   ├── karaoke-camera.png
+        │   └── couch-chess.png
+        └── prompts/
+            └── story_card_image_prompts.json
+```
 
 | Path | How produced |
 |---|---|
-| `{scene_id}_left.jpg`, `{scene_id}_right.jpg`, `{scene_id}_floor.jpg` | Image generation, per Rule 2 physical rules |
-| `scene_{scene_id}.png` (1 or 2 per room) | Image generation from user-photo identity references |
-| `{scene_id}/1..6.png`, `{scene_id}/player.png` | Picked from `base/stickers/*` based on user-memory match; renamed + optionally cutout-polished |
-| `story_cards/generated/{scene_id}-{item}.png` | Image generation via `template-source/scripts/generate_story_cards_litellm.py` with per-gift prompts |
-| `story_cards/prompts/story_card_image_prompts.json` | Copy of the template's prompts JSON with text replaced per gift |
+| `paper-house-work/filled-slots.json` | Slot output from Stage 0.5; may use native template slot names or compatibility groups |
+| `paper-house-work/walls/{scene_id}_{left,right}.jpg` | Image generation, per Rule 2 physical rules |
+| `paper-house-work/floors/{scene_id}_floor.jpg` | Image generation, top-down floor texture |
+| `paper-house-work/figures/scene_{scene_id}.png` | Image generation from user-photo identity references or stylized user photo |
+| `paper-house-work/stickers/{scene_id}/1..6.png` | Picked from `base/stickers/*` based on user-memory match; renamed + optionally cutout-polished |
+| `paper-house-work/story_cards/generated/{scene_id}-{item}.png` | Image generation via `template-source/scripts/generate_story_cards_litellm.py` with per-gift prompts |
+| `paper-house-work/story_cards/prompts/story_card_image_prompts.json` | Copy of the template's prompts JSON with text replaced per gift |
 | `index.html` | Final output, single-file, from `template-source/build.py` |
 
 ---
@@ -418,7 +459,29 @@ scripts/fetch-asset-bundle.sh --template paper-house
 
 **8. Compose card text + decals** (Rule 1, Content Principles 2.4-2.9, and `references/gifting-ethics.md`). Per card: title, kicker, paper/accent hex colors matching the room palette, 3-4 overlay decals (stickers with x/y/w/r positioning), and a handwritten memory text of 60-110 CJK chars (or the equivalent in the user's language) grounded in a specific detail from the user's intake. At least one card or lyric must contain an identity-confirmation point (nickname, catchphrase, inside joke, exact phrase, specific object/place) when the user supplied one. Pick ONE layout per card from the four options (note / split / diagonal / triangle).
 
-**9. Assemble `filled-slots.json` + run `build.py`**. The build script reads filled-slots.json, assembles the final HTML with all assets base64-inlined, and writes it to the gift folder.
+**9. Assemble `filled-slots.json` + run `build.py`**. The builder treats `template-source/night-four-the-turn.html` as read-only, applies runtime slot values, and writes the final single-file HTML to the gift folder:
+```
+python3 assets/templates/paper-house/template-source/build.py \
+  --slots ./gifts/<slug>/paper-house-work/filled-slots.json \
+  --workdir ./gifts/<slug>/paper-house-work \
+  --out ./gifts/<slug>/index.html
+```
+Supported runtime slot groups in this version:
+- Native template slots: `scene_theme`, `room_walls_and_floor`, `scene_figure_image`, `scene_decorations`, `scene_hero_items`, `story_cards`, `scene_song`, `scene_lyrics`, `scene_fall_words`
+- Compatibility groups: `rooms`, `images`, `stories`
+- `rooms`: per-room `title`, `eyebrow`, `note`, `palette`, `lyricColor`, `lyricShadow`, `song`, `lyrics`, `fallWords`
+- `images`: HTML image-data keys such as `scene_kitchen`, `kitchen_left`, `kitchen_right`, `kitchen_floor`, `kitchen_1` mapped to workdir asset paths or data URIs
+- `stories`: hotspot IDs such as `kitchen_4` mapped to card `item`, `title`, `kicker`, `image`, `layout`, `paper`, `accent`, `decals`, `text`
+
+Native slot mapping notes:
+- `scene_theme.<scene>.theme` becomes the room title unless `title` is provided.
+- `room_walls_and_floor.<scene>.wall_left/wall_right/floor` maps to `{scene}_left`, `{scene}_right`, `{scene}_floor` image keys. If a component value is omitted or empty, the builder reads `walls/{scene}_left.jpg`, `walls/{scene}_right.jpg`, or `floors/{scene}_floor.jpg` from `--workdir`.
+- `scene_figure_image.<scene>` maps to `scene_{scene}`; additional list entries map to `scene_{scene}_2`, `scene_{scene}_3`, etc. Empty object/list entries default to `figures/scene_{scene}.png` and numbered variants.
+- `scene_decorations.<scene>` fills the existing six decoration image keys `{scene}_1..{scene}_6`; omitted/empty entries default to `stickers/{scene}/1.png` through `stickers/{scene}/6.png`. More than six items fails clearly because the current 3D layout only has six positions per room.
+- `scene_hero_items.<scene>` targets the default hotspot for that scene unless `hotspot_id` is provided.
+- `story_cards.<scene>` targets the default hotspot image for that scene unless keyed by explicit hotspot id. Empty objects default to `story_cards/generated/{scene}-{item}.png`.
+
+The builder exits with a clear error if a referenced asset path, room id, hotspot id, image key, or supported field is missing/unknown. It must never modify any file under `template-source/`.
 
 **10. Deliver.** Either open locally or push via `scripts/deliver-gift.sh --domain <surge-subdomain>`.
 

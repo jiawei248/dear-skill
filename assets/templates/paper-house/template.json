@@ -288,9 +288,40 @@
 
   "build_script": "template-source/build.py",
   "build_contract": {
-    "input": "filled-slots.json containing resolved slot outputs",
+    "input": "filled-slots.json containing resolved runtime slot outputs",
+    "cli": "python3 template-source/build.py --slots <gift-dir>/paper-house-work/filled-slots.json --workdir <gift-dir>/paper-house-work --out <gift-dir>/index.html",
     "output": "index.html",
     "single_file": true,
-    "inline_strategy": "base64 all images directly into HTML (build.py already does this)"
+    "source_template_readonly": "template-source/night-four-the-turn.html",
+    "supported_runtime_groups": [
+      "scene_theme",
+      "room_walls_and_floor",
+      "scene_figure_image",
+      "scene_decorations",
+      "scene_hero_items",
+      "story_cards",
+      "scene_song",
+      "scene_lyrics",
+      "scene_fall_words",
+      "rooms",
+      "images",
+      "stories"
+    ],
+    "staging_contract": {
+      "gift_dir": "./gifts/<YYYY-MM-DD>-<recipient-slug>/",
+      "workdir": "./gifts/<YYYY-MM-DD>-<recipient-slug>/paper-house-work/",
+      "slots": "paper-house-work/filled-slots.json",
+      "output": "index.html",
+      "default_asset_paths": {
+        "walls": "paper-house-work/walls/{scene_id}_{left,right}.jpg",
+        "floors": "paper-house-work/floors/{scene_id}_floor.jpg",
+        "figures": "paper-house-work/figures/scene_{scene_id}.png",
+        "stickers": "paper-house-work/stickers/{scene_id}/{1..6}.png",
+        "story_cards": "paper-house-work/story_cards/generated/{scene_id}-{item}.png",
+        "story_card_prompts": "paper-house-work/story_cards/prompts/story_card_image_prompts.json"
+      }
+    },
+
+    "inline_strategy": "base64 per-gift image paths from filled-slots.json or the staging defaults into the output HTML"
   }
 }

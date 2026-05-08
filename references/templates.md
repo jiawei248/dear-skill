@@ -346,6 +346,17 @@ Each template provides a `build.py` (or whatever script its `build_script` field
 
 **Output**: a single `index.html` in the working dir's `./gifts/<date>-<recipient-slug>/` folder, with all assets base64-inlined (per the existing single-file H5 rule).
 
+Invoke builders with explicit runtime paths when supported:
+
+```bash
+python3 <template-dir>/<build_script> \
+  --slots ./gifts/<date>-<recipient-slug>/<template-id>-work/filled-slots.json \
+  --workdir ./gifts/<date>-<recipient-slug>/<template-id>-work/ \
+  --out ./gifts/<date>-<recipient-slug>/index.html
+```
+
+A template builder must treat authored template files as read-only. Per-gift content is read from `filled-slots.json` and `--workdir`; the only HTML it writes is the `--out` file. For templates with generated assets, prefer a single `<template-id>-work/` staging directory under the gift folder so the final artifact and intermediate assets do not mix.
+
 The skill orchestrates: prepares filled-slots.json → invokes build.py → moves output to the gift folder → continues to delivery.
 
 ## Where Each Slot Type's Asset Comes From
