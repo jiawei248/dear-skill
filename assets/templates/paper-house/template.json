@@ -8,19 +8,15 @@
   "format": "h5",
   "approx_size_mb": 25,
   "status": "ready",
-
   "canonical_html_reference": "template-source/night-four-the-turn.html",
   "spec_doc": "SPEC.md",
-
   "scenes_default": ["kitchen", "rooftop", "karaoke", "couch"],
   "scenes_note": "These are the ORIGINAL scene ids. The 4 scenes can be re-themed per gift (library / supermarket / park / playground / studio / subway-car, etc.) as long as each is a 'small-room-like' space. When the scene theme changes, you MUST keep the scene IDs (kitchen/rooftop/karaoke/couch) because they are referenced throughout the template HTML; only swap the visual content, palette, song, lyrics, decor, figure, and hero item. Treat scene id as a stable slot key, not as semantic content.",
-
   "room_geometry": {
     "architecture": "4 quadrants sharing a single central corner (0,0,0). Each room occupies one horizontal quadrant with a LEFT radial wall and a RIGHT radial wall; the inner corner of every room is the same point, and adjacent rooms share their common wall.",
     "must_preserve": "Do NOT change WALL_LEN / WALL_H / WALL_THK / ROOF_Y / ROOM_Y_OFFSET / room positions / shared-corner topology. The camera logic, snap angles, sticker coordinate system, and lyric layout all assume this geometry.",
     "wall_texture_role": "The left and right walls and the floor are FLAT rectangular textures — they clothe the wall surface. Do not produce '3D room scenes' as wall textures. The texture IS the wall; perspective already comes from the 3D scene. Three-dimensional detail (a window frame, a picture on the wall, a hanging lamp) MAY be painted into the wall texture, but depth beyond the wall surface (a room receding into the distance) must not."
   },
-
   "slots": [
     {
       "id": "scene_theme",
@@ -33,7 +29,6 @@
         "note": "1-2 lines of narrator-voice text that frames the room's feeling"
       }
     },
-
     {
       "id": "room_walls_and_floor",
       "type": "ai_generated_image",
@@ -70,42 +65,82 @@
         "Floor texture is viewed from above. It usually tiles or reads as a continuous ground plane."
       ],
       "style_anchor": "template-source/scene_{scene_id}.jpg (reference image — mood, palette, painterly storybook feel)",
-      "style_hint_default": "painterly storybook diorama, intimate human-scale lighting, slight film grain, medium saturation, paper-cutout feel rather than photoreal. Color palette must follow the per-scene palette defined in ROOMS[scene].palette."
+      "style_hint_default": "painterly storybook diorama, intimate human-scale lighting, slight film grain, medium saturation, paper-cutout feel rather than photoreal. Color palette must follow the per-scene palette defined in ROOMS[scene].palette.",
+      "approx_size": [1280, 1280],
+      "aspect_ratio": "source-dependent",
+      "prompt_hint": "Generate the left wall, right wall, and floor for each paper-house room as separate flat room-surface assets. Preserve the selected scene theme, palette, and intimate storybook diorama mood.",
+      "runtime_mapping": {
+        "output_paths": {
+          "wall_left": "paper-house-work/walls/{scene_id}_left.jpg",
+          "wall_right": "paper-house-work/walls/{scene_id}_right.jpg",
+          "floor": "paper-house-work/floors/{scene_id}_floor.jpg"
+        }
+      }
     },
-
+    {
+      "id": "character_reference",
+      "type": "user_image_processed",
+      "count": "0-2",
+      "required": false,
+      "purpose": "Optional processed user photo references used to preserve recipient/protagonist identity before generating final per-room figure sprites.",
+      "pipeline": [
+        {
+          "step": "stylize-character",
+          "params": {
+            "outline_width": 6,
+            "outline_color": "#ffffff",
+            "note": "Applied only to direct user photos that should become identity references; skip when no photo is supplied."
+          }
+        }
+      ],
+      "runtime_mapping": {
+        "output_paths": "paper-house-work/character_reference/{n}.png",
+        "consumer_slot": "scene_figure_image"
+      }
+    },
     {
       "id": "scene_figure_image",
       "type": "ai_generated_image",
       "per_scene": true,
       "count_per_scene_range": [1, 2],
-      "filename_pattern": "scene_{scene_id}[_{n}].png",
-      "purpose": "One to two figure sprites per room showing the protagonist(s) inside that scene. The figures are cut-out silhouette-like stickers that occlude characters with scene context (the user cooking / standing on the rooftop / singing / on the couch). Look at FIGURE_LAYOUT in the canonical HTML for positioning intent.",
+      "filename_pattern": "figures/scene_{scene_id}[_{n}].png",
+      "purpose": "One to two final figure sprites per room showing the protagonist(s) inside that scene. These are the generated per-room cutout assets consumed by the builder, using character_reference when available and otherwise keeping non-specific characters consistent across rooms.",
       "identity_rules": [
         "If the user provided reference photos of the recipient (and optionally themselves), the AI-generated figure MUST preserve recognizable facial structure, hair, skin tone, and clothing style from the reference photo. Not merely 'a person' but 'this person'.",
         "If no reference photo is available, generate consistent but non-specific figures across all 4 rooms — same body proportions, same clothing palette — so the viewer reads them as the same character(s).",
         "Support 1 or 2 figures per scene. The rooftop in the canonical template has 2 figures; the others have 1."
       ],
-      "pre_process_pipeline": [
-        {"step": "stylize-character", "params": {"outline_width": 6, "outline_color": "#ffffff", "note": "Applied only when this is a direct user photo; skip when it's an AI-generated scene-figure composition that already reads as a cutout."}}
-      ]
+      "reference_slot": "character_reference"
     },
-
     {
       "id": "scene_decorations",
       "type": "sticker_picks",
       "per_scene": true,
-      "filename_pattern": "{scene_id}/{1..6}.png",
-      "count_range_per_scene": [5, 7],
-      "source_library": "base/stickers/",
-      "library_categories": ["decorations", "food", "furnitures", "household_goods", "music_player", "pets", "plants", "transportation"],
+      "filename_pattern": "stickers/{scene_id}/{1..6}.png",
       "placement_rules": [
         "Place decorations inside each room's quadrant using the DECOR_LAYOUT schema in the canonical HTML (x/y/z/s/order/rot). Use the canonical layout as the starting point; only re-pick which sticker fills each slot based on user context.",
         "Some stickers MAY intentionally occlude the character figure in the foreground — this is an allowed depth trick and makes the diorama feel layered.",
         "If a sticker is a photo frame, picture frame, or any container that is meant to hold content, you must ALSO place a separate inner-content sticker on top of it — never deliver an empty frame."
       ],
-      "hero_item_rule": "Exactly ONE sticker per room is the hero interactive item — the one users click to open the memory card. See `scene_hero_items` for the schema. Pick a hero sticker whose semantics clearly map to a memory the user shared."
+      "hero_item_rule": "Exactly ONE sticker per room is the hero interactive item — the one users click to open the memory card. See `scene_hero_items` for the schema. Pick a hero sticker whose semantics clearly map to a memory the user shared.",
+      "library_subpaths": [
+        "stickers/decorations/",
+        "stickers/food/",
+        "stickers/furnitures/",
+        "stickers/household_goods/",
+        "stickers/music_player/",
+        "stickers/pets/",
+        "stickers/plants/",
+        "stickers/transportation/"
+      ],
+      "count_range": [5, 7],
+      "placement_zone": "paper-house-room-quadrants",
+      "selection_hint": "Choose stickers whose objects support the per-scene memory, palette, and hero item without changing the canonical room layout contract.",
+      "runtime_mapping": {
+        "output_paths": "paper-house-work/stickers/{scene_id}/{1..6}.png",
+        "layout_source": "DECOR_LAYOUT in canonical HTML"
+      }
     },
-
     {
       "id": "scene_hero_items",
       "type": "hotspot_map",
@@ -162,7 +197,6 @@
         "layout_options": ["layout-note", "layout-split", "layout-diagonal", "layout-triangle"]
       }
     },
-
     {
       "id": "story_cards",
       "type": "ai_generated_image",
@@ -179,7 +213,6 @@
       ],
       "model_hint": "Use a model that supports multi-image identity preservation. The existing pipeline uses `gemini-3.1-flash-image-preview` via litellm (see template-source/scripts/generate_story_cards_litellm.py)."
     },
-
     {
       "id": "scene_song",
       "type": "music_lookup",
@@ -197,7 +230,6 @@
       },
       "copyright_rule": "Only the 30s preview URL (hosted by Apple) is embedded. Do NOT download and re-host the preview audio. Do NOT generate or quote large spans of original copyrighted lyrics. See scene_lyrics for how lyrics are written."
     },
-
     {
       "id": "scene_lyrics",
       "type": "ai_text",
@@ -218,7 +250,6 @@
         "rotation": "The sentence itself stays upright; only individual FALLING words (below) rotate."
       }
     },
-
     {
       "id": "scene_fall_words",
       "type": "ai_text",
@@ -233,7 +264,6 @@
       ]
     }
   ],
-
   "dependencies": {
     "python_packages": {
       "required_for_character_cutout": ["rembg", "onnxruntime", "Pillow", "opencv-python", "numpy"],
@@ -265,7 +295,6 @@
       }
     }
   },
-
   "asset_bundle": {
     "local_path": "base/",
     "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-paper-house-v1/paper-house-v1.zip",
@@ -291,7 +320,6 @@
     ],
     "upload_instructions": "See RELEASE.md in this folder."
   },
-
   "build_script": "template-source/build.py",
   "build_contract": {
     "input": "filled-slots.json containing resolved runtime slot outputs",
@@ -327,7 +355,6 @@
         "story_card_prompts": "paper-house-work/story_cards/prompts/story_card_image_prompts.json"
       }
     },
-
     "inline_strategy": "base64 per-gift image paths from filled-slots.json or the staging defaults into the output HTML"
   }
 }

@@ -426,7 +426,8 @@ All per-gift working assets live under a single staging directory. The final sha
 | `paper-house-work/filled-slots.json` | Slot output from Stage 0.5; may use native template slot names or compatibility groups |
 | `paper-house-work/walls/{scene_id}_{left,right}.jpg` | Image generation, per Rule 2 physical rules |
 | `paper-house-work/floors/{scene_id}_floor.jpg` | Image generation, top-down floor texture |
-| `paper-house-work/figures/scene_{scene_id}.png` | Image generation from user-photo identity references or stylized user photo |
+| `paper-house-work/character_reference/{n}.png` | Optional processed user photo references from the `character_reference` slot |
+| `paper-house-work/figures/scene_{scene_id}.png` | Final `scene_figure_image` sprite generated per room, using `character_reference` when available |
 | `paper-house-work/stickers/{scene_id}/1..6.png` | Picked from `base/stickers/*` based on user-memory match; renamed + optionally cutout-polished |
 | `paper-house-work/story_cards/generated/{scene_id}-{item}.png` | Image generation via `template-source/scripts/generate_story_cards_litellm.py` with per-gift prompts |
 | `paper-house-work/story_cards/prompts/story_card_image_prompts.json` | Copy of the template's prompts JSON with text replaced per gift |
@@ -454,7 +455,8 @@ scripts/fetch-asset-bundle.sh --template paper-house
 **6. Generate walls + floor** (Rule 2). For each scene, generate left wall, right wall, floor as ONE consistency group. Follow the style anchor from `base/reference/scene_{scene_id}.jpg` for palette and mood. Enforce the flat-wall-content rule.
 
 **7. Generate figure sprites + story cards** (Rules 2, 4). 
-- For figure sprites: either (a) use a user photo run through `scripts/stylize-character.sh` or (b) generate an AI composition preserving the user-photo identity.
+- For character identity: if the user supplied usable photos, resolve the optional `character_reference` slot first by running them through `scripts/stylize-character.sh` into `paper-house-work/character_reference/{n}.png`; if no photo is available, document in the fill preview that figures will be consistent but non-specific.
+- For `scene_figure_image`: generate the final per-room sprite(s) into `paper-house-work/figures/scene_{scene_id}.png` and numbered variants, using `character_reference` as identity input when available or a consistent non-specific protagonist when not.
 - For story cards: copy `template-source/story_cards/prompts/story_card_image_prompts.json` to `paper-house-work/story_cards/prompts/story_card_image_prompts.json`, rewrite each card's prompt with the per-gift hero object, room palette, protagonist identity, and 2-3 supporting sticker references, then run:
   ```
   python3 assets/templates/paper-house/template-source/scripts/generate_story_cards_litellm.py \
@@ -475,7 +477,7 @@ python3 assets/templates/paper-house/template-source/build.py \
   --out ./gifts/<slug>/index.html
 ```
 Supported runtime slot groups in this version:
-- Native template slots: `scene_theme`, `room_walls_and_floor`, `scene_figure_image`, `scene_decorations`, `scene_hero_items`, `story_cards`, `scene_song`, `scene_lyrics`, `scene_fall_words`
+- Native template slots: `scene_theme`, `character_reference`, `room_walls_and_floor`, `scene_figure_image`, `scene_decorations`, `scene_hero_items`, `story_cards`, `scene_song`, `scene_lyrics`, `scene_fall_words`
 - Compatibility groups: `rooms`, `images`, `stories`
 - `rooms`: per-room `title`, `eyebrow`, `note`, `palette`, `lyricColor`, `lyricShadow`, `song`, `lyrics`, `fallWords`
 - `images`: HTML image-data keys such as `scene_kitchen`, `kitchen_left`, `kitchen_right`, `kitchen_floor`, `kitchen_1` mapped to workdir asset paths or data URIs
@@ -483,6 +485,7 @@ Supported runtime slot groups in this version:
 
 Native slot mapping notes:
 - `scene_theme.<scene>.theme` becomes the room title unless `title` is provided.
+- `character_reference` is used during slot matching and asset generation only; the current builder does not need to read it directly.
 - `room_walls_and_floor.<scene>.wall_left/wall_right/floor` maps to `{scene}_left`, `{scene}_right`, `{scene}_floor` image keys. If a component value is omitted or empty, the builder reads `walls/{scene}_left.jpg`, `walls/{scene}_right.jpg`, or `floors/{scene}_floor.jpg` from `--workdir`.
 - `scene_figure_image.<scene>` maps to `scene_{scene}`; additional list entries map to `scene_{scene}_2`, `scene_{scene}_3`, etc. Empty object/list entries default to `figures/scene_{scene}.png` and numbered variants.
 - `scene_decorations.<scene>` fills the existing six decoration image keys `{scene}_1..{scene}_6`; omitted/empty entries default to `stickers/{scene}/1.png` through `stickers/{scene}/6.png`. More than six items fails clearly because the current 3D layout only has six positions per room.

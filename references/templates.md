@@ -123,6 +123,7 @@ Notes:
 - `prompt_hint` is the SEED — slot-matching may enrich it with user-context details
 - `style_anchor` is an optional reference image the generation prompt should anchor on, for visual consistency across slots in the same template
 - `consistency_group` lets the skill pass the same seed/style across related slots so that all walls in the same template look like one world
+- Keep base slot fields aligned with the common schema. Put template-specific details in supplemental fields such as `template_notes`, `runtime_mapping`, or `physical_rules` instead of inventing alternate names for common concepts.
 - The skill uses the existing image-generation path (`render-image.sh` or in-Claude image generation when available)
 
 #### `sticker_picks`
