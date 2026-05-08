@@ -262,9 +262,9 @@
 
   "asset_bundle": {
     "local_path": "base/",
-    "url": "",
-    "sha256": "",
-    "size_mb_estimated": 170,
+    "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-paper-house-v1/paper-house-v1.zip",
+    "sha256": "650763d4b86fc77ece102fbfc7f3f10131ae041ae8769a8cd7dec73f8b7e41a3",
+    "size_mb_estimated": 149,
     "bundle_contents": [
       "stickers/decorations/  (~165 PNGs, cut-out, transparent bg)",
       "stickers/food/        (~29 PNGs)",
