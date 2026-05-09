@@ -184,6 +184,69 @@ def test_bouquet_spec_documents_phase3_runtime_mapping():
         assert phrase in spec
 
 
+def test_readme_uses_human_template_demo_copy():
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+    for phrase in [
+        "把每一次分享欲都变成一份有仪式感的电子礼物",
+        "一张有趣的照片、一段 TA 可能会喜欢的音乐、一句突然想起的话",
+        "作为实体礼物之外的另一层惊喜",
+        "你可以直接指定 H5、图片、文字或互动文字游戏",
+        "### 模板模式：直接选一个精调礼物模板",
+        "当前精调模板：",
+        "把你们的回忆变成四个可爱的小房间，每个房间都有一首专属 BGM。",
+        "给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。",
+        "给妈妈做一个赛博奖杯插画",
+        "每一朵花都蕴藏着一个你们的故事",
+        "turns every small spark of sharing into a ceremonial digital gift",
+        "a funny photo, a song they might love, or a tiny memory that suddenly comes back",
+        "an extra layer of surprise alongside a physical gift",
+        "You can choose H5, image, text, or text-play yourself",
+        "### Template mode: choose a polished gift template",
+        "Polished templates:",
+        "Turns your shared memories into four charming little rooms, each with its own BGM.",
+        "Makes mom a cyber-trophy bouquet illustration where every flower holds one of your stories.",
+        "Makes mom a cyber-trophy illustration",
+        "every flower carries one story between you",
+        "![paper-house demo](assets/templates/paper-house/demo-preview.png)",
+        "![bouquet demo](assets/templates/bouquet/demo-preview.png)",
+        "![Paper-house demo](assets/templates/paper-house/demo-preview.png)",
+        "![Bouquet demo](assets/templates/bouquet/demo-preview.png)",
+    ]:
+        assert phrase in readme
+
+    for forbidden in [
+        "最省力",
+        "填表",
+        "就这么简单",
+        "都可以，用最省力的那种",
+        "你不用组织语言，不用填表",
+        "格式不是你选的",
+        "礼物形状",
+        "当前一等模板",
+        "不需要理解内部 schema",
+        "如果别人已经帮你安装好了",
+        "本 skill 的来源",
+        "hermes-daily-gift",
+        "把一段共同唱过的歌",
+        "蓝白花送给妈妈",
+        "Easiest use",
+        "lowest-friction",
+        "No form-filling required",
+        "You don't pick the format",
+        "pre-designed gift shape",
+        "First-class templates",
+        "If someone else already installed it for you",
+        "Turns a song you shared",
+        "blue-white bouquet",
+        "Origin",
+    ]:
+        assert forbidden not in readme
+
+    assert (ROOT / "assets" / "templates" / "paper-house" / "demo-preview.png").is_file()
+    assert (ROOT / "assets" / "templates" / "bouquet" / "demo-preview.png").is_file()
+
+
 def test_bouquet_status_docs_describe_ready_builder_not_skeleton():
     manifest = load_manifest()
     readme = (TEMPLATE_DIR / "README.md").read_text(encoding="utf-8")
@@ -213,14 +276,13 @@ def test_bouquet_phase4_is_documented_as_first_class_template():
         "bouquet",
         "paper-house",
         "preview.jpg",
-        "可拖拽花材、自由加宝石、可改小纸片内容的互动花束",
+        "给妈妈做一张赛博奖杯花束插画",
     ]:
         assert phrase in readme
 
     for phrase in [
-        "可拖拽花材、自由加宝石、可改小纸片内容的互动花束",
+        "给妈妈做一张赛博奖杯花束插画",
         "适合生日、母亲节、感谢、朋友安慰、纪念日",
-        "比 paper-house 轻，但比纯图片更可玩",
         "/dear --template bouquet 给妈妈做一束可以拖动的花",
         "/dear 用 bouquet 模板给朋友做一份生日礼物",
     ]:

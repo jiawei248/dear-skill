@@ -35,10 +35,9 @@ Available templates:
    An interactive layered scene of 4 small rooms. Click items to reveal memories.
    Best for: anniversaries, partners, very-close-friends, love-letter-as-H5.
 
-💐 bouquet — Editable Flowers and Cards
-   可拖拽花材、自由加宝石、可改小纸片内容的互动花束。
+💐 bouquet — Cyber Trophy Bouquet
+   给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。
    Best for: birthdays, Mother's Day, thank-you gifts, friend comfort, anniversaries.
-   Positioning: 比 paper-house 轻，但比纯图片更可玩。
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
@@ -409,9 +408,9 @@ Asset bundle: ~149 MB zip / ~156 MB extracted: stickers, fonts, and reference ex
 
 Format: `h5`. Status: ready.
 
-### `bouquet` — Editable Flowers and Cards
+### `bouquet` — Cyber Trophy Bouquet
 
-可拖拽花材、自由加宝石、可改小纸片内容的互动花束。适合生日、母亲节、感谢、朋友安慰、纪念日；比 paper-house 轻，但比纯图片更可玩。
+给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。适合生日、母亲节、感谢、朋友安慰、纪念日。
 
 Users can choose built-in flowers/gems or ask for new florals when image generation is available. The gift is still evidence-based: paper-card text should quote or closely echo user-provided screenshots, notes, or relationship details.
 
