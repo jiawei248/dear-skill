@@ -1,0 +1,188 @@
+{
+  "id": "bouquet",
+  "name": "Bouquet — Editable Flowers and Cards",
+  "description": "An interactive bouquet canvas where the user can drag film-textured flowers, freely add gem accents, reposition small paper cards, and refine each card's message with AI. Best when the gift should feel handmade, tactile, and directly shaped by the user's own material.",
+  "preview": "preview.jpg",
+  "best_for": [
+    "mother's-day",
+    "birthday",
+    "thank-you",
+    "friend-comfort",
+    "anniversary",
+    "congratulations"
+  ],
+  "tone": [
+    "warm",
+    "handmade",
+    "floral",
+    "interactive",
+    "tender"
+  ],
+  "format": "h5",
+  "status": "phase-1-skeleton",
+  "canonical_html_reference": "template-source/mothers-day-blue-bouquet.html",
+  "spec_doc": "SPEC.md",
+  "activation_disclosure": {
+    "message": "这是一个互动花束模板：首次可能会加载较多花材素材；如果要新增专属花材，需要图片生成能力。没有也可以只用内置花材完成。",
+    "options": [
+      {
+        "id": "built_in_assets",
+        "label": "use built-in bouquet assets",
+        "description": "Use the bundled flowers, greenery, gems, and fonts to build the bouquet quickly."
+      },
+      {
+        "id": "custom_florals",
+        "label": "generate custom florals",
+        "description": "Generate extra flowers or colorways using the existing film-textured floral assets as style references."
+      },
+      {
+        "id": "text_image_fallback",
+        "label": "text/image fallback",
+        "description": "Skip the interactive H5 and make a sendable image or text gift from the same recipient material."
+      }
+    ]
+  },
+  "slots": [
+    {
+      "id": "recipient_material",
+      "type": "user_context",
+      "required": true,
+      "purpose": "Photos, screenshots, chat excerpts, notes, or other material that anchors the bouquet cards in the user's own language and details.",
+      "accepted_inputs": [
+        "photos",
+        "chat_screenshots",
+        "social_screenshots",
+        "text",
+        "notes"
+      ],
+      "grounding_rules": [
+        "Card text should quote or closely echo the user-provided original language when it carries emotional weight.",
+        "Use concrete details from screenshots, photos, chat excerpts, or relationship facts.",
+        "Do not write generic blessing copy that could fit anyone."
+      ]
+    },
+    {
+      "id": "bouquet_style_direction",
+      "type": "ai_text",
+      "required": false,
+      "output_fields": {
+        "color_palette": "requested or inferred flower/gem color combination",
+        "emotional_tone": "the relationship mood this bouquet should carry",
+        "occasion": "why the user is making the bouquet now",
+        "recipient_language": "the language the user and recipient naturally use together"
+      },
+      "user_can_specify": [
+        "想要蓝紫色",
+        "想要更像夏天",
+        "白玫瑰 + 蓝宝石",
+        "不要太母亲节，像朋友之间的礼物"
+      ]
+    },
+    {
+      "id": "flower_picks",
+      "type": "asset_picks",
+      "library_subpaths": [
+        "flowers/",
+        "greenery/"
+      ],
+      "count_range": [
+        8,
+        18
+      ],
+      "placement_zone": "bouquet-canvas",
+      "selection_hint": "Choose film-textured flowers and greenery that match the user's requested color palette and the emotional tone of the recipient material.",
+      "runtime_mapping": {
+        "output_paths": "bouquet-work/flowers/{n}.png",
+        "layout_source": "canonical bouquet HTML flower palette and canvas"
+      },
+      "extension_policy": {
+        "user_can_add_new_florals": true,
+        "generation_model": "general image generation model",
+        "style_references": [
+          "base/flowers/",
+          "base/reference/original-png/"
+        ],
+        "requirements": [
+          "match existing film texture and transparent cutout edge quality",
+          "preserve palette compatibility with chosen bouquet_style_direction",
+          "gem or glimmer accents are allowed when they match the existing assets"
+        ]
+      },
+      "style_rules": [
+        "film-textured floral cutouts",
+        "transparent PNG with soft hand-cut edges",
+        "flowers may include gem or subtle sparkle accents",
+        "must stay close to existing bouquet asset texture, not clean generic AI stickers"
+      ]
+    },
+    {
+      "id": "gem_picks",
+      "type": "asset_picks",
+      "library_subpaths": [
+        "gems/"
+      ],
+      "count_range": [
+        3,
+        10
+      ],
+      "placement_zone": "free-canvas-accents",
+      "selection_hint": "Pick gems as small emotional accents; they can be freely added around flowers and paper cards.",
+      "runtime_mapping": {
+        "output_paths": "bouquet-work/gems/{n}.png",
+        "layout_source": "canonical bouquet HTML gem palette"
+      },
+      "purpose": "Gem accents can be freely added to the canvas as decoration, emotional markers, and visual rhythm around flowers and paper cards."
+    },
+    {
+      "id": "card_notes",
+      "type": "ai_text",
+      "count_range": [
+        3,
+        6
+      ],
+      "purpose": "Small paper-card notes grounded in the user's supplied material, preserving original language, phrases, or specific details where useful.",
+      "editing_contract": "Cards can be revised interactively with the user after the first build.",
+      "per_card": true,
+      "rules": [
+        "Each note must quote or closely adapt user-provided original language, details, screenshot content, or relationship facts.",
+        "Each card carries one concrete memory or emotion, not a pile of generic praise.",
+        "Avoid generic blessing lines such as “愿你天天开心” unless the user explicitly asks for that wording.",
+        "The user can ask for a card to sound more like their own voice."
+      ],
+      "interactive_editing": true
+    },
+    {
+      "id": "layout_editing_contract",
+      "type": "template_notes",
+      "opening_notice": [
+        "flowers can be dragged",
+        "gems can be freely added",
+        "paper card positions can be changed",
+        "card content can be revised interactively with AI"
+      ],
+      "purpose": "Tell the user at activation that this bouquet is editable and that layout/content changes are part of the template experience.",
+      "runtime_mapping": {
+        "layout_source": "canonical bouquet HTML drag canvas, gem palette, and card controls"
+      }
+    }
+  ],
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-bouquet-v1/bouquet-v1.zip",
+    "sha256": "c9e424ccc0c0b7447d50f9b450b7d663b6d6a927c22e1ce14715ab0b1fbff726",
+    "size_mb": 97,
+    "contents": [
+      "flowers/",
+      "greenery/",
+      "gems/",
+      "fonts/",
+      "reference/"
+    ]
+  },
+  "build_script": "template-source/build.py",
+  "build_contract": {
+    "input": "filled-slots.json containing bouquet style, selected flowers/gems, card text, and optional layout hints",
+    "output": "single self-contained index.html in the gift folder",
+    "source_policy": "template-source/mothers-day-blue-bouquet.html is canonical and read-only; build.py writes a separate output file."
+  }
+}

@@ -35,7 +35,9 @@ Available templates:
    An interactive layered scene of 4 small rooms. Click items to reveal memories.
    Best for: anniversaries, partners, very-close-friends, love-letter-as-H5.
 
-(... other templates as added ...)
+💐 bouquet — Editable Flowers and Cards
+   A draggable bouquet canvas with flowers, gem accents, and editable paper-card notes.
+   Best for: Mother's Day, birthdays, thank-you gifts, friend comfort, congratulations.
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.

@@ -1,0 +1,4816 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Blue Bouquet</title>
+  <style>
+    @font-face {
+      font-family: "BouquetHand";
+      src: url("fonts/荷塘月色手写体+Regular.ttf") format("truetype");
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    :root {
+      color-scheme: light;
+      --ink: #17375e;
+      --blue: #1f63c7;
+      --blue-2: #7db8ff;
+      --paper: #fbfdff;
+      --silk: #1b56b9;
+      --soft-shadow: 0 22px 70px rgba(37, 93, 168, .18);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      position: relative;
+      background: #fff;
+      font-family: ui-serif, "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif;
+      color: var(--ink);
+    }
+
+    #halo {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      mix-blend-mode: normal;
+      opacity: 1;
+      z-index: 1;
+    }
+
+    .app {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      isolation: isolate;
+      z-index: 2;
+    }
+
+    .palette {
+      position: fixed;
+      left: 22px;
+      top: 50%;
+      width: 226px;
+      max-height: calc(100vh - 52px);
+      padding: 14px;
+      transform: translateY(-50%);
+      z-index: 180;
+      color: #1d4677;
+      border: 1px solid rgba(54, 114, 189, .16);
+      border-radius: 18px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .7), rgba(235, 247, 255, .54)),
+        radial-gradient(circle at 18% 12%, rgba(255, 255, 255, .92), transparent 32%);
+      box-shadow: 0 18px 44px rgba(35, 87, 154, .13);
+      backdrop-filter: blur(18px);
+    }
+
+    .palette-title {
+      margin: 2px 2px 10px;
+      font: 700 13px/1.2 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      letter-spacing: .16em;
+      color: rgba(22, 66, 116, .76);
+    }
+
+    .palette-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 10px;
+      padding: 4px;
+      border: 1px solid rgba(53, 113, 190, .12);
+      border-radius: 14px;
+      background: rgba(226, 241, 255, .42);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .62);
+    }
+
+    .palette-tab {
+      min-height: 30px;
+      border: 0;
+      border-radius: 10px;
+      color: rgba(30, 77, 132, .68);
+      background: transparent;
+      cursor: pointer;
+      font: 700 13px/1 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      transition: color .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+
+    .palette-tab[aria-selected="true"] {
+      color: #1d4677;
+      background: rgba(255, 255, 255, .82);
+      box-shadow:
+        0 8px 18px rgba(42, 103, 180, .1),
+        inset 0 1px 0 rgba(255, 255, 255, .86);
+    }
+
+    .palette-panel[hidden] {
+      display: none;
+    }
+
+    .palette-list {
+      display: grid;
+      gap: 8px;
+      max-height: calc(100vh - 122px);
+      overflow: auto;
+      padding-right: 2px;
+    }
+
+    .palette-item {
+      width: 100%;
+      min-height: 52px;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr) auto auto;
+      gap: 10px;
+      align-items: center;
+      padding: 7px 9px 7px 7px;
+      border: 1px solid rgba(49, 113, 190, .13);
+      border-radius: 14px;
+      color: #1d4677;
+      background: rgba(255, 255, 255, .48);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65);
+      cursor: pointer;
+      font: 600 13px/1.25 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      text-align: left;
+      transition: transform .16s ease, background .16s ease, box-shadow .16s ease;
+    }
+
+    .palette-item:hover {
+      transform: translateX(3px);
+      background: rgba(255, 255, 255, .82);
+      box-shadow:
+        0 10px 24px rgba(38, 101, 178, .13),
+        inset 0 1px 0 rgba(255, 255, 255, .76);
+    }
+
+    .palette-thumb {
+      width: 38px;
+      height: 38px;
+      object-fit: contain;
+      filter: drop-shadow(0 4px 7px rgba(32, 78, 132, .12));
+    }
+
+    .palette-name {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .palette-count {
+      min-width: 26px;
+      padding: 3px 7px;
+      border-radius: 999px;
+      color: #2464b6;
+      background: rgba(220, 239, 255, .78);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .palette-outline {
+      width: 30px;
+      height: 30px;
+      display: grid;
+      place-items: center;
+      padding: 0;
+      border: 1px solid rgba(58, 126, 205, .16);
+      border-radius: 50%;
+      color: rgba(23, 84, 169, .82);
+      background:
+        radial-gradient(circle at 32% 24%, rgba(255, 255, 255, .9), transparent 42%),
+        linear-gradient(135deg, rgba(236, 248, 255, .86), rgba(198, 227, 255, .58));
+      cursor: pointer;
+      font: 800 13px/1 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, .78);
+    }
+
+    .palette-outline:hover {
+      color: rgba(8, 67, 166, .98);
+      background:
+        radial-gradient(circle at 32% 24%, #fff, transparent 42%),
+        linear-gradient(135deg, rgba(222, 244, 255, .96), rgba(152, 202, 255, .72));
+    }
+
+    .gem-palette-item {
+      grid-template-columns: 42px minmax(0, 1fr) auto;
+      min-height: 56px;
+    }
+
+    .gem-palette-item.is-active {
+      border-color: rgba(22, 94, 200, .42);
+      color: #113f8f;
+      background:
+        radial-gradient(circle at 24% 20%, rgba(255, 255, 255, .94), transparent 38%),
+        linear-gradient(135deg, rgba(230, 246, 255, .94), rgba(202, 228, 255, .72));
+      box-shadow:
+        0 12px 28px rgba(34, 101, 188, .18),
+        0 0 0 3px rgba(73, 144, 232, .13),
+        inset 0 1px 0 rgba(255, 255, 255, .8);
+    }
+
+    .gem-thumb {
+      width: 42px;
+      height: 42px;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 5px 9px rgba(15, 70, 150, .18))
+        drop-shadow(0 0 8px rgba(130, 206, 255, .18));
+    }
+
+    .gem-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 170;
+      pointer-events: none;
+    }
+
+    .placed-gem {
+      position: absolute;
+      left: var(--gem-x);
+      top: var(--gem-y);
+      width: var(--gem-w);
+      z-index: var(--gem-z);
+      transform:
+        translate(-50%, -50%)
+        rotate(var(--gem-r))
+        scale(var(--gem-scale));
+      transform-origin: 50% 50%;
+      opacity: var(--gem-opacity, .96);
+      filter:
+        drop-shadow(0 10px 16px rgba(16, 73, 158, .2))
+        drop-shadow(0 0 12px rgba(113, 196, 255, .28));
+      user-select: none;
+    }
+
+    .placed-gem img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .gem-placement-mode {
+      cursor: crosshair;
+    }
+
+    .performance-editing .name-orbit {
+      animation-play-state: paused !important;
+    }
+
+    .bouquet-stage {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 720px;
+      height: 900px;
+      transform: translate(-50%, -50%);
+      transform-origin: center center;
+      filter: drop-shadow(var(--soft-shadow));
+    }
+
+    .aurora-disc {
+      display: none;
+    }
+
+    .stems {
+      position: absolute;
+      inset: 0;
+      z-index: 36;
+    }
+
+    .stem-item {
+      position: absolute;
+      width: var(--w);
+      left: var(--x);
+      top: var(--y);
+      z-index: var(--z);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+      transform-origin: 50% 88%;
+      transform:
+        translate(-50%, -50%)
+        rotate(var(--r))
+        scaleX(var(--flip, 1));
+      transition: filter .18s ease;
+    }
+
+    .stem-item:active {
+      cursor: grabbing;
+    }
+
+    .stem-item.selected {
+      filter:
+        drop-shadow(0 0 8px rgba(80, 164, 255, .52))
+        drop-shadow(0 0 22px rgba(255, 255, 255, .9));
+    }
+
+    .stem-item img {
+      display: block;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+      -webkit-user-drag: none;
+    }
+
+    .stem-base {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stem-fx {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      opacity: .72;
+      pointer-events: none;
+    }
+
+    .edit-box {
+      position: absolute;
+      inset: -9px;
+      z-index: 8;
+      border: 1px solid rgba(40, 113, 203, .58);
+      border-radius: 7px;
+      transform: scaleX(var(--flip, 1));
+      transform-origin: center;
+      opacity: 0;
+      pointer-events: none;
+      box-shadow:
+        0 0 0 1px rgba(255, 255, 255, .72),
+        0 0 22px rgba(82, 159, 255, .16);
+      transition: opacity .16s ease, transform .16s ease;
+    }
+
+    .edit-handle {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      padding: 0;
+      appearance: none;
+      border: 1px solid rgba(37, 103, 184, .32);
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      color: rgba(20, 77, 151, .82);
+      background:
+        linear-gradient(135deg, #ffffff, rgba(214, 239, 255, .96));
+      box-shadow:
+        0 5px 12px rgba(31, 89, 163, .2),
+        0 0 0 3px rgba(255, 255, 255, .58);
+      pointer-events: auto;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .edit-handle:hover {
+      background: linear-gradient(135deg, #ffffff, rgba(176, 220, 255, .98));
+    }
+
+    .corner-handle:hover,
+    .delete-handle:hover {
+      transform: translateY(-1px);
+    }
+
+    .rotate-handle:hover {
+      transform: translateX(-50%) translateY(-1px);
+    }
+
+    .corner-nw {
+      left: -7px;
+      top: -7px;
+      cursor: nwse-resize;
+    }
+
+    .corner-ne {
+      right: -7px;
+      top: -7px;
+      cursor: nesw-resize;
+    }
+
+    .corner-se {
+      right: -7px;
+      bottom: -7px;
+      cursor: nwse-resize;
+    }
+
+    .corner-sw {
+      left: -7px;
+      bottom: -7px;
+      cursor: nesw-resize;
+    }
+
+    .rotate-handle {
+      left: 50%;
+      top: -39px;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      transform: translateX(-50%);
+      cursor: grab;
+      font: 800 15px/1 ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff, rgba(225, 242, 255, .95) 42%, rgba(100, 164, 235, .82));
+    }
+
+    .rotate-handle::before {
+      content: "⟳";
+    }
+
+    .delete-handle {
+      right: -33px;
+      top: -39px;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+      font: 800 17px/1 ui-sans-serif, system-ui, sans-serif;
+      color: rgba(24, 77, 142, .88);
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff, rgba(235, 247, 255, .96) 42%, rgba(132, 190, 245, .82));
+    }
+
+    .delete-handle::before {
+      content: "×";
+    }
+
+    .note-handle {
+      right: -63px;
+      top: -39px;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      cursor: pointer;
+      font: 800 15px/1 ui-serif, Georgia, serif;
+      color: rgba(24, 77, 142, .88);
+      background:
+        radial-gradient(circle at 34% 28%, #ffffff, rgba(235, 247, 255, .96) 42%, rgba(132, 190, 245, .82));
+    }
+
+    .note-handle::before {
+      content: "✎";
+    }
+
+    .edit-box::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -23px;
+      width: 1px;
+      height: 23px;
+      background: rgba(40, 113, 203, .42);
+      transform: translateX(-50%);
+    }
+
+    .stem-item.selected .edit-box {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .fx-invert {
+      clip-path: circle(22% at 73% 24%);
+      filter: invert(1) hue-rotate(185deg) saturate(1.65) contrast(1.08);
+      mix-blend-mode: screen;
+    }
+
+    .fx-pixel {
+      clip-path: polygon(52% 2%, 100% 0, 100% 38%, 68% 48%, 50% 30%);
+      image-rendering: pixelated;
+      transform: scale(1.08);
+      filter: saturate(1.5) contrast(1.22) hue-rotate(175deg);
+      mix-blend-mode: multiply;
+      opacity: .58;
+    }
+
+    .fx-line {
+      clip-path: polygon(0 8%, 43% 0, 55% 42%, 24% 58%, 0 45%);
+      filter: grayscale(1) contrast(8) brightness(1.45);
+      mix-blend-mode: multiply;
+      opacity: .35;
+    }
+
+    .fx-ghost {
+      clip-path: ellipse(28% 18% at 62% 18%);
+      filter: invert(1) hue-rotate(210deg) saturate(1.8) blur(.4px);
+      mix-blend-mode: screen;
+      opacity: .54;
+      transform: translate(6px, -5px) scale(1.03);
+    }
+
+    .stem-item[data-effect="particle"]::after,
+    .stem-item[data-effect="pixel"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      pointer-events: none;
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, .95) 0 1px, transparent 2px),
+        radial-gradient(circle, rgba(76, 169, 255, .75) 0 1px, transparent 2px);
+      background-size: 13px 13px, 19px 19px;
+      background-position: 2px 5px, 9px 1px;
+      clip-path: circle(22% at 74% 25%);
+      mix-blend-mode: screen;
+      opacity: .62;
+      animation: sparkle-drift 5s ease-in-out infinite alternate;
+    }
+
+    .wrap-back,
+    .wrap,
+    .bow,
+    .gift-card {
+      display: none;
+    }
+
+    .trophy-glow {
+      position: absolute;
+      left: 50%;
+      top: 400px;
+      width: 420px;
+      height: 480px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      z-index: 16;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(82, 162, 255, .18), transparent 38%),
+        radial-gradient(ellipse at 50% 80%, rgba(18, 92, 210, .12), transparent 48%);
+      filter: blur(24px);
+    }
+
+    .cyber-trophy {
+      position: absolute;
+      left: 50%;
+      top: 382px;
+      width: 360px;
+      height: 482px;
+      transform: translateX(-50%);
+      z-index: 74;
+      pointer-events: none;
+      color: rgba(24, 82, 178, .9);
+      filter:
+        drop-shadow(0 28px 44px rgba(22, 90, 178, .16))
+        drop-shadow(0 0 20px rgba(127, 192, 255, .22));
+    }
+
+    .cyber-trophy::before {
+      content: "";
+      position: absolute;
+      inset: -46px -60px -34px;
+      opacity: .7;
+      background-image:
+        radial-gradient(circle, rgba(26, 102, 225, .8) 0 .55px, transparent .8px),
+        radial-gradient(circle, rgba(111, 186, 255, .72) 0 .45px, transparent .75px);
+      background-size: 13px 11px, 19px 17px;
+      background-position: 0 0, 9px 4px;
+      clip-path: polygon(16% 16%, 84% 16%, 100% 38%, 82% 67%, 70% 100%, 30% 100%, 18% 67%, 0 38%);
+      animation: trophy-particle-flow 9s linear infinite;
+      mask-image: radial-gradient(ellipse at 50% 51%, #000 0 34%, rgba(0, 0, 0, .48) 48%, transparent 72%);
+    }
+
+    .cyber-trophy svg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .trophy-glass-fill {
+      fill: url(#glassGradient);
+      stroke: rgba(56, 134, 220, .24);
+      stroke-width: 1.2;
+      filter: url("#glassSoft");
+    }
+
+    .trophy-inner-fog {
+      fill: url(#innerFog);
+      opacity: .38;
+    }
+
+    .trophy-highlight {
+      fill: none;
+      stroke: rgba(255, 255, 255, .72);
+      stroke-width: 1.5;
+      stroke-linecap: round;
+      opacity: .62;
+    }
+
+    .trophy-handle-fill {
+      fill: none;
+      stroke: url("#handleGradient");
+      stroke-width: 30;
+      stroke-linecap: round;
+      opacity: .5;
+      filter:
+        drop-shadow(0 8px 18px rgba(33, 101, 205, .12))
+        drop-shadow(0 0 10px rgba(115, 188, 255, .18));
+    }
+
+    .trophy-handle-rim {
+      fill: none;
+      stroke: rgba(39, 109, 212, .36);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-dasharray: 4 7;
+      opacity: .72;
+      filter: drop-shadow(0 0 6px rgba(84, 168, 255, .34));
+    }
+
+    .trophy-text-outline {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "PingFang SC", monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .15em;
+      fill: rgba(19, 67, 154, .88);
+      text-transform: uppercase;
+      paint-order: stroke fill;
+      stroke: rgba(255, 255, 255, .44);
+      stroke-width: .6px;
+    }
+
+    .trophy-text-outline.is-soft {
+      fill: rgba(72, 139, 230, .58);
+      font-size: 11px;
+      letter-spacing: .18em;
+      stroke-width: .35px;
+    }
+
+    .trophy-center-title {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "PingFang SC", monospace;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .13em;
+      fill: rgba(19, 67, 154, .88);
+      text-anchor: middle;
+      text-transform: uppercase;
+      paint-order: stroke fill;
+      stroke: rgba(255, 255, 255, .44);
+      stroke-width: .6px;
+    }
+
+    .trophy-construction {
+      fill: none;
+      stroke: rgba(48, 123, 218, .26);
+      stroke-width: 1.2;
+      stroke-dasharray: 3 6;
+    }
+
+    .name-orbit-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .name-orbit {
+      position: absolute;
+      width: 250px;
+      height: 250px;
+      opacity: var(--orbit-opacity, .78);
+      overflow: visible;
+      contain: layout style paint;
+      content-visibility: auto;
+      contain-intrinsic-size: 250px 250px;
+      will-change: transform, opacity;
+      backface-visibility: hidden;
+      filter: drop-shadow(0 0 9px rgba(61, 159, 255, .16));
+      animation: orbit-breathe 8s ease-in-out infinite alternate;
+    }
+
+    .name-orbit svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    .name-orbit text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "PingFang SC", monospace;
+      font-size: 8.8px;
+      font-weight: 800;
+      letter-spacing: .035em;
+      fill: rgba(31, 112, 222, .76);
+      paint-order: stroke fill;
+      stroke: rgba(255, 255, 255, .32);
+      stroke-width: .22px;
+    }
+
+    .name-orbit .orbit-guide {
+      fill: none;
+      stroke: rgba(36, 121, 228, .14);
+      stroke-width: .8;
+      stroke-dasharray: 2 7;
+    }
+
+    @keyframes orbit-breathe {
+      from {
+        opacity: .54;
+        transform: translate3d(0, 0, 0) scale(.985);
+      }
+      to {
+        opacity: .82;
+        transform: translate3d(0, -8px, 0) scale(1.018);
+      }
+    }
+
+    @keyframes trophy-particle-flow {
+      from {
+        background-position: 0 0, 9px 4px;
+      }
+      to {
+        background-position: 72px -42px, -47px 58px;
+      }
+    }
+
+    .trophy-plaque {
+      display: none;
+      position: fixed;
+      right: 28px;
+      bottom: 94px;
+      width: min(292px, calc(100vw - 56px));
+      min-height: 142px;
+      padding: 24px 22px 22px;
+      z-index: 184;
+      appearance: none;
+      color: rgba(19, 68, 154, .92);
+      text-align: center;
+      border: 1px solid rgba(64, 137, 224, .22);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 20% 12%, rgba(255, 255, 255, .86), transparent 31%),
+        radial-gradient(ellipse at 70% 92%, rgba(16, 88, 205, .18), transparent 45%),
+        linear-gradient(135deg, rgba(255, 255, 255, .62), rgba(218, 240, 255, .5) 34%, rgba(105, 174, 255, .24) 70%, rgba(255, 255, 255, .58));
+      box-shadow:
+        0 28px 64px rgba(21, 80, 165, .16),
+        inset 0 1px 0 rgba(255, 255, 255, .92),
+        inset 0 -22px 46px rgba(37, 114, 216, .1);
+      backdrop-filter: blur(20px) saturate(1.22);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "PingFang SC", monospace;
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.72;
+      letter-spacing: .08em;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .58);
+      cursor: zoom-in;
+      pointer-events: auto;
+    }
+
+    .trophy-plaque::before {
+      content: none;
+    }
+
+    .trophy-plaque span {
+      display: block;
+    }
+
+    .trophy-plaque span:first-child {
+      margin-bottom: 14px;
+      font-size: 16px;
+      letter-spacing: .16em;
+    }
+
+    .callout-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 150;
+      pointer-events: none;
+    }
+
+    .callout-arrow {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .callout-arrow path {
+      fill: none;
+      stroke: rgba(43, 112, 205, .7);
+      stroke-width: 2.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: none;
+      filter: drop-shadow(0 2px 4px rgba(55, 130, 220, .16));
+    }
+
+    .callout-arrow path.callout-sketch {
+      stroke: rgba(128, 186, 244, .36);
+      stroke-width: 1.1;
+      filter: none;
+    }
+
+    .callout-arrow path.arrow-tip {
+      stroke-dasharray: none;
+      stroke-width: 2;
+    }
+
+    .flower-callout {
+      position: absolute;
+      width: 124px;
+      min-height: 34px;
+      pointer-events: auto;
+      transform: rotate(var(--note-r, -4deg));
+      transform-origin: center;
+      z-index: 3;
+    }
+
+    .flower-note-chip {
+      width: 100%;
+      min-height: 34px;
+      padding: 6px 13px 7px;
+      border: 0;
+      color: rgba(38, 53, 66, .78);
+      text-align: center;
+      background:
+        radial-gradient(circle at 18% 24%, rgba(255, 255, 255, .86) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 78% 70%, rgba(35, 63, 100, .12) 0 .8px, transparent 1.3px),
+        linear-gradient(105deg, rgba(255, 255, 255, .95), rgba(232, 239, 248, .9), rgba(250, 252, 255, .96)),
+        repeating-linear-gradient(0deg, rgba(50, 64, 84, .035) 0 1px, transparent 1px 4px);
+      background-size: 12px 11px, 16px 15px, auto, auto;
+      box-shadow:
+        0 10px 20px rgba(32, 79, 138, .14),
+        inset 0 1px 0 rgba(255, 255, 255, .82);
+      font-family: "BouquetHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", cursive;
+      font-size: 18px;
+      line-height: 1;
+      cursor: grab;
+    }
+
+    .flower-note-chip:active {
+      cursor: grabbing;
+    }
+
+    .flower-note-chip::before,
+    .flower-note-chip::after {
+      content: "";
+      position: absolute;
+      left: -7px;
+      right: -7px;
+      height: 9px;
+      background:
+        linear-gradient(90deg, transparent 0 6px, rgba(255, 255, 255, .9) 6px 12px, transparent 12px 18px),
+        rgba(229, 237, 248, .82);
+      opacity: .78;
+      clip-path: polygon(0 42%, 5% 0, 12% 52%, 20% 18%, 29% 58%, 39% 6%, 47% 50%, 58% 18%, 69% 64%, 80% 7%, 91% 54%, 100% 30%, 100% 100%, 0 100%);
+    }
+
+    .flower-note-chip::before {
+      top: -6px;
+    }
+
+    .flower-note-chip::after {
+      bottom: -6px;
+      transform: rotate(180deg);
+    }
+
+    .flower-note-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 280;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .flower-note-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .flower-note-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      background:
+        radial-gradient(circle at 50% 42%, rgba(228, 244, 255, .38), rgba(255, 255, 255, .7) 54%, rgba(255, 255, 255, .46));
+      backdrop-filter: blur(12px);
+      cursor: zoom-out;
+    }
+
+    .flower-note-dialog {
+      --note-ink: rgba(28, 66, 112, .92);
+      --note-accent: rgba(31, 91, 169, .96);
+      --note-soft: rgba(152, 198, 238, .42);
+      --note-pattern: rgba(42, 98, 163, .09);
+      --folder-a: rgba(236, 249, 255, .78);
+      --folder-b: rgba(180, 205, 210, .68);
+      --folder-c: rgba(250, 253, 255, .76);
+      position: relative;
+      width: min(980px, calc(100vw - 64px));
+      min-height: min(560px, calc(100vh - 72px));
+      display: grid;
+      place-items: center;
+      border: 0;
+      background: transparent;
+    }
+
+    .flower-envelope {
+      position: relative;
+      width: min(780px, calc(100vw - 112px));
+      height: min(440px, calc(100vh - 150px));
+      min-height: 360px;
+      overflow: visible;
+    }
+
+    .flower-envelope::before {
+      content: "";
+      position: absolute;
+      inset: -48px 0 0 0;
+      border: 1px solid rgba(247, 253, 255, .72);
+      border-radius: 34px;
+      background:
+        linear-gradient(135deg, rgba(255, 255, 255, .34), rgba(255, 255, 255, .1)),
+        radial-gradient(circle at 24% 22%, rgba(255, 255, 255, .86), transparent 24%),
+        radial-gradient(circle at 74% 22%, var(--note-soft), transparent 30%),
+        linear-gradient(135deg, var(--folder-a), var(--folder-b) 48%, var(--folder-c)),
+        repeating-linear-gradient(115deg, rgba(255, 255, 255, .16) 0 1px, transparent 1px 9px);
+      box-shadow:
+        0 42px 105px rgba(22, 64, 118, .24),
+        inset 0 1px 0 rgba(255, 255, 255, .9),
+        inset 0 -54px 92px rgba(255, 255, 255, .28);
+      clip-path: path("M34 48 H340 C372 48 390 84 412 84 H746 C765 84 780 99 780 118 V454 C780 475 763 488 742 488 H38 C17 488 0 471 0 450 V82 C0 61 14 48 34 48 Z");
+      backdrop-filter: blur(30px) saturate(1.36);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .flower-envelope::after {
+      content: "";
+      position: absolute;
+      inset: auto 0 0;
+      height: 68%;
+      border-top: 1px solid rgba(255, 255, 255, .58);
+      border-radius: 30px 30px 34px 34px;
+      background:
+        radial-gradient(circle at 18% 22%, rgba(255, 255, 255, .44), transparent 28%),
+        radial-gradient(circle at 84% 80%, rgba(255, 255, 255, .22), transparent 34%),
+        linear-gradient(158deg, rgba(255, 255, 255, .5), rgba(255, 255, 255, .16)),
+        linear-gradient(38deg, transparent 0 48%, rgba(255, 255, 255, .38) 49%, transparent 51% 100%);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, .82),
+        inset 0 -42px 88px rgba(255, 255, 255, .26);
+      backdrop-filter: blur(22px) saturate(1.26);
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    .folder-particles {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .folder-particles span {
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .98);
+      box-shadow:
+        0 0 12px rgba(255, 255, 255, .96),
+        0 0 28px var(--note-soft),
+        0 0 44px rgba(255, 255, 255, .58);
+      animation: folder-sparkle 4.6s ease-in-out infinite;
+    }
+
+    .folder-particles span:nth-child(1) { left: 22%; top: 48%; animation-delay: -.4s; }
+    .folder-particles span:nth-child(2) { left: 52%; top: 34%; width: 4px; height: 4px; animation-delay: -1.8s; }
+    .folder-particles span:nth-child(3) { left: 66%; top: 42%; animation-delay: -2.7s; }
+    .folder-particles span:nth-child(4) { left: 58%; top: 58%; width: 9px; height: 9px; animation-delay: -3.3s; }
+    .folder-particles span:nth-child(5) { left: 31%; top: 62%; width: 4px; height: 4px; animation-delay: -.9s; }
+    .folder-particles span:nth-child(6) { left: 73%; top: 52%; width: 5px; height: 5px; animation-delay: -2.2s; }
+    .folder-particles span:nth-child(7) { left: 18%; top: 72%; width: 5px; height: 5px; animation-delay: -3.8s; }
+    .folder-particles span:nth-child(8) { left: 43%; top: 48%; width: 4px; height: 4px; animation-delay: -1.2s; }
+    .folder-particles span:nth-child(9) { left: 69%; top: 27%; width: 5px; height: 5px; animation-delay: -4.1s; }
+    .folder-particles span:nth-child(10) { left: 78%; top: 66%; width: 7px; height: 7px; animation-delay: -2.5s; }
+    .folder-particles span:nth-child(11) { left: 35%; top: 30%; width: 3px; height: 3px; animation-delay: -3s; }
+    .folder-particles span:nth-child(12) { left: 48%; top: 68%; width: 6px; height: 6px; animation-delay: -.2s; }
+    .folder-particles span:nth-child(13) { left: 26%; top: 40%; width: 4px; height: 4px; animation-delay: -1.6s; }
+    .folder-particles span:nth-child(14) { left: 38%; top: 58%; width: 8px; height: 8px; animation-delay: -3.6s; }
+    .folder-particles span:nth-child(15) { left: 63%; top: 36%; width: 4px; height: 4px; animation-delay: -.7s; }
+    .folder-particles span:nth-child(16) { left: 83%; top: 44%; width: 5px; height: 5px; animation-delay: -2.9s; }
+    .folder-particles span:nth-child(17) { left: 21%; top: 56%; width: 9px; height: 9px; animation-delay: -4.4s; }
+    .folder-particles span:nth-child(18) { left: 54%; top: 75%; width: 5px; height: 5px; animation-delay: -1.1s; }
+
+    .folder-title {
+      position: absolute;
+      left: 62px;
+      bottom: 48px;
+      z-index: 4;
+      color: rgba(255, 255, 255, .92);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      text-shadow:
+        0 1px 0 rgba(31, 54, 66, .24),
+        0 0 18px rgba(255, 255, 255, .38);
+      pointer-events: none;
+    }
+
+    .folder-title strong,
+    .folder-title span {
+      display: block;
+    }
+
+    .folder-title strong {
+      font-size: 28px;
+      line-height: 1.05;
+      font-weight: 800;
+    }
+
+    .folder-title span {
+      margin-top: 8px;
+      font-size: 14px;
+      line-height: 1;
+      font-weight: 700;
+      letter-spacing: .04em;
+      opacity: .9;
+    }
+
+    @keyframes folder-sparkle {
+      0%,
+      100% {
+        opacity: .38;
+        transform: translate3d(0, 0, 0) scale(.74);
+      }
+      42% {
+        opacity: 1;
+        transform: translate3d(8px, -12px, 0) scale(1.12);
+      }
+      68% {
+        opacity: .68;
+        transform: translate3d(-5px, -22px, 0) scale(.86);
+      }
+    }
+
+    .note-flower-preview {
+      position: absolute;
+      left: var(--flower-left, 62px);
+      bottom: var(--flower-bottom, 76px);
+      width: var(--flower-width, 306px);
+      max-height: 468px;
+      object-fit: contain;
+      filter:
+        drop-shadow(0 22px 28px rgba(31, 63, 98, .18))
+        saturate(1.04);
+      transform: rotate(var(--flower-rotate, 0deg)) scaleX(var(--flower-flip, 1));
+      transform-origin: 50% 88%;
+      z-index: 2;
+    }
+
+    .note-flower-preview.is-secondary {
+      left: var(--flower-secondary-left, 118px);
+      bottom: var(--flower-secondary-bottom, 100px);
+      width: var(--flower-secondary-width, 250px);
+      max-height: 430px;
+      opacity: .88;
+      filter:
+        drop-shadow(0 18px 22px rgba(31, 63, 98, .13))
+        saturate(.98);
+      transform: rotate(var(--flower-secondary-rotate, 11deg)) scaleX(var(--flower-secondary-flip, -1));
+      z-index: 2;
+    }
+
+    .note-card {
+      position: absolute;
+      right: -34px;
+      top: 72px;
+      width: min(420px, calc(100vw - 124px));
+      min-height: 316px;
+      padding: 34px 36px 30px;
+      transform: rotate(2.5deg);
+      color: var(--note-ink);
+      border: 1px solid rgba(79, 126, 176, .16);
+      border-radius: 5px;
+      background:
+        radial-gradient(circle at 16% 18%, rgba(255, 255, 255, .9) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 72% 64%, var(--note-pattern) 0 .8px, transparent 1.3px),
+        linear-gradient(106deg, rgba(255, 254, 248, .96), rgba(237, 243, 251, .94), rgba(255, 255, 253, .98));
+      background-size: 13px 15px, 19px 17px, auto;
+      box-shadow:
+        0 24px 50px rgba(28, 70, 125, .17),
+        inset 0 0 38px rgba(255, 255, 255, .7);
+      font-family: "BouquetHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", cursive;
+      z-index: 6;
+    }
+
+    .note-card-orbit {
+      position: absolute;
+      right: -52px;
+      top: 50px;
+      width: min(460px, calc(100vw - 88px));
+      height: 366px;
+      overflow: visible;
+      pointer-events: none;
+      transform: rotate(2.5deg);
+      z-index: 7;
+    }
+
+    .note-card-orbit text {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "PingFang SC", monospace;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: .04em;
+      fill: var(--note-accent);
+      opacity: .58;
+      paint-order: stroke fill;
+      stroke: rgba(255, 255, 255, .58);
+      stroke-width: .38px;
+    }
+
+    .note-card-orbit .note-card-orbit-guide {
+      fill: none;
+      stroke: var(--note-accent);
+      stroke-width: .8;
+      stroke-dasharray: 2 8;
+      opacity: .14;
+    }
+
+    .note-card[data-pattern="stripes"] {
+      background:
+        repeating-linear-gradient(112deg, transparent 0 12px, var(--note-pattern) 12px 13px, transparent 13px 24px),
+        linear-gradient(106deg, rgba(255, 254, 248, .96), rgba(238, 245, 252, .94), rgba(255, 255, 253, .98));
+    }
+
+    .note-card[data-pattern="grid"] {
+      background:
+        linear-gradient(90deg, var(--note-pattern) 0 1px, transparent 1px),
+        linear-gradient(0deg, var(--note-pattern) 0 1px, transparent 1px),
+        linear-gradient(106deg, rgba(255, 254, 248, .96), rgba(239, 246, 253, .94), rgba(255, 255, 253, .98));
+      background-size: 22px 22px, 22px 22px, auto;
+    }
+
+    .note-card[data-pattern="pin-dots"] {
+      background:
+        radial-gradient(circle, rgba(255, 255, 255, .9) 0 1px, transparent 1.7px),
+        radial-gradient(circle, var(--note-pattern) 0 1px, transparent 1.8px),
+        linear-gradient(106deg, rgba(255, 254, 248, .96), rgba(238, 245, 252, .94), rgba(255, 255, 253, .98));
+      background-size: 18px 18px, 24px 24px, auto;
+      background-position: 0 0, 6px 7px, 0 0;
+    }
+
+    .note-card[data-pattern="checks"] {
+      background:
+        linear-gradient(90deg, var(--note-pattern) 0 50%, transparent 50% 100%),
+        linear-gradient(0deg, var(--note-pattern) 0 50%, transparent 50% 100%),
+        linear-gradient(106deg, rgba(255, 254, 248, .96), rgba(239, 246, 253, .94), rgba(255, 255, 253, .98));
+      background-size: 28px 28px, 28px 28px, auto;
+      background-blend-mode: multiply, multiply, normal;
+    }
+
+    .note-card h2 {
+      margin: 0 0 12px;
+      font-size: 31px;
+      line-height: 1.1;
+      font-weight: 400;
+      color: var(--note-accent);
+    }
+
+    .note-card p {
+      margin: 0;
+      color: var(--note-ink);
+      font-size: 23px;
+      line-height: 1.6;
+    }
+
+    .flower-note-close {
+      position: absolute;
+      right: -8px;
+      top: -8px;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(46, 111, 191, .18);
+      border-radius: 50%;
+      color: #174b8f;
+      background: rgba(255, 255, 255, .78);
+      box-shadow: 0 8px 18px rgba(41, 98, 166, .12);
+      cursor: pointer;
+      font: 700 18px/1 ui-sans-serif, system-ui, sans-serif;
+      z-index: 3;
+    }
+
+    .gift-mode .trophy-plaque {
+      bottom: 28px;
+    }
+
+    .plaque-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 260;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .18s ease;
+    }
+
+    .plaque-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .plaque-backdrop {
+      position: absolute;
+      inset: 0;
+      border: 0;
+      background:
+        radial-gradient(circle at 50% 45%, rgba(235, 247, 255, .5), rgba(216, 236, 255, .28) 42%, rgba(255, 255, 255, .2));
+      backdrop-filter: blur(10px);
+      cursor: zoom-out;
+    }
+
+    .plaque-dialog {
+      position: relative;
+      width: min(520px, calc(100vw - 48px));
+      min-height: 230px;
+      display: grid;
+      place-items: center;
+      padding: 38px 50px;
+      border: 1px solid rgba(63, 132, 208, .2);
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at 18% 16%, rgba(255, 255, 255, .96), transparent 32%),
+        linear-gradient(135deg, rgba(252, 254, 255, .96), rgba(220, 240, 255, .9), rgba(255, 255, 255, .96));
+      box-shadow:
+        0 30px 80px rgba(34, 89, 156, .2),
+        inset 0 1px 0 rgba(255, 255, 255, .9),
+        inset 0 -18px 42px rgba(52, 120, 205, .08);
+      overflow: hidden;
+    }
+
+    .plaque-dialog::before {
+      content: "";
+      position: absolute;
+      inset: 14px;
+      border: 1px solid rgba(36, 106, 194, .13);
+      border-radius: 16px;
+      pointer-events: none;
+    }
+
+    .plaque-close {
+      position: absolute;
+      right: 18px;
+      top: 16px;
+      width: 32px;
+      height: 32px;
+      border: 1px solid rgba(46, 111, 191, .18);
+      border-radius: 50%;
+      color: #174b8f;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 0 8px 18px rgba(41, 98, 166, .12);
+      cursor: pointer;
+      font: 700 18px/1 ui-sans-serif, system-ui, sans-serif;
+    }
+
+    .plaque-large-message {
+      margin: 0;
+      color: rgba(18, 64, 124, .94);
+      text-align: center;
+      font-family: "BouquetHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", cursive;
+      font-size: 28px;
+      line-height: 1.75;
+      letter-spacing: .04em;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .72);
+    }
+
+    .plaque-large-message span {
+      display: block;
+    }
+
+    .plaque-large-message span:first-child {
+      margin-bottom: 14px;
+      font-size: 34px;
+    }
+
+    .wrap-back {
+      position: absolute;
+      left: 50%;
+      top: 220px;
+      width: 620px;
+      height: 540px;
+      transform: translateX(-50%);
+      z-index: 12;
+      pointer-events: none;
+    }
+
+    .back-sheet {
+      position: absolute;
+      overflow: hidden;
+      border-radius: 40px 40px 120px 120px;
+      box-shadow:
+        0 26px 52px rgba(32, 82, 150, .12),
+        inset 0 0 34px rgba(255, 255, 255, .58);
+    }
+
+    .back-sheet::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .45;
+      background:
+        linear-gradient(108deg, transparent 0 31%, rgba(255, 255, 255, .8) 32% 33%, transparent 34%),
+        repeating-linear-gradient(35deg, rgba(255, 255, 255, .2) 0 1px, transparent 1px 10px);
+      mix-blend-mode: screen;
+    }
+
+    .back-blue-left {
+      left: 26px;
+      top: 34px;
+      width: 350px;
+      height: 446px;
+      transform: rotate(-18deg);
+      clip-path: polygon(28% 0, 94% 13%, 100% 74%, 62% 100%, 12% 81%, 0 32%);
+      background:
+        radial-gradient(circle at 28% 28%, rgba(255, 255, 255, .75), transparent 28%),
+        linear-gradient(145deg, rgba(207, 243, 255, .96), rgba(136, 207, 255, .82) 46%, rgba(237, 250, 255, .94));
+    }
+
+    .back-blue-right {
+      right: 18px;
+      top: 24px;
+      width: 360px;
+      height: 462px;
+      transform: rotate(17deg);
+      clip-path: polygon(5% 17%, 72% 0, 100% 33%, 90% 82%, 38% 100%, 0 73%);
+      background:
+        radial-gradient(circle at 67% 22%, rgba(255, 255, 255, .78), transparent 27%),
+        linear-gradient(38deg, rgba(241, 252, 255, .95), rgba(136, 205, 255, .83) 50%, rgba(225, 245, 255, .98));
+    }
+
+    .back-check {
+      left: 166px;
+      top: 70px;
+      width: 305px;
+      height: 398px;
+      transform: rotate(4deg);
+      clip-path: polygon(12% 4%, 88% 0, 100% 28%, 87% 100%, 17% 94%, 0 25%);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .78) 0 50%, rgba(139, 195, 255, .28) 50% 100%),
+        linear-gradient(0deg, rgba(255, 255, 255, .78) 0 50%, rgba(139, 195, 255, .28) 50% 100%),
+        linear-gradient(140deg, rgba(252, 254, 255, .96), rgba(220, 239, 255, .82));
+      background-size: 34px 34px, 34px 34px, auto;
+      background-blend-mode: multiply, multiply, normal;
+      opacity: .94;
+    }
+
+    .wrap {
+      position: absolute;
+      left: 50%;
+      top: 507px;
+      width: 474px;
+      height: 386px;
+      transform: translateX(-50%);
+      z-index: 72;
+      pointer-events: none;
+    }
+
+    .paper {
+      position: absolute;
+      overflow: hidden;
+      border-radius: 10px 10px 26px 26px;
+      box-shadow:
+        0 22px 36px rgba(18, 66, 126, .18),
+        inset 0 0 24px rgba(255, 255, 255, .34);
+    }
+
+    .paper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .64;
+      background:
+        linear-gradient(105deg, transparent 0 21%, rgba(255, 255, 255, .82) 22% 23%, transparent 24% 100%),
+        linear-gradient(78deg, transparent 0 54%, rgba(28, 88, 179, .2) 55% 56%, transparent 57% 100%),
+        repeating-linear-gradient(34deg, rgba(255, 255, 255, .18) 0 1px, transparent 1px 9px),
+        repeating-linear-gradient(116deg, rgba(27, 84, 170, .08) 0 1px, transparent 1px 15px);
+      mix-blend-mode: screen;
+    }
+
+    .paper::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .2;
+      background:
+        radial-gradient(circle at 20% 24%, rgba(255, 255, 255, .8) 0 1px, transparent 1.6px),
+        radial-gradient(circle at 73% 64%, rgba(33, 89, 169, .25) 0 1px, transparent 1.4px);
+      background-size: 17px 19px, 23px 21px;
+      mix-blend-mode: overlay;
+    }
+
+    .paper-blue-left {
+      left: 22px;
+      top: 20px;
+      width: 292px;
+      height: 328px;
+      transform: rotate(-15deg);
+      clip-path: polygon(21% 0, 100% 18%, 75% 100%, 17% 89%, 0 34%);
+      background:
+        linear-gradient(137deg, #f4fbff 0 9%, #6daeff 10% 34%, #2767c7 35% 69%, #dbefff 100%);
+      z-index: 1;
+    }
+
+    .paper-blue-right {
+      right: 18px;
+      top: 18px;
+      width: 300px;
+      height: 332px;
+      transform: rotate(15deg);
+      clip-path: polygon(0 17%, 81% 0, 100% 34%, 85% 90%, 17% 100%);
+      background:
+        linear-gradient(42deg, #1e5dbf 0%, #82c1ff 43%, #f7fcff 75%, #2d72d0 100%);
+      z-index: 1;
+    }
+
+    .paper-white-left {
+      left: 86px;
+      top: 65px;
+      width: 218px;
+      height: 288px;
+      transform: rotate(-10deg);
+      clip-path: polygon(20% 0, 95% 18%, 70% 100%, 11% 87%, 0 35%);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, .98), rgba(219, 236, 255, .92) 42%, rgba(255, 255, 255, .96) 72%),
+        radial-gradient(circle at 36% 20%, rgba(50, 125, 226, .17), transparent 34%);
+      opacity: .98;
+      z-index: 3;
+    }
+
+    .paper-white-right {
+      right: 88px;
+      top: 57px;
+      width: 226px;
+      height: 296px;
+      transform: rotate(10deg);
+      clip-path: polygon(6% 18%, 78% 0, 100% 36%, 86% 88%, 18% 100%);
+      background:
+        linear-gradient(38deg, rgba(248, 252, 255, .98) 0%, rgba(255, 255, 255, .96) 36%, rgba(212, 234, 255, .94) 65%, rgba(255, 255, 255, .98) 100%);
+      opacity: .98;
+      z-index: 3;
+    }
+
+    .paper-core {
+      left: 143px;
+      top: 144px;
+      width: 196px;
+      height: 210px;
+      transform: rotate(0deg);
+      clip-path: polygon(0 0, 100% 0, 79% 100%, 21% 100%);
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .98), rgba(224, 241, 255, .98), rgba(255, 255, 255, .98));
+      box-shadow: inset 0 0 20px rgba(61, 123, 204, .18);
+      z-index: 4;
+    }
+
+    .paper-collar-left {
+      left: 84px;
+      top: 120px;
+      width: 205px;
+      height: 118px;
+      transform: rotate(-9deg);
+      clip-path: polygon(8% 16%, 100% 0, 82% 100%, 0 78%);
+      border-radius: 42px 22px 26px 36px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255, 255, 255, .95), transparent 28%),
+        linear-gradient(140deg, rgba(250, 254, 255, .98), rgba(198, 227, 255, .92));
+      z-index: 6;
+    }
+
+    .paper-collar-right {
+      right: 78px;
+      top: 116px;
+      width: 214px;
+      height: 124px;
+      transform: rotate(8deg);
+      clip-path: polygon(0 0, 92% 16%, 100% 78%, 18% 100%);
+      border-radius: 22px 44px 38px 24px;
+      background:
+        radial-gradient(circle at 76% 18%, rgba(255, 255, 255, .95), transparent 27%),
+        linear-gradient(40deg, rgba(244, 252, 255, .98), rgba(190, 223, 255, .9));
+      z-index: 6;
+    }
+
+    .bow {
+      position: absolute;
+      left: 50%;
+      top: 704px;
+      width: 250px;
+      height: 260px;
+      transform: translateX(-50%) rotate(-4deg);
+      z-index: 95;
+      pointer-events: none;
+      filter:
+        drop-shadow(0 14px 18px rgba(27, 67, 132, .28))
+        drop-shadow(0 1px 0 rgba(255, 255, 255, .5));
+    }
+
+    .bow .loop,
+    .bow .tail,
+    .bow .knot,
+    .bow .streamer {
+      position: absolute;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, .72), transparent 21%),
+        linear-gradient(125deg, #0a3489 0%, #286cd4 32%, #a8d3ff 51%, #1555b7 75%, #092f75 100%);
+      box-shadow:
+        inset 0 2px 12px rgba(255, 255, 255, .45),
+        inset 0 -12px 18px rgba(6, 36, 104, .28),
+        inset 12px 0 18px rgba(255, 255, 255, .12);
+    }
+
+    .bow .loop-left {
+      left: 12px;
+      top: 21px;
+      width: 98px;
+      height: 63px;
+      border-radius: 70% 34% 62% 42%;
+      transform: rotate(-20deg) skewX(-8deg);
+    }
+
+    .bow .loop-right {
+      right: 16px;
+      top: 19px;
+      width: 101px;
+      height: 65px;
+      border-radius: 36% 72% 42% 62%;
+      transform: rotate(18deg) skewX(8deg);
+    }
+
+    .bow .knot {
+      left: 104px;
+      top: 44px;
+      width: 42px;
+      height: 38px;
+      border-radius: 46%;
+      transform: rotate(10deg);
+      background:
+        radial-gradient(circle at 28% 22%, #f7fbff, transparent 24%),
+        linear-gradient(135deg, #103e9c, #73b5ff 48%, #123f9d 100%);
+    }
+
+    .bow .tail-left {
+      left: 75px;
+      top: 73px;
+      width: 61px;
+      height: 62px;
+      clip-path: polygon(12% 0, 100% 8%, 82% 100%, 49% 73%, 14% 100%, 0 10%);
+      transform: rotate(10deg);
+    }
+
+    .bow .tail-right {
+      right: 70px;
+      top: 72px;
+      width: 64px;
+      height: 65px;
+      clip-path: polygon(0 8%, 87% 0, 100% 10%, 88% 100%, 51% 72%, 17% 100%);
+      transform: rotate(-9deg);
+    }
+
+    .bow .streamer {
+      top: 91px;
+      width: 36px;
+      height: 206px;
+      border-radius: 13px 13px 3px 3px;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, .55) 0 2px, transparent 2px 100%),
+        linear-gradient(0deg, rgba(255, 255, 255, .45) 0 2px, transparent 2px 100%),
+        linear-gradient(120deg, rgba(238, 249, 255, .96), rgba(87, 147, 224, .95), rgba(238, 249, 255, .9));
+      background-size: 12px 12px, 12px 12px, auto;
+      box-shadow:
+        inset 0 10px 16px rgba(255, 255, 255, .36),
+        inset 0 -22px 20px rgba(21, 72, 143, .2),
+        0 14px 24px rgba(28, 75, 138, .16);
+    }
+
+    .bow .streamer-left {
+      left: 56px;
+      height: 238px;
+      transform: rotate(24deg);
+      clip-path: polygon(6% 0, 96% 0, 82% 100%, 51% 88%, 18% 100%);
+    }
+
+    .bow .streamer-right {
+      right: 61px;
+      height: 218px;
+      transform: rotate(-18deg);
+      clip-path: polygon(3% 0, 94% 0, 88% 100%, 51% 88%, 16% 100%);
+    }
+
+    .gift-card {
+      position: absolute;
+      right: 36px;
+      top: 575px;
+      width: 260px;
+      min-height: 168px;
+      z-index: 105;
+      padding: 30px 25px 24px;
+      transform: rotate(-3deg);
+      color: #1e4474;
+      background:
+        radial-gradient(circle at 22% 20%, rgba(255, 255, 255, .78) 0 1px, transparent 1.4px),
+        radial-gradient(circle at 70% 72%, rgba(110, 91, 49, .13) 0 .8px, transparent 1.3px),
+        linear-gradient(112deg, rgba(255, 253, 244, .98), rgba(247, 241, 224, .94) 52%, rgba(255, 252, 239, .98)),
+        repeating-linear-gradient(0deg, rgba(68, 64, 45, .04) 0 1px, transparent 1px 4px);
+      background-size: 13px 15px, 19px 17px, auto, auto;
+      border: 1px solid rgba(97, 87, 65, .18);
+      border-radius: 3px;
+      box-shadow:
+        0 20px 42px rgba(31, 72, 132, .18),
+        inset 0 0 38px rgba(255, 255, 255, .72);
+      letter-spacing: .015em;
+      line-height: 1.78;
+      font-size: 16px;
+      pointer-events: none;
+    }
+
+    .gift-card .message {
+      position: relative;
+      z-index: 2;
+      margin: 0;
+      font-family: "BouquetHand", "Xingkai SC", "STXingkai", "Kaiti SC", "STKaiti", cursive;
+      font-size: 21px;
+      line-height: 1.45;
+      letter-spacing: .03em;
+      color: rgba(26, 64, 112, .9);
+      text-shadow: 0 1px 0 rgba(255, 255, 255, .58);
+    }
+
+    .gift-card::before,
+    .gift-card::after {
+      content: "";
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .gift-card::before {
+      inset: 7px;
+      border: 1px solid rgba(31, 99, 199, .11);
+      box-shadow: inset 0 0 18px rgba(255, 255, 255, .48);
+    }
+
+    .gift-card::after {
+      right: 20px;
+      bottom: 15px;
+      width: 44px;
+      height: 9px;
+      border: 0;
+      border-radius: 999px;
+      transform: none;
+      background: linear-gradient(90deg, transparent, rgba(53, 117, 190, .16), transparent);
+      box-shadow: none;
+    }
+
+    .paperclip {
+      position: absolute;
+      right: 34px;
+      top: -35px;
+      width: 46px;
+      height: 88px;
+      z-index: 3;
+      transform: rotate(6deg);
+      filter: drop-shadow(2px 4px 2px rgba(40, 57, 83, .12));
+    }
+
+    .paperclip::before,
+    .paperclip::after {
+      content: "";
+      position: absolute;
+      border: 3px solid rgba(45, 59, 78, .58);
+      border-bottom-color: transparent;
+      background: transparent;
+    }
+
+    .paperclip::before {
+      left: 9px;
+      top: 0;
+      width: 27px;
+      height: 73px;
+      border-radius: 17px 17px 11px 11px;
+    }
+
+    .paperclip::after {
+      left: 17px;
+      top: 11px;
+      width: 13px;
+      height: 49px;
+      border-radius: 11px 11px 7px 7px;
+    }
+
+    .paperclip span {
+      position: absolute;
+      left: 20px;
+      top: 58px;
+      width: 17px;
+      height: 3px;
+      border-radius: 999px;
+      background: rgba(45, 59, 78, .58);
+      transform: rotate(25deg);
+      transform-origin: left center;
+    }
+
+    .toolbar {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      display: flex;
+      gap: 10px;
+      z-index: 200;
+    }
+
+    .tool-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(34, 99, 184, .2);
+      border-radius: 50%;
+      color: #1b4f9d;
+      background: rgba(255, 255, 255, .72);
+      box-shadow: 0 12px 26px rgba(24, 75, 150, .15);
+      backdrop-filter: blur(12px);
+      font: 700 21px/1 system-ui, sans-serif;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease;
+    }
+
+    .tool-btn:hover {
+      transform: translateY(-2px);
+      background: rgba(239, 248, 255, .94);
+    }
+
+    .save-btn {
+      position: fixed;
+      right: 22px;
+      top: 22px;
+      z-index: 205;
+      min-width: 78px;
+      height: 42px;
+      padding: 0 16px;
+      border: 1px solid rgba(34, 99, 184, .2);
+      border-radius: 999px;
+      color: #1b4f9d;
+      background: rgba(255, 255, 255, .78);
+      box-shadow: 0 12px 26px rgba(24, 75, 150, .15);
+      backdrop-filter: blur(12px);
+      font: 700 14px/1 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif;
+      cursor: pointer;
+      transition: transform .16s ease, background .16s ease, color .16s ease;
+    }
+
+    .save-btn:hover {
+      transform: translateY(-2px);
+      background: rgba(239, 248, 255, .96);
+    }
+
+    .save-btn.saved {
+      color: #0b8062;
+      background: rgba(235, 255, 249, .92);
+    }
+
+    .gift-mode .palette,
+    .gift-mode .toolbar,
+    .gift-mode .save-btn,
+    .gift-mode .edit-box {
+      display: none !important;
+    }
+
+    .gift-mode .stem-item {
+      cursor: default;
+    }
+
+    @keyframes slow-turn {
+      to {
+        transform: translate(-50%, -50%) rotate(360deg);
+      }
+    }
+
+    @keyframes sparkle-drift {
+      from {
+        background-position: 2px 5px, 9px 1px;
+      }
+      to {
+        background-position: 9px 1px, 2px 8px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .palette {
+        left: 12px;
+        top: 14px;
+        width: min(330px, calc(100vw - 24px));
+        max-height: 180px;
+        transform: none;
+      }
+
+      .palette-list {
+        grid-auto-flow: column;
+        grid-auto-columns: 150px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        max-height: none;
+      }
+
+      .palette-tabs {
+        margin-bottom: 8px;
+      }
+
+      .gem-palette-item {
+        grid-template-columns: 42px minmax(0, 1fr);
+      }
+
+      .gem-palette-item .palette-count {
+        display: none;
+      }
+
+      .toolbar {
+        right: 14px;
+        bottom: 14px;
+      }
+
+      .save-btn {
+        right: 14px;
+        top: 14px;
+      }
+
+      .flower-note-dialog {
+        width: calc(100vw - 28px);
+        min-height: calc(100vh - 28px);
+      }
+
+      .flower-envelope {
+        width: calc(100vw - 48px);
+        height: min(470px, calc(100vh - 92px));
+        min-height: 410px;
+      }
+
+      .flower-envelope::before {
+        clip-path: polygon(0 9.8%, 43.5% 9.8%, 52.8% 17.2%, 100% 17.2%, 100% 100%, 0 100%);
+      }
+
+      .note-flower-preview {
+        left: 24px;
+        bottom: 148px;
+        width: 178px;
+        max-height: 295px;
+      }
+
+      .note-flower-preview.is-secondary {
+        left: 74px;
+        bottom: 166px;
+        width: 142px;
+        max-height: 260px;
+      }
+
+      .folder-title {
+        left: 26px;
+        bottom: 28px;
+      }
+
+      .folder-title strong {
+        font-size: 21px;
+      }
+
+      .note-card {
+        right: 8px;
+        top: 142px;
+        width: calc(100vw - 86px);
+        min-height: 220px;
+        padding: 24px 24px 22px;
+      }
+
+      .note-card-orbit {
+        right: -2px;
+        top: 126px;
+        width: calc(100vw - 64px);
+        height: 270px;
+      }
+
+      .note-card h2 {
+        font-size: 25px;
+      }
+
+      .note-card p {
+        font-size: 20px;
+        line-height: 1.52;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="halo"></canvas>
+  <div class="name-orbit-layer" id="nameOrbitLayer" aria-hidden="true"></div>
+
+  <main class="app" aria-label="blue and white mother's day bouquet">
+    <aside class="palette" aria-label="素材面板">
+      <div class="palette-tabs" role="tablist" aria-label="素材类型">
+        <button class="palette-tab" id="flowerTab" type="button" role="tab" aria-selected="true" aria-controls="flowerPanel" data-palette-tab="flowers">花材</button>
+        <button class="palette-tab" id="gemTab" type="button" role="tab" aria-selected="false" aria-controls="gemPanel" data-palette-tab="gems">宝石</button>
+      </div>
+      <div class="palette-panel" id="flowerPanel" role="tabpanel" aria-labelledby="flowerTab">
+        <div class="palette-list" id="paletteList"></div>
+      </div>
+      <div class="palette-panel" id="gemPanel" role="tabpanel" aria-labelledby="gemTab" hidden>
+        <div class="palette-list" id="gemPaletteList"></div>
+      </div>
+    </aside>
+
+    <section class="bouquet-stage" id="bouquetStage">
+      <div class="aurora-disc"></div>
+
+      <div class="wrap-back" aria-hidden="true">
+        <div class="back-sheet back-blue-left"></div>
+        <div class="back-sheet back-blue-right"></div>
+        <div class="back-sheet back-check"></div>
+      </div>
+
+      <div class="stems" id="stems"></div>
+      <div class="callout-layer" id="calloutLayer" aria-hidden="false"></div>
+
+      <div class="trophy-glow" aria-hidden="true"></div>
+      <div class="cyber-trophy" aria-hidden="true">
+        <svg viewBox="0 0 360 482" role="img">
+          <defs>
+            <linearGradient id="glassGradient" x1="72" y1="58" x2="286" y2="420" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".76" />
+              <stop offset=".3" stop-color="#d9f0ff" stop-opacity=".7" />
+              <stop offset=".62" stop-color="#6fb2ff" stop-opacity=".46" />
+              <stop offset="1" stop-color="#0c55c8" stop-opacity=".38" />
+            </linearGradient>
+            <radialGradient id="innerFog" cx="42%" cy="23%" r="78%">
+              <stop offset="0" stop-color="#ffffff" stop-opacity=".9" />
+              <stop offset=".48" stop-color="#d7efff" stop-opacity=".28" />
+              <stop offset="1" stop-color="#1567d9" stop-opacity=".16" />
+            </radialGradient>
+            <linearGradient id="handleGradient" x1="0" y1="126" x2="360" y2="258" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="#eefaff" stop-opacity=".5" />
+              <stop offset=".24" stop-color="#b7dcff" stop-opacity=".38" />
+              <stop offset=".5" stop-color="#ffffff" stop-opacity=".16" />
+              <stop offset=".76" stop-color="#b7dcff" stop-opacity=".38" />
+              <stop offset="1" stop-color="#eefaff" stop-opacity=".5" />
+            </linearGradient>
+            <filter id="glassSoft" x="-20%" y="-20%" width="140%" height="150%">
+              <feGaussianBlur in="SourceAlpha" stdDeviation="1.4" result="blur" />
+              <feOffset dy="5" result="offset" />
+              <feColorMatrix in="offset" type="matrix" values="0 0 0 0 0.04 0 0 0 0 0.27 0 0 0 0 0.78 0 0 0 .16 0" />
+              <feMerge>
+                <feMergeNode />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+            <clipPath id="trophyClip">
+              <path d="M42 86 L318 86 C333 132 318 221 254 264 C222 292 138 292 106 264 C42 221 27 132 42 86 Z" />
+              <path d="M166 273 L194 273 C192 311 202 342 224 363 L136 363 C158 342 168 311 166 273 Z" />
+              <path d="M126 361 C148 344 212 344 234 361 C254 380 244 407 180 408 C116 407 106 380 126 361 Z" />
+            </clipPath>
+            <path id="cupPath" d="M42 86 L318 86 C333 132 318 221 254 264 C222 292 138 292 106 264 C42 221 27 132 42 86" />
+            <path id="leftHandlePath" d="M35 132 C-92 114 -72 284 88 266" />
+            <path id="rightHandlePath" d="M325 132 C452 114 432 284 272 266" />
+            <path id="stemBasePath" d="M166 275 C164 318 151 344 126 361 C148 344 212 344 234 361 C209 344 196 318 194 275" />
+            <path id="footPath" d="M126 361 C148 344 212 344 234 361 C254 380 244 407 180 408 C116 407 106 380 126 361" />
+          </defs>
+
+          <g clip-path="url(#trophyClip)">
+            <rect class="trophy-glass-fill" x="18" y="38" width="324" height="396" />
+            <path class="trophy-inner-fog" d="M58 105 L302 105 C311 147 300 211 246 252 C216 279 144 279 114 252 C60 211 49 147 58 105 Z" />
+            <path class="trophy-highlight" d="M58 96 L302 96" />
+            <path class="trophy-highlight" d="M64 119 C53 159 66 221 119 250" />
+            <path class="trophy-highlight" d="M233 296 C222 327 225 350 246 372" />
+          </g>
+
+          <path class="trophy-handle-fill" d="M35 132 C-92 114 -72 284 88 266" />
+          <path class="trophy-handle-fill" d="M325 132 C452 114 432 284 272 266" />
+          <path class="trophy-handle-rim" d="M35 132 C-92 114 -72 284 88 266" />
+          <path class="trophy-handle-rim" d="M325 132 C452 114 432 284 272 266" />
+          <path class="trophy-construction" d="M42 86 L318 86 C333 132 318 221 254 264 C222 292 138 292 106 264 C42 221 27 132 42 86 Z" />
+          <path class="trophy-construction" d="M35 132 C-92 114 -72 284 88 266 M325 132 C452 114 432 284 272 266" />
+
+          <text class="trophy-text-outline">
+            <textPath href="#cupPath" startOffset="0%">
+              mother's day / 5/10 / 母亲节 / mother's day / 5/10 / 母亲节 /
+              <animate attributeName="startOffset" from="0%" to="100%" dur="14s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-text-outline is-soft">
+            <textPath href="#cupPath" startOffset="-45%">
+              5/10 / 母亲节 / mother's day / 5/10 / 母亲节 / mother's day /
+              <animate attributeName="startOffset" from="-45%" to="55%" dur="16s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-text-outline">
+            <textPath href="#leftHandlePath" startOffset="0%">
+              mother's day / 5/10 / 母亲节 / mother's day /
+              <animate attributeName="startOffset" from="0%" to="100%" dur="11s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-text-outline">
+            <textPath href="#rightHandlePath" startOffset="100%">
+              母亲节 / 5/10 / mother's day / 母亲节 /
+              <animate attributeName="startOffset" from="100%" to="0%" dur="11s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-text-outline is-soft">
+            <textPath href="#stemBasePath" startOffset="0%">
+              5/10 / mother's day / 母亲节 / 5/10 /
+              <animate attributeName="startOffset" from="0%" to="100%" dur="12s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-text-outline">
+            <textPath href="#footPath" startOffset="100%">
+              mother's day / 5/10 / 母亲节 / mother's day /
+              <animate attributeName="startOffset" from="100%" to="0%" dur="15s" repeatCount="indefinite" />
+            </textPath>
+          </text>
+          <text class="trophy-center-title" x="180" y="190">Happy Mother's Day</text>
+        </svg>
+      </div>
+      <div class="wrap wrap-front" aria-hidden="true">
+        <div class="paper paper-blue-left"></div>
+        <div class="paper paper-blue-right"></div>
+        <div class="paper paper-white-left"></div>
+        <div class="paper paper-white-right"></div>
+        <div class="paper paper-core"></div>
+        <div class="paper paper-collar-left"></div>
+        <div class="paper paper-collar-right"></div>
+      </div>
+
+      <div class="bow" aria-hidden="true">
+        <div class="loop loop-left"></div>
+        <div class="loop loop-right"></div>
+        <div class="tail tail-left"></div>
+        <div class="tail tail-right"></div>
+        <div class="streamer streamer-left"></div>
+        <div class="streamer streamer-right"></div>
+        <div class="knot"></div>
+      </div>
+
+      <aside class="gift-card">
+        <span class="paperclip"><span></span></span>
+        <p class="message">亲爱的妈妈，你永远是我的好朋友和最安全的港湾，母亲节快乐！</p>
+      </aside>
+    </section>
+
+    <div class="gem-layer" id="gemLayer" aria-hidden="true"></div>
+
+    <button class="trophy-plaque" id="trophyPlaque" type="button" aria-label="查看铭牌祝福">
+      <span>亲爱的妈妈</span>
+      <span>你永远是我的好朋友和最安全的港湾，母亲节快乐！</span>
+    </button>
+
+    <div class="toolbar" aria-label="bouquet controls">
+      <button class="tool-btn" id="mirrorBtn" title="镜像选中的花枝" aria-label="镜像选中的花枝">↔</button>
+      <button class="tool-btn" id="sendBackBtn" title="将选中的花枝移到最后面" aria-label="将选中的花枝移到最后面">⇩</button>
+      <button class="tool-btn" id="sizeDownBtn" title="缩小选中的花枝" aria-label="缩小选中的花枝">−</button>
+      <button class="tool-btn" id="sizeUpBtn" title="放大选中的花枝" aria-label="放大选中的花枝">+</button>
+      <button class="tool-btn" id="deleteBtn" title="删除选中的花枝" aria-label="删除选中的花枝">×</button>
+      <button class="tool-btn" id="resetBtn" title="复位选中的花枝" aria-label="复位选中的花枝">⟲</button>
+    </div>
+
+    <button class="save-btn" id="saveBtn" type="button">保存</button>
+  </main>
+
+  <div class="plaque-modal" id="plaqueModal" aria-hidden="true">
+    <button class="plaque-backdrop" id="plaqueBackdrop" type="button" aria-label="关闭祝福卡片"></button>
+    <section class="plaque-dialog" role="dialog" aria-modal="true" aria-label="母亲节祝福">
+      <button class="plaque-close" id="plaqueClose" type="button" aria-label="关闭祝福卡片">×</button>
+      <p class="plaque-large-message">
+        <span>亲爱的妈妈</span>
+        <span>你永远是我的好朋友和最安全的港湾，母亲节快乐！</span>
+      </p>
+    </section>
+  </div>
+
+  <div class="flower-note-modal" id="flowerNoteModal" aria-hidden="true">
+    <button class="flower-note-backdrop" id="flowerNoteBackdrop" type="button" aria-label="关闭花朵小卡片"></button>
+    <section class="flower-note-dialog" role="dialog" aria-modal="true" aria-label="花朵小卡片">
+      <button class="flower-note-close" id="flowerNoteClose" type="button" aria-label="关闭花朵小卡片">×</button>
+      <div class="flower-envelope">
+        <div class="folder-particles" aria-hidden="true">
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+          <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="folder-title" aria-hidden="true">
+          <strong id="noteEnglishTitle"></strong>
+          <span>Mother's Day</span>
+        </div>
+        <img class="note-flower-preview is-secondary" id="noteFlowerPreviewSecondary" alt="" />
+        <img class="note-flower-preview" id="noteFlowerPreview" alt="" />
+        <svg class="note-card-orbit" viewBox="0 0 460 366" aria-hidden="true">
+          <defs>
+            <path id="noteCardOrbitPath" d="M20 24 H440 V342 H20 Z" />
+          </defs>
+          <path class="note-card-orbit-guide" d="M20 24 H440 V342 H20 Z" />
+          <text>
+            <textPath id="noteCardOrbitText" href="#noteCardOrbitPath" startOffset="0%"></textPath>
+          </text>
+        </svg>
+        <article class="note-card" id="noteCard">
+          <h2 id="noteCardTitle"></h2>
+          <p id="noteCardText"></p>
+        </article>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const giftConfig = window.BOUQUET_GIFT_CONFIG || {};
+    const configuredCatalog = Array.isArray(giftConfig.catalog) ? giftConfig.catalog : null;
+    const configuredGemCatalog = Array.isArray(giftConfig.gemCatalog) ? giftConfig.gemCatalog : null;
+    const configuredLayout = giftConfig.layout && typeof giftConfig.layout === "object" ? giftConfig.layout : null;
+    const configuredCards = giftConfig.cards && typeof giftConfig.cards === "object" ? giftConfig.cards : {};
+    const configuredGiftCopy = giftConfig.giftCopy && typeof giftConfig.giftCopy === "object" ? giftConfig.giftCopy : {};
+    const ASSET_BASE = giftConfig.assetBase || "transparent-png/";
+    const GEM_ASSET_BASE = giftConfig.gemAssetBase || "gems/";
+    const STORAGE_KEY = "mothers-day-blue-trophy-bouquet-layout-v2";
+    const ORBIT_VERSION = 5;
+    const MAX_NAME_ORBITS = 5;
+    const NAME_ORBIT_KEEP_SLOTS = [
+      { x: 29, y: 18, size: 310, rotate: -28, opacity: .58, lines: 2 },
+      { x: 86, y: 18, size: 380, rotate: 24, opacity: .56, lines: 2 },
+      { x: 25, y: 63, size: 245, rotate: -36, opacity: .54, lines: 1 },
+      { x: 82, y: 64, size: 315, rotate: 31, opacity: .6, lines: 2 },
+      { x: 66, y: 91, size: 270, rotate: -8, opacity: .52, lines: 1 }
+    ];
+    const catalog = [
+      {
+        id: "panicum",
+        name: "喷泉草",
+        src: "greenery-24-panicum-grass.png"
+      },
+      {
+        id: "seeded-eucalyptus",
+        name: "尤加利",
+        src: "greenery-16-sparse-seeded-eucalyptus.png"
+      },
+      {
+        id: "lily-grass",
+        name: "蓝丝草",
+        src: "greenery-18-lily-grass.png"
+      },
+      {
+        id: "delphinium",
+        name: "蓝飞燕草",
+        src: "bouquet-21-cobalt-delphinium.png"
+      },
+      {
+        id: "hydrangea",
+        name: "蓝绣球",
+        src: "bouquet-11-blue-hydrangea.png"
+      },
+      {
+        id: "iris",
+        name: "紫鸢尾",
+        src: "bouquet-02-violet-iris.png"
+      },
+      {
+        id: "orchid",
+        name: "白蝴蝶兰",
+        src: "bouquet-10-white-orchid.png"
+      },
+      {
+        id: "anemone",
+        name: "蓝银莲花",
+        src: "bouquet-16-deep-blue-anemone.png"
+      },
+      {
+        id: "cornflower",
+        name: "矢车菊",
+        src: "bouquet-31-cobalt-cornflower.png"
+      },
+      {
+        id: "queen-annes-lace",
+        name: "白蕾丝花",
+        src: "bouquet-44-queen-annes-lace.png"
+      }
+    ];
+
+    const gemCatalog = [
+      {
+        id: "gem1",
+        name: "宝石 1",
+        src: "gem1.png",
+        size: 46
+      },
+      {
+        id: "gem2",
+        name: "宝石 2",
+        src: "gem2.png",
+        size: 50
+      },
+      {
+        id: "gem3",
+        name: "宝石 3",
+        src: "gem3.png",
+        size: 44
+      },
+      {
+        id: "gem4",
+        name: "宝石 4",
+        src: "gem4.png",
+        size: 50
+      },
+      {
+        id: "gem5",
+        name: "宝石 5",
+        src: "gem5.png",
+        size: 50
+      }
+    ];
+
+    const activeCatalog = configuredCatalog && configuredCatalog.length ? configuredCatalog : catalog;
+    const activeGemCatalog = configuredGemCatalog && configuredGemCatalog.length ? configuredGemCatalog : gemCatalog;
+    const catalogById = new Map(activeCatalog.map((item) => [item.id, item]));
+    const gemCatalogById = new Map(activeGemCatalog.map((item) => [item.id, item]));
+
+    const initialStems = [
+      {
+        catalog: "panicum",
+        x: 500,
+        y: 385,
+        w: 238,
+        r: 18,
+        z: 6,
+        flip: -1
+      },
+      {
+        catalog: "seeded-eucalyptus",
+        x: 235,
+        y: 392,
+        w: 218,
+        r: -20,
+        z: 8
+      },
+      {
+        catalog: "lily-grass",
+        x: 358,
+        y: 410,
+        w: 194,
+        r: 2,
+        z: 9
+      },
+      {
+        catalog: "delphinium",
+        x: 334,
+        y: 298,
+        w: 238,
+        r: -2,
+        z: 16
+      },
+      {
+        catalog: "hydrangea",
+        x: 258,
+        y: 344,
+        w: 268,
+        r: -13,
+        z: 25
+      },
+      {
+        catalog: "iris",
+        x: 353,
+        y: 312,
+        w: 292,
+        r: 2,
+        z: 38
+      },
+      {
+        catalog: "orchid",
+        x: 462,
+        y: 330,
+        w: 252,
+        r: 14,
+        z: 40,
+        flip: -1
+      },
+      {
+        catalog: "anemone",
+        x: 398,
+        y: 378,
+        w: 218,
+        r: -8,
+        z: 48
+      },
+      {
+        catalog: "cornflower",
+        x: 286,
+        y: 404,
+        w: 184,
+        r: -18,
+        z: 51
+      },
+      {
+        catalog: "queen-annes-lace",
+        x: 432,
+        y: 412,
+        w: 206,
+        r: 18,
+        z: 31
+      }
+    ];
+
+    const defaultStemByCatalog = new Map(initialStems.map((stem) => [stem.catalog, stem]));
+
+    const stage = document.getElementById("bouquetStage");
+    const stemsRoot = document.getElementById("stems");
+    const calloutLayer = document.getElementById("calloutLayer");
+    const nameOrbitLayer = document.getElementById("nameOrbitLayer");
+    const gemLayer = document.getElementById("gemLayer");
+    const paletteList = document.getElementById("paletteList");
+    const gemPaletteList = document.getElementById("gemPaletteList");
+    const paletteTabs = document.querySelectorAll("[data-palette-tab]");
+    const flowerPanel = document.getElementById("flowerPanel");
+    const gemPanel = document.getElementById("gemPanel");
+    const mirrorBtn = document.getElementById("mirrorBtn");
+    const sendBackBtn = document.getElementById("sendBackBtn");
+    const sizeDownBtn = document.getElementById("sizeDownBtn");
+    const sizeUpBtn = document.getElementById("sizeUpBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const trophyPlaque = document.getElementById("trophyPlaque");
+    const plaqueModal = document.getElementById("plaqueModal");
+    const plaqueBackdrop = document.getElementById("plaqueBackdrop");
+    const plaqueClose = document.getElementById("plaqueClose");
+    const flowerNoteModal = document.getElementById("flowerNoteModal");
+    const flowerNoteDialog = document.querySelector(".flower-note-dialog");
+    const flowerNoteBackdrop = document.getElementById("flowerNoteBackdrop");
+    const flowerNoteClose = document.getElementById("flowerNoteClose");
+    const noteFlowerPreview = document.getElementById("noteFlowerPreview");
+    const noteFlowerPreviewSecondary = document.getElementById("noteFlowerPreviewSecondary");
+    const noteEnglishTitle = document.getElementById("noteEnglishTitle");
+    const noteCard = document.getElementById("noteCard");
+    const noteCardOrbitText = document.getElementById("noteCardOrbitText");
+    const noteCardTitle = document.getElementById("noteCardTitle");
+    const noteCardText = document.getElementById("noteCardText");
+
+    let nextStemId = 1;
+    let nextOrbitId = 1;
+    let nextGemId = 1;
+    let stageScale = 1;
+    const nameOrbits = [];
+    const orbitMarkupCache = new Map();
+    let didPruneNameOrbits = false;
+    const hashLayout = loadHashLayout();
+    const injectedLayout = configuredLayout ? hydrateLayout(configuredLayout) : null;
+    const savedLayout = hashLayout || injectedLayout || loadSavedLayout();
+    const stems = savedLayout ? savedLayout.stems : initialStems.map((data) => makeStem(data));
+    const placedGems = savedLayout && Array.isArray(savedLayout.placedGems) ? savedLayout.placedGems : [];
+    let isGiftMode = Boolean(hashLayout) && !new URLSearchParams(window.location.search).has("edit");
+    let activeId = null;
+    let activeGemId = null;
+    let dragState = null;
+    let dragPoint = null;
+    let dragFrame = 0;
+    let suppressedNoteClickUid = null;
+    let isPerformanceEditing = false;
+    let performanceResumeTimer = 0;
+    const alphaMaskCache = new Map();
+
+    function makeStem(data) {
+      const asset = catalogById.get(data.catalog);
+      const stem = {
+        ...asset,
+        ...data,
+        uid: data.uid || `stem-${nextStemId++}`,
+        r: data.r || 0,
+        flip: data.flip || 1
+      };
+      delete stem.effect;
+      if (data.note) {
+        stem.note = { ...data.note };
+      } else {
+        delete stem.note;
+      }
+      stem.home = {
+        x: stem.x,
+        y: stem.y,
+        w: stem.w,
+        r: stem.r,
+        flip: stem.flip
+      };
+      return stem;
+    }
+
+    function makeGem(data) {
+      const asset = gemCatalogById.get(data.gem);
+      if (!asset) return null;
+      return {
+        ...asset,
+        uid: data.uid || `gem-${nextGemId++}`,
+        gem: asset.id,
+        x: Number.isFinite(Number(data.x)) ? Number(data.x) : 50,
+        y: Number.isFinite(Number(data.y)) ? Number(data.y) : 50,
+        w: Number(data.w) || asset.size,
+        r: Number(data.r) || 0,
+        scale: Number(data.scale) || 1,
+        z: Number(data.z) || 1,
+        opacity: Number.isFinite(Number(data.opacity)) ? Number(data.opacity) : .96
+      };
+    }
+
+    function getAlphaMask(img) {
+      const key = img.currentSrc || img.src;
+      if (alphaMaskCache.has(key)) return alphaMaskCache.get(key);
+      if (!img.complete || !img.naturalWidth || !img.naturalHeight) return null;
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        const maskCtx = canvas.getContext("2d", { willReadFrequently: true });
+        maskCtx.drawImage(img, 0, 0);
+        const mask = {
+          width: canvas.width,
+          height: canvas.height,
+          data: maskCtx.getImageData(0, 0, canvas.width, canvas.height).data
+        };
+        alphaMaskCache.set(key, mask);
+        return mask;
+      } catch (error) {
+        const fallback = { opaque: true };
+        alphaMaskCache.set(key, fallback);
+        return fallback;
+      }
+    }
+
+    function getAlphaMaskForAsset(item) {
+      const img = new Image();
+      img.src = assetSrc(ASSET_BASE, item.src);
+      return new Promise((resolve) => {
+        if (img.complete) {
+          resolve(getAlphaMask(img));
+          return;
+        }
+        img.onload = () => resolve(getAlphaMask(img));
+        img.onerror = () => resolve(null);
+      });
+    }
+
+    function getImageHitUv(event, img) {
+      if (typeof img.getBoxQuads === "function") {
+        const quad = img.getBoxQuads({ box: "content" })[0];
+        if (quad) {
+          const relX = event.clientX - quad.p1.x;
+          const relY = event.clientY - quad.p1.y;
+          const axisX = {
+            x: quad.p2.x - quad.p1.x,
+            y: quad.p2.y - quad.p1.y
+          };
+          const axisY = {
+            x: quad.p4.x - quad.p1.x,
+            y: quad.p4.y - quad.p1.y
+          };
+          const determinant = axisX.x * axisY.y - axisX.y * axisY.x;
+          if (Math.abs(determinant) > .001) {
+            return {
+              u: (relX * axisY.y - relY * axisY.x) / determinant,
+              v: (axisX.x * relY - axisX.y * relX) / determinant
+            };
+          }
+        }
+      }
+
+      const stemEl = img.closest(".stem-item");
+      if (stemEl && window.DOMMatrix && window.DOMPoint) {
+        try {
+          const stageRect = stage.getBoundingClientRect();
+          const stageX = (event.clientX - stageRect.left) / stageScale;
+          const stageY = (event.clientY - stageRect.top) / stageScale;
+          const style = getComputedStyle(stemEl);
+          const matrix = new DOMMatrix(style.transform === "none" ? undefined : style.transform);
+          const inverse = matrix.inverse();
+          const origin = style.transformOrigin.split(/\s+/).map((value) => parseFloat(value) || 0);
+          const originX = origin[0] || 0;
+          const originY = origin[1] || 0;
+          const localPoint = inverse.transformPoint(new DOMPoint(
+            stageX - stemEl.offsetLeft - originX,
+            stageY - stemEl.offsetTop - originY
+          ));
+          return {
+            u: (localPoint.x + originX) / img.offsetWidth,
+            v: (localPoint.y + originY) / img.offsetHeight
+          };
+        } catch (error) {
+          // Fall back to the transformed bounding box below.
+        }
+      }
+
+      const rect = img.getBoundingClientRect();
+      return {
+        u: (event.clientX - rect.left) / rect.width,
+        v: (event.clientY - rect.top) / rect.height
+      };
+    }
+
+    function isOpaqueImageHit(event, img) {
+      const { u, v } = getImageHitUv(event, img);
+      if (u < 0 || u > 1 || v < 0 || v > 1) return false;
+
+      const mask = getAlphaMask(img);
+      if (!mask || mask.opaque) return true;
+      const x = Math.round(u * (mask.width - 1));
+      const y = Math.round(v * (mask.height - 1));
+      const radius = Math.max(1, Math.round(Math.min(mask.width, mask.height) * .0025));
+      for (let yy = Math.max(0, y - radius); yy <= Math.min(mask.height - 1, y + radius); yy += 1) {
+        for (let xx = Math.max(0, x - radius); xx <= Math.min(mask.width - 1, x + radius); xx += 1) {
+          if (mask.data[(yy * mask.width + xx) * 4 + 3] > 24) return true;
+        }
+      }
+      return false;
+    }
+
+    function createStem(data) {
+      const el = document.createElement("div");
+      el.className = "stem-item";
+      el.dataset.id = data.uid;
+      el.dataset.catalog = data.catalog;
+      el.dataset.flip = String(data.flip || 1);
+      updateStemElement(data, el);
+
+      const base = document.createElement("img");
+      base.className = "stem-base";
+      base.src = assetSrc(ASSET_BASE, data.src);
+      base.alt = "";
+      base.draggable = false;
+      el.appendChild(base);
+
+      const editBox = document.createElement("span");
+      editBox.className = "edit-box";
+      editBox.setAttribute("aria-hidden", "true");
+
+      const resizeHandles = ["nw", "ne", "se", "sw"].map((corner) => {
+        const handle = document.createElement("span");
+        handle.className = `edit-handle corner-handle corner-${corner}`;
+        handle.dataset.corner = corner;
+        return handle;
+      });
+
+      const rotateHandle = document.createElement("span");
+      rotateHandle.className = "edit-handle rotate-handle";
+
+      const deleteHandle = document.createElement("button");
+      deleteHandle.className = "edit-handle delete-handle";
+      deleteHandle.type = "button";
+      deleteHandle.setAttribute("aria-label", "删除这支花");
+
+      const noteHandle = document.createElement("button");
+      noteHandle.className = "edit-handle note-handle";
+      noteHandle.type = "button";
+      noteHandle.setAttribute("aria-label", "给这支花添加小卡片");
+
+      editBox.append(...resizeHandles, rotateHandle, deleteHandle, noteHandle);
+      el.appendChild(editBox);
+
+      el.addEventListener("pointerdown", (event) => {
+        if (event.defaultPrevented) return;
+        if (isGiftMode) return;
+        if (!isOpaqueImageHit(event, base)) {
+          setActive(null);
+          return;
+        }
+        startStemMove(data, event);
+      });
+
+      resizeHandles.forEach((handle) => {
+        handle.addEventListener("pointerdown", (event) => {
+          if (isGiftMode) return;
+          event.preventDefault();
+          event.stopPropagation();
+          setActive(data.uid, true);
+          const center = getElementCenter(el);
+          dragState = {
+            mode: "resize",
+            uid: data.uid,
+            pointerId: event.pointerId,
+            center,
+            baseDistance: getDistance(event, center),
+            baseW: data.w
+          };
+          setPerformanceEditing(true);
+        });
+      });
+
+      rotateHandle.addEventListener("pointerdown", (event) => {
+        if (isGiftMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        setActive(data.uid, true);
+        const center = getElementCenter(el);
+        dragState = {
+          mode: "rotate",
+          uid: data.uid,
+          pointerId: event.pointerId,
+          center,
+          startAngle: getPointerAngle(event, center),
+          baseR: data.r
+        };
+        setPerformanceEditing(true);
+      });
+
+      deleteHandle.addEventListener("pointerdown", (event) => {
+        if (isGiftMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        deleteStem(data.uid);
+      });
+
+      noteHandle.addEventListener("pointerdown", (event) => {
+        if (isGiftMode) return;
+        event.preventDefault();
+        event.stopPropagation();
+        addOrOpenFlowerNote(data.uid);
+      });
+
+      el.addEventListener("dblclick", () => {
+        if (isGiftMode) return;
+        flipStem(data);
+      });
+
+      return el;
+    }
+
+    function startStemMove(data, event) {
+      event.preventDefault();
+      event.stopPropagation();
+      setActive(data.uid, true);
+      dragState = {
+        mode: "move",
+        uid: data.uid,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        baseX: data.x,
+        baseY: data.y
+      };
+      dragPoint = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      setPerformanceEditing(true);
+    }
+
+    function suppressNextNoteClick(uid) {
+      suppressedNoteClickUid = uid;
+      window.setTimeout(() => {
+        if (suppressedNoteClickUid === uid) {
+          suppressedNoteClickUid = null;
+        }
+      }, 0);
+    }
+
+    function startNoteDrag(uid, event) {
+      if (isGiftMode) return;
+      const stem = getStemData(uid);
+      if (!stem || !stem.note) return;
+      event.preventDefault();
+      event.stopPropagation();
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch (error) {
+        // Window-level pointer listeners keep the drag alive if capture is unavailable.
+      }
+      suppressNextNoteClick(uid);
+      dragState = {
+        mode: "note",
+        uid,
+        pointerId: event.pointerId,
+        startX: event.clientX,
+        startY: event.clientY,
+        baseNoteX: stem.note.x,
+        baseNoteY: stem.note.y,
+        moved: false
+      };
+      dragPoint = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      setPerformanceEditing(true);
+    }
+
+    function topOpaqueStemAt(event) {
+      const ordered = [...stems].sort((a, b) => {
+        const zDelta = (Number(b.z) || 0) - (Number(a.z) || 0);
+        if (zDelta) return zDelta;
+        return stems.indexOf(b) - stems.indexOf(a);
+      });
+      return ordered.find((stem) => {
+        const el = getStemElement(stem.uid);
+        const img = el ? el.querySelector(".stem-base") : null;
+        return img && isOpaqueImageHit(event, img);
+      }) || null;
+    }
+
+    function handleStemLayerPointerDown(event) {
+      if (isGiftMode || dragState || event.button !== 0) return;
+      if (event.target.closest(".edit-handle")) return;
+      const stem = topOpaqueStemAt(event);
+      if (stem) {
+        startStemMove(stem, event);
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      setActive(null);
+    }
+
+    function renderStems() {
+      stemsRoot.innerHTML = "";
+      stems.forEach((data) => stemsRoot.appendChild(createStem(data)));
+      setActive(activeId);
+      renderCallouts();
+    }
+
+    function renderPalette() {
+      paletteList.innerHTML = "";
+      activeCatalog.forEach((item) => {
+        const count = stems.filter((stem) => stem.catalog === item.id).length;
+        const button = document.createElement("div");
+        button.className = "palette-item";
+        button.role = "button";
+        button.tabIndex = 0;
+        button.title = `添加${item.name}`;
+
+        const thumb = document.createElement("img");
+        thumb.className = "palette-thumb";
+        thumb.src = assetSrc(ASSET_BASE, item.src);
+        thumb.alt = "";
+        thumb.draggable = false;
+
+        const name = document.createElement("span");
+        name.className = "palette-name";
+        name.textContent = item.name;
+
+        const badge = document.createElement("span");
+        badge.className = "palette-count";
+        badge.textContent = `×${count}`;
+
+        const outline = document.createElement("button");
+        outline.className = "palette-outline";
+        outline.type = "button";
+        outline.title = `添加${item.name}轮廓文字轨道`;
+        outline.setAttribute("aria-label", `添加${item.name}轮廓文字轨道`);
+        outline.textContent = "◎";
+        outline.addEventListener("click", (event) => {
+          event.stopPropagation();
+          addNameOrbit(item.id);
+        });
+
+        button.append(thumb, name, badge, outline);
+        button.addEventListener("click", () => addStem(item.id));
+        button.addEventListener("keydown", (event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            addStem(item.id);
+          }
+        });
+        paletteList.appendChild(button);
+      });
+    }
+
+    function renderGemPalette() {
+      gemPaletteList.innerHTML = "";
+      activeGemCatalog.forEach((item) => {
+        const count = placedGems.filter((gem) => gem.gem === item.id).length;
+        const button = document.createElement("button");
+        button.className = "palette-item gem-palette-item";
+        button.classList.toggle("is-active", activeGemId === item.id);
+        button.type = "button";
+        button.title = activeGemId === item.id ? `取消放置${item.name}` : `放置${item.name}`;
+        button.setAttribute("aria-label", button.title);
+
+        const thumb = document.createElement("img");
+        thumb.className = "gem-thumb";
+        thumb.src = assetSrc(GEM_ASSET_BASE, item.src);
+        thumb.alt = "";
+        thumb.draggable = false;
+
+        const name = document.createElement("span");
+        name.className = "palette-name";
+        name.textContent = item.name;
+
+        const badge = document.createElement("span");
+        badge.className = "palette-count";
+        badge.textContent = `×${count}`;
+
+        button.append(thumb, name, badge);
+        button.addEventListener("click", () => toggleGemPlacement(item.id));
+        gemPaletteList.appendChild(button);
+      });
+    }
+
+    function switchPalettePanel(panel) {
+      const showGems = panel === "gems";
+      flowerPanel.hidden = showGems;
+      gemPanel.hidden = !showGems;
+      paletteTabs.forEach((tab) => {
+        tab.setAttribute("aria-selected", String(tab.dataset.paletteTab === panel));
+      });
+      if (!showGems) {
+        setActiveGem(null);
+      }
+    }
+
+    function assetSrc(base, src) {
+      if (!src) return "";
+      if (/^(data:|https?:|file:|blob:)/.test(src)) return src;
+      return base + src;
+    }
+
+    function catalogEnglishName(item) {
+      return item.id
+        .split("-")
+        .filter((part) => !/^\d+$/.test(part))
+        .map((part) => part === "annes" ? "anne's" : part)
+        .join(" ");
+    }
+
+    function isMaskFilled(mask, x, y) {
+      if (x < 0 || y < 0 || x >= mask.width || y >= mask.height) return false;
+      return mask.data[(y * mask.width + x) * 4 + 3] > 24;
+    }
+
+    function getAlphaBounds(mask, step = 3) {
+      let left = mask.width;
+      let top = mask.height;
+      let right = -1;
+      let bottom = -1;
+      for (let y = 0; y < mask.height; y += step) {
+        for (let x = 0; x < mask.width; x += step) {
+          if (!isMaskFilled(mask, x, y)) continue;
+          left = Math.min(left, x);
+          top = Math.min(top, y);
+          right = Math.max(right, x);
+          bottom = Math.max(bottom, y);
+        }
+      }
+      if (right < left || bottom < top) return null;
+      return { left, top, right, bottom, width: right - left, height: bottom - top };
+    }
+
+    function normalizePathPoints(points, padding = 24) {
+      const left = Math.min(...points.map((p) => p.x));
+      const right = Math.max(...points.map((p) => p.x));
+      const top = Math.min(...points.map((p) => p.y));
+      const bottom = Math.max(...points.map((p) => p.y));
+      const sourceW = Math.max(1, right - left);
+      const sourceH = Math.max(1, bottom - top);
+      const scale = Math.min((250 - padding * 2) / sourceW, (250 - padding * 2) / sourceH);
+      const offsetX = (250 - sourceW * scale) / 2;
+      const offsetY = (250 - sourceH * scale) / 2;
+      return points.map((p) => ({
+        x: offsetX + (p.x - left) * scale,
+        y: offsetY + (p.y - top) * scale
+      }));
+    }
+
+    function pointsToPath(points) {
+      return points
+        .map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`)
+        .join(" ") + " Z";
+    }
+
+    function genericFlowerPath(seed = 0) {
+      const points = [];
+      const petals = 7 + seed % 4;
+      for (let i = 0; i < 144; i += 1) {
+        const angle = -Math.PI + (i / 144) * Math.PI * 2;
+        const ripple =
+          Math.sin(angle * petals + seed) * 17 +
+          Math.sin(angle * (petals + 3) - seed * .7) * 9;
+        const radius = 82 + ripple;
+        points.push({
+          x: 125 + Math.cos(angle) * radius,
+          y: 125 + Math.sin(angle) * radius * .88
+        });
+      }
+      return pointsToPath(points);
+    }
+
+    const orbitSilhouettePathByCatalog = {
+      panicum: "M126 232 C113 207 91 190 69 165 C40 131 35 91 61 58 C83 30 116 25 137 51 C152 22 192 22 215 48 C241 77 230 121 198 144 C172 163 149 188 139 220 C136 231 131 235 126 232 Z",
+      "seeded-eucalyptus": "M121 236 C105 218 104 194 87 181 C64 163 65 132 94 125 C69 101 83 69 115 76 C112 45 139 26 160 47 C187 40 207 65 195 91 C223 108 216 143 184 149 C194 180 166 199 140 181 C136 205 138 225 151 237 C143 244 129 244 121 236 Z",
+      "lily-grass": "M123 239 C96 187 78 116 96 28 C102 2 132 13 130 42 C126 93 144 151 171 218 C176 232 133 247 123 239 Z",
+      delphinium: "M125 233 C103 218 101 191 88 174 C68 154 72 128 97 116 C75 96 83 68 112 70 C110 39 140 27 154 55 C183 47 202 73 184 96 C211 113 203 142 176 150 C184 178 158 197 134 183 C131 204 137 222 153 234 C146 244 133 244 125 233 Z",
+      hydrangea: "M124 228 C110 203 80 195 62 167 C42 136 48 91 75 63 C106 32 154 30 187 53 C221 78 227 126 204 162 C184 193 149 199 132 222 C130 229 126 232 124 228 Z",
+      iris: "M121 236 C113 204 84 176 67 141 C50 104 66 73 101 77 C101 45 124 18 147 42 C162 18 193 23 202 55 C212 88 184 112 166 134 C178 163 168 190 139 205 C134 218 132 231 121 236 Z",
+      orchid: "M125 222 C116 193 84 188 61 162 C39 137 44 101 72 91 C51 66 66 36 96 38 C119 39 126 62 126 84 C139 55 170 38 196 53 C224 69 217 109 188 122 C219 142 209 179 178 187 C152 194 140 208 125 222 Z",
+      anemone: "M125 225 C117 197 83 202 70 175 C57 149 85 135 63 112 C41 88 74 72 92 86 C86 56 116 49 126 76 C142 45 171 58 163 88 C196 75 211 105 184 123 C214 139 202 171 171 166 C170 199 139 196 125 225 Z",
+      cornflower: "M127 236 C120 207 117 182 121 159 C103 164 87 149 96 132 C69 124 76 96 101 100 C93 76 119 66 130 89 C149 66 174 83 160 105 C188 104 194 132 167 139 C175 159 150 169 136 154 C134 183 143 207 153 232 C147 241 133 242 127 236 Z",
+      "queen-annes-lace": "M124 229 C118 199 109 176 94 158 C65 159 45 139 53 113 C37 93 58 68 82 79 C91 48 130 42 145 71 C169 51 207 67 203 99 C232 106 228 144 198 151 C174 156 151 150 133 164 C127 186 129 210 137 232 C134 241 126 240 124 229 Z"
+    };
+
+    const orbitCropByCatalog = {
+      panicum: [.08, .03, .9, .48],
+      "seeded-eucalyptus": [.2, .06, .78, .66],
+      "lily-grass": [.22, .02, .86, .45],
+      delphinium: [.28, .07, .72, .48],
+      hydrangea: [.12, .13, .84, .43],
+      iris: [.16, .08, .78, .43],
+      orchid: [.22, .06, .78, .34],
+      anemone: [.08, .08, .92, .36],
+      cornflower: [.28, .14, .72, .38],
+      "queen-annes-lace": [.1, .1, .9, .38]
+    };
+
+    function getOrbitCrop(mask, item) {
+      const crop = orbitCropByCatalog[item.id];
+      if (!crop) {
+        const bounds = getAlphaBounds(mask, 3);
+        if (!bounds) return null;
+        return {
+          left: bounds.left,
+          top: bounds.top,
+          right: bounds.right,
+          bottom: Math.floor(bounds.top + bounds.height * .55)
+        };
+      }
+      return {
+        left: Math.floor(mask.width * crop[0]),
+        top: Math.floor(mask.height * crop[1]),
+        right: Math.floor(mask.width * crop[2]),
+        bottom: Math.floor(mask.height * crop[3])
+      };
+    }
+
+    function fillMissingRadii(radii) {
+      const filled = radii.slice();
+      const length = filled.length;
+      for (let i = 0; i < length; i += 1) {
+        if (filled[i]) continue;
+        let prev = i;
+        let next = i;
+        for (let step = 1; step < length; step += 1) {
+          const a = (i - step + length) % length;
+          const b = (i + step) % length;
+          if (!filled[prev] && filled[a]) prev = a;
+          if (!filled[next] && filled[b]) next = b;
+          if (filled[prev] && filled[next]) break;
+        }
+        filled[i] = ((filled[prev] || 0) + (filled[next] || 0)) / 2;
+      }
+      return filled;
+    }
+
+    function buildOrbitPathFromMask(mask, item) {
+      const silhouettePath = item ? orbitSilhouettePathByCatalog[item.id] : null;
+      if (silhouettePath) return silhouettePath;
+
+      if (!mask || mask.opaque) {
+        return genericFlowerPath(item ? item.id.length : 1);
+      }
+
+      const crop = getOrbitCrop(mask, item);
+      if (!crop) return genericFlowerPath(item ? item.id.length : 1);
+      const cropW = Math.max(1, crop.right - crop.left);
+      const cropH = Math.max(1, crop.bottom - crop.top);
+      const step = Math.max(2, Math.round(Math.min(cropW, cropH) / 130));
+      const boundary = [];
+
+      for (let y = crop.top; y <= crop.bottom; y += step) {
+        for (let x = crop.left; x <= crop.right; x += step) {
+          if (!isMaskFilled(mask, x, y)) continue;
+          const edge =
+            !isMaskFilled(mask, x - step, y) ||
+            !isMaskFilled(mask, x + step, y) ||
+            !isMaskFilled(mask, x, y - step) ||
+            !isMaskFilled(mask, x, y + step) ||
+            !isMaskFilled(mask, x - step, y - step) ||
+            !isMaskFilled(mask, x + step, y + step);
+          if (edge) boundary.push({ x, y });
+        }
+      }
+
+      if (boundary.length < 18) {
+        return genericFlowerPath(item ? item.id.length : 1);
+      }
+
+      const cx = boundary.reduce((sum, p) => sum + p.x, 0) / boundary.length;
+      const cy = boundary.reduce((sum, p) => sum + p.y, 0) / boundary.length;
+      const bins = 176;
+      const radii = new Array(bins).fill(0);
+      boundary.forEach((point) => {
+        const angle = Math.atan2(point.y - cy, point.x - cx);
+        const index = Math.round(((angle + Math.PI) / (Math.PI * 2)) * (bins - 1));
+        const radius = Math.hypot(point.x - cx, point.y - cy);
+        radii[index] = Math.max(radii[index], radius);
+      });
+      const filled = fillMissingRadii(radii);
+      const itemSeed = orbitHash(item.id);
+      const points = filled.map((radius, i) => {
+        const angle = -Math.PI + (i / bins) * Math.PI * 2;
+        const prev = filled[(i - 1 + bins) % bins];
+        const next = filled[(i + 1) % bins];
+        const smoothed = (prev + radius * 2.35 + next) / 4.35;
+        const ripple = Math.sin(angle * (5 + itemSeed % 7) + itemSeed * .011) * step * 1.35;
+        return {
+          x: cx + Math.cos(angle) * (smoothed + ripple),
+          y: cy + Math.sin(angle) * (smoothed + ripple * .7)
+        };
+      });
+      const normalized = normalizePathPoints(points, 18);
+      return pointsToPath(normalized);
+    }
+
+    function orbitHash(value) {
+      return String(value).split("").reduce((hash, char) => {
+        return (hash * 31 + char.charCodeAt(0)) >>> 0;
+      }, 17);
+    }
+
+    function repeatOrbitText(label, count) {
+      return Array.from({ length: count }, () => `${label} / `).join("");
+    }
+
+    const orbitPalettes = [
+      ["#b7ecff", "#16a0ff", "#05349f"],
+      ["#7ffff0", "#128bd0", "#082d82"],
+      ["#c6d2ff", "#5c62f2", "#172071"],
+      ["#e7f7ff", "#68b6ff", "#125ed1"],
+      ["#9ec9ff", "#2356d6", "#06195e"],
+      ["#d1fbff", "#24c1d4", "#1954a8"],
+      ["#b6d4ff", "#7a8dff", "#2636a7"],
+      ["#7cd1ff", "#0d6cbb", "#001f74"]
+    ];
+
+    const orbitProfiles = {
+      panicum: { size: [360, 480], lines: [2, 3], palettes: [1, 5, 7], repeats: [30, 42] },
+      "seeded-eucalyptus": { size: [270, 390], lines: [1, 3], palettes: [5, 3, 1], repeats: [22, 34] },
+      "lily-grass": { size: [330, 460], lines: [1, 2], palettes: [0, 1, 6], repeats: [24, 38] },
+      delphinium: { size: [300, 420], lines: [2, 3], palettes: [4, 7, 2], repeats: [24, 38] },
+      hydrangea: { size: [230, 330], lines: [2, 3], palettes: [0, 3, 6], repeats: [18, 28] },
+      iris: { size: [300, 410], lines: [2, 3], palettes: [2, 6, 4], repeats: [22, 36] },
+      orchid: { size: [310, 430], lines: [1, 3], palettes: [3, 0, 5], repeats: [24, 38] },
+      anemone: { size: [220, 320], lines: [2, 3], palettes: [4, 7, 0], repeats: [18, 28] },
+      cornflower: { size: [165, 255], lines: [2, 3], palettes: [7, 4, 1], repeats: [15, 24] },
+      "queen-annes-lace": { size: [370, 500], lines: [2, 3], palettes: [0, 5, 3], repeats: [30, 44] }
+    };
+
+    function orbitPalette(index) {
+      return orbitPalettes[index % orbitPalettes.length];
+    }
+
+    function randomBetween(min, max) {
+      return min + Math.random() * (max - min);
+    }
+
+    function viewportSize() {
+      return {
+        width: Math.max(1, window.innerWidth || document.documentElement.clientWidth || 1600),
+        height: Math.max(1, window.innerHeight || document.documentElement.clientHeight || 1000)
+      };
+    }
+
+    function orbitRectFromCenter(cx, cy, size) {
+      return {
+        left: cx - size / 2,
+        top: cy - size / 2,
+        right: cx + size / 2,
+        bottom: cy + size / 2,
+        width: size,
+        height: size
+      };
+    }
+
+    function orbitRectFromData(orbit) {
+      const viewport = viewportSize();
+      return orbitRectFromCenter(
+        viewport.width * (Number(orbit.x) || 0) / 100,
+        viewport.height * (Number(orbit.y) || 0) / 100,
+        Number(orbit.size) || 250
+      );
+    }
+
+    function expandRect(rect, padding) {
+      return {
+        left: rect.left - padding,
+        top: rect.top - padding,
+        right: rect.right + padding,
+        bottom: rect.bottom + padding,
+        width: rect.width + padding * 2,
+        height: rect.height + padding * 2
+      };
+    }
+
+    function rectsIntersect(a, b, padding = 0) {
+      return !(
+        a.right + padding <= b.left ||
+        b.right + padding <= a.left ||
+        a.bottom + padding <= b.top ||
+        b.bottom + padding <= a.top
+      );
+    }
+
+    function intersectionArea(a, b) {
+      const width = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left));
+      const height = Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+      return width * height;
+    }
+
+    function visibleOrbitRatio(rect) {
+      const viewport = viewportSize();
+      const screen = { left: 0, top: 0, right: viewport.width, bottom: viewport.height };
+      return intersectionArea(rect, screen) / Math.max(1, rect.width * rect.height);
+    }
+
+    function centralOrbitAvoidRect() {
+      const viewport = viewportSize();
+      const stageRect = stage ? stage.getBoundingClientRect() : null;
+      if (!stageRect || !stageRect.width || !stageRect.height) {
+        return {
+          left: viewport.width * .3,
+          top: viewport.height * .2,
+          right: viewport.width * .7,
+          bottom: viewport.height * .82,
+          width: viewport.width * .4,
+          height: viewport.height * .62
+        };
+      }
+      const rect = {
+        left: stageRect.left + stageRect.width * .16,
+        top: stageRect.top + stageRect.height * .16,
+        right: stageRect.left + stageRect.width * .84,
+        bottom: stageRect.top + stageRect.height * .82
+      };
+      rect.width = rect.right - rect.left;
+      rect.height = rect.bottom - rect.top;
+      return rect;
+    }
+
+    function orbitPlacementCandidates(size, seed) {
+      const hash = orbitHash(seed);
+      const viewport = viewportSize();
+      const avoid = centralOrbitAvoidRect();
+      const gap = clamp(Math.min(viewport.width, viewport.height) * .038, 24, 46);
+      const centerX = (avoid.left + avoid.right) / 2;
+      const centerY = (avoid.top + avoid.bottom) / 2;
+      const topY = avoid.top - gap - size / 2;
+      const bottomY = avoid.bottom + gap + size / 2;
+      const leftX = avoid.left - gap - size / 2;
+      const rightX = avoid.right + gap + size / 2;
+      const candidates = [
+        { cx: avoid.left - size * .08, cy: topY },
+        { cx: centerX, cy: topY },
+        { cx: avoid.right + size * .08, cy: topY },
+        { cx: rightX, cy: avoid.top + size * .18 },
+        { cx: rightX, cy: centerY },
+        { cx: rightX, cy: avoid.bottom - size * .18 },
+        { cx: avoid.right + size * .08, cy: bottomY },
+        { cx: centerX, cy: bottomY },
+        { cx: avoid.left - size * .08, cy: bottomY },
+        { cx: leftX, cy: avoid.bottom - size * .18 },
+        { cx: leftX, cy: centerY },
+        { cx: leftX, cy: avoid.top + size * .18 },
+        { cx: viewport.width - size * .18, cy: size * .18 },
+        { cx: viewport.width - size * .16, cy: viewport.height - size * .2 },
+        { cx: size * .2, cy: viewport.height - size * .18 },
+        { cx: size * .18, cy: size * .18 }
+      ];
+      return candidates.map((candidate, index) => {
+        const source = candidates[(index + hash) % candidates.length];
+        const jitterX = (((hash >> (index % 12)) & 7) - 3) * 4;
+        const jitterY = (((hash >> ((index + 5) % 12)) & 7) - 3) * 4;
+        return { cx: source.cx + jitterX, cy: source.cy + jitterY };
+      });
+    }
+
+    function pickOrbitPlacement(seed, desiredSize) {
+      const viewport = viewportSize();
+      const avoid = expandRect(centralOrbitAvoidRect(), 12);
+      const used = nameOrbits.map(orbitRectFromData);
+      const viewportLimit = Math.min(viewport.width, viewport.height) * .52;
+      const startSize = Math.round(Math.min(desiredSize, viewportLimit));
+      const scales = [1, .94, .88, .82, .76, .7, .64, .58];
+      let best = null;
+
+      for (const scale of scales) {
+        const size = Math.max(150, Math.round(startSize * scale));
+        const candidates = orbitPlacementCandidates(size, seed);
+        for (const candidate of candidates) {
+          const rect = orbitRectFromCenter(candidate.cx, candidate.cy, size);
+          const visible = visibleOrbitRatio(rect);
+          if (visible < .2 || rectsIntersect(rect, avoid, 0)) continue;
+          const overlapsExisting = used.some((other) => rectsIntersect(rect, other, 22));
+          if (overlapsExisting) continue;
+          return {
+            x: clamp(candidate.cx / viewport.width * 100, -10, 110),
+            y: clamp(candidate.cy / viewport.height * 100, -10, 110),
+            size
+          };
+        }
+
+        candidates.forEach((candidate) => {
+          const rect = orbitRectFromCenter(candidate.cx, candidate.cy, size);
+          const visible = visibleOrbitRatio(rect);
+          if (visible < .18 || rectsIntersect(rect, avoid, 0)) return;
+          const overlap = used.reduce((sum, other) => sum + intersectionArea(expandRect(rect, 22), other), 0);
+          const score = overlap - visible * 12000;
+          if (!best || score < best.score) {
+            best = { candidate, size, score };
+          }
+        });
+      }
+
+      const fallback = best || {
+        candidate: {
+          cx: viewport.width * (.12 + (orbitHash(seed) % 76) / 100),
+          cy: viewport.height * ((orbitHash(`${seed}-y`) % 2) ? .08 : .92)
+        },
+        size: Math.max(150, Math.round(startSize * .58))
+      };
+      return {
+        x: clamp(fallback.candidate.cx / viewport.width * 100, -10, 110),
+        y: clamp(fallback.candidate.cy / viewport.height * 100, -10, 110),
+        size: fallback.size
+      };
+    }
+
+    function escapeText(value) {
+      return String(value)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function orbitUidNumber(orbit) {
+      const value = Number(String(orbit.uid || "").replace("orbit-", ""));
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function distributeKeptNameOrbits(orbits) {
+      return orbits.map((orbit, index) => {
+        const slot = NAME_ORBIT_KEEP_SLOTS[index % NAME_ORBIT_KEEP_SLOTS.length];
+        return {
+          ...orbit,
+          x: slot.x,
+          y: slot.y,
+          size: slot.size,
+          rotate: slot.rotate,
+          opacity: slot.opacity,
+          lines: Math.min(Number(orbit.lines) || slot.lines, slot.lines),
+          repeatCount: Math.min(Number(orbit.repeatCount) || 24, 30),
+          duration: Math.max(Number(orbit.duration) || 12, 12 + index)
+        };
+      });
+    }
+
+    function pruneLoadedNameOrbits(orbits) {
+      if (!Array.isArray(orbits) || orbits.length <= MAX_NAME_ORBITS) return orbits;
+      didPruneNameOrbits = true;
+      const newestFirst = [...orbits].sort((a, b) => orbitUidNumber(b) - orbitUidNumber(a));
+      const kept = [];
+      const seenCatalogs = new Set();
+
+      newestFirst.forEach((orbit) => {
+        if (kept.length >= MAX_NAME_ORBITS || seenCatalogs.has(orbit.catalog)) return;
+        kept.push(orbit);
+        seenCatalogs.add(orbit.catalog);
+      });
+      newestFirst.forEach((orbit) => {
+        if (kept.length >= MAX_NAME_ORBITS || kept.includes(orbit)) return;
+        kept.push(orbit);
+      });
+
+      return distributeKeptNameOrbits(kept.sort((a, b) => orbitUidNumber(a) - orbitUidNumber(b)));
+    }
+
+    function enforceNameOrbitLimit() {
+      while (nameOrbits.length > MAX_NAME_ORBITS) {
+        const removed = nameOrbits.shift();
+        if (removed) {
+          orbitMarkupCache.delete(removed.uid);
+        }
+      }
+    }
+
+    async function addNameOrbit(catalogId) {
+      if (isGiftMode) return;
+      const item = catalogById.get(catalogId);
+      if (!item) return;
+      const mask = orbitSilhouettePathByCatalog[item.id] ? null : await getAlphaMaskForAsset(item);
+      const profile = orbitProfiles[item.id] || { size: [190, 360], lines: [1, 3], palettes: [0, 1, 2], repeats: [18, 30] };
+      const placement = pickOrbitPlacement(`${item.id}-${nextOrbitId}`, randomBetween(profile.size[0], profile.size[1]));
+      const lines = profile.lines[0] + Math.floor(Math.random() * (profile.lines[1] - profile.lines[0] + 1));
+      const colorIndex = profile.palettes[Math.floor(Math.random() * profile.palettes.length)];
+      const repeatCount = profile.repeats[0] + Math.floor(Math.random() * (profile.repeats[1] - profile.repeats[0] + 1));
+      const orbit = {
+        uid: `orbit-${nextOrbitId++}`,
+        version: ORBIT_VERSION,
+        catalog: item.id,
+        label: catalogEnglishName(item),
+        path: buildOrbitPathFromMask(mask, item),
+        x: placement.x,
+        y: placement.y,
+        size: placement.size,
+        rotate: -38 + Math.random() * 76,
+        duration: 9 + Math.floor(Math.random() * 13),
+        lines,
+        colorIndex,
+        repeatCount,
+        opacity: .5 + Math.random() * .32
+      };
+      nameOrbits.push(orbit);
+      enforceNameOrbitLimit();
+      renderNameOrbits();
+    }
+
+    const orbitVisibilityObserver = "IntersectionObserver" in window
+      ? new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          entry.target.dataset.inViewport = entry.isIntersecting ? "true" : "false";
+          updateNameOrbitAnimationState(entry.target);
+        });
+      }, { root: null, threshold: 0 })
+      : null;
+
+    function getNameOrbitMarkup(orbit) {
+      if (orbitMarkupCache.has(orbit.uid)) {
+        return orbitMarkupCache.get(orbit.uid);
+      }
+      const id = orbit.uid;
+      const label = escapeText(orbit.label);
+      const text = repeatOrbitText(label, orbit.repeatCount || 11);
+      const lines = clamp(Number(orbit.lines) || 2, 1, 3);
+      const colors = orbitPalette(Number(orbit.colorIndex) || 0);
+      const layers = Array.from({ length: lines }, (_, line) => {
+        const scale = 1 - line * .105;
+        const offset = line * 30 - (lines - 1) * 11;
+        const opacity = (1 - line * .2).toFixed(2);
+        const duration = (Number(orbit.duration) || 13) + line * 3;
+        const start = -offset;
+        const end = 100 - offset;
+        return `
+            <g transform="translate(${125 * (1 - scale)} ${125 * (1 - scale)}) scale(${scale})" opacity="${opacity}">
+              <path class="orbit-guide" d="${orbit.path}" />
+              <text style="fill:url(#orbitTextGradient-${id})">
+                <textPath href="#orbitPath-${id}" startOffset="${start}%">${text}
+                  <animate attributeName="startOffset" from="${start}%" to="${end}%" dur="${duration}s" repeatCount="indefinite" />
+                </textPath>
+              </text>
+            </g>`;
+      }).join("");
+      const markup = `
+        <svg viewBox="0 0 250 250">
+          <defs>
+            <linearGradient id="orbitTextGradient-${id}" x1="28" y1="24" x2="218" y2="224" gradientUnits="userSpaceOnUse">
+              <stop offset="0" stop-color="${colors[0]}" stop-opacity=".74" />
+              <stop offset=".52" stop-color="${colors[1]}" stop-opacity=".92" />
+              <stop offset="1" stop-color="${colors[2]}" stop-opacity=".76" />
+            </linearGradient>
+            <path id="orbitPath-${id}" d="${orbit.path}" />
+          </defs>
+          <g transform="rotate(${orbit.rotate} 125 125)">
+            ${layers}
+          </g>
+        </svg>`;
+      orbitMarkupCache.set(orbit.uid, markup);
+      return markup;
+    }
+
+    function updateNameOrbitAnimationState(wrapper) {
+      const shouldPause = document.hidden || isPerformanceEditing || wrapper.dataset.inViewport === "false";
+      wrapper.style.animationPlayState = shouldPause ? "paused" : "";
+      const svg = wrapper.querySelector("svg");
+      if (!svg) return;
+      try {
+        if (shouldPause && typeof svg.pauseAnimations === "function") {
+          svg.pauseAnimations();
+        } else if (!shouldPause && typeof svg.unpauseAnimations === "function") {
+          svg.unpauseAnimations();
+        }
+      } catch (error) {
+        // Some browsers expose SVG animation controls only after the SVG is attached.
+      }
+    }
+
+    function observeNameOrbit(wrapper) {
+      wrapper.dataset.inViewport = "true";
+      if (orbitVisibilityObserver) {
+        orbitVisibilityObserver.observe(wrapper);
+      }
+      updateNameOrbitAnimationState(wrapper);
+    }
+
+    function updateAllNameOrbitAnimationStates() {
+      document.querySelectorAll(".name-orbit").forEach(updateNameOrbitAnimationState);
+    }
+
+    function setPerformanceEditing(next) {
+      window.clearTimeout(performanceResumeTimer);
+      if (next) {
+        if (isPerformanceEditing) return;
+        isPerformanceEditing = true;
+        document.body.classList.add("performance-editing");
+        updateAllNameOrbitAnimationStates();
+        return;
+      }
+      performanceResumeTimer = window.setTimeout(() => {
+        isPerformanceEditing = false;
+        document.body.classList.remove("performance-editing");
+        updateAllNameOrbitAnimationStates();
+      }, 180);
+    }
+
+    function renderNameOrbits() {
+      if (orbitVisibilityObserver) {
+        orbitVisibilityObserver.disconnect();
+      }
+      nameOrbitLayer.innerHTML = "";
+      const fragment = document.createDocumentFragment();
+      nameOrbits.forEach((orbit) => {
+        const wrapper = document.createElement("div");
+        wrapper.className = "name-orbit";
+        wrapper.style.left = `calc(${orbit.x}% - ${orbit.size / 2}px)`;
+        wrapper.style.top = `calc(${orbit.y}% - ${orbit.size / 2}px)`;
+        wrapper.style.width = `${orbit.size}px`;
+        wrapper.style.height = `${orbit.size}px`;
+        wrapper.style.animationDuration = `${orbit.duration}s`;
+        wrapper.style.setProperty("--orbit-opacity", orbit.opacity || .74);
+        wrapper.innerHTML = getNameOrbitMarkup(orbit);
+        fragment.appendChild(wrapper);
+      });
+      nameOrbitLayer.appendChild(fragment);
+      nameOrbitLayer.querySelectorAll(".name-orbit").forEach(observeNameOrbit);
+    }
+
+    function updateStemElement(data, el = getStemElement(data.uid)) {
+      if (!el) return;
+      el.style.setProperty("--x", `${data.x}px`);
+      el.style.setProperty("--y", `${data.y}px`);
+      el.style.setProperty("--w", `${data.w}px`);
+      el.style.setProperty("--r", `${data.r || 0}deg`);
+      el.style.setProperty("--z", data.z);
+      el.style.setProperty("--flip", data.flip || 1);
+      el.dataset.flip = String(data.flip || 1);
+    }
+
+    function setActive(id, raise = false) {
+      activeId = id;
+      if (id && raise) {
+        const stem = getStemData(id);
+        if (stem) {
+          stem.z = getTopZ() + 1;
+          updateStemElement(stem);
+        }
+      }
+      document.querySelectorAll(".stem-item").forEach((el) => {
+        el.classList.toggle("selected", el.dataset.id === id);
+      });
+    }
+
+    function getStemElement(id) {
+      if (!id) return null;
+      return document.querySelector(`.stem-item[data-id="${CSS.escape(id)}"]`);
+    }
+
+    function getStemData(id = activeId) {
+      if (!id) return null;
+      return stems.find((stem) => stem.uid === id);
+    }
+
+    function getTopZ() {
+      return stems.reduce((top, stem) => Math.max(top, stem.z || 0), 0);
+    }
+
+    function sendStemToBack(data = getStemData()) {
+      if (!data || isGiftMode) return;
+      const ordered = stems
+        .slice()
+        .sort((a, b) => {
+          if (a.uid === data.uid) return -1;
+          if (b.uid === data.uid) return 1;
+          return (Number(a.z) || 0) - (Number(b.z) || 0);
+        });
+      ordered.forEach((stem, index) => {
+        stem.z = index + 1;
+        updateStemElement(stem);
+      });
+      setActive(data.uid);
+    }
+
+    function flipStem(data = getStemData()) {
+      if (!data) return;
+      data.flip = (data.flip || 1) * -1;
+      updateStemElement(data);
+      renderCallouts();
+    }
+
+    function resizeStem(data, delta) {
+      if (!data) return;
+      data.w = clamp(data.w + delta, 92, 520);
+      updateStemElement(data);
+      renderCallouts();
+    }
+
+    function resetActiveStem() {
+      const data = getStemData();
+      if (!data) return;
+      data.x = data.home.x;
+      data.y = data.home.y;
+      data.w = data.home.w;
+      data.r = data.home.r;
+      data.flip = data.home.flip;
+      updateStemElement(data);
+      renderCallouts();
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(max, Math.max(min, value));
+    }
+
+    function normalizeAngle(angle) {
+      return ((angle + 180) % 360 + 360) % 360 - 180;
+    }
+
+    function getElementCenter(el) {
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    function getDistance(event, center) {
+      return Math.hypot(event.clientX - center.x, event.clientY - center.y) || 1;
+    }
+
+    function getPointerAngle(event, center) {
+      return Math.atan2(event.clientY - center.y, event.clientX - center.x) * 180 / Math.PI;
+    }
+
+    function addStem(catalogId) {
+      if (isGiftMode) return;
+      const source = [...stems].reverse().find((stem) => stem.catalog === catalogId);
+      const template = source || defaultStemByCatalog.get(catalogId);
+      if (!template) return;
+      const count = stems.filter((stem) => stem.catalog === catalogId).length;
+      const offsetX = ((count % 3) - 1) * 28;
+      const offsetY = ((count % 4) - 1.5) * 18;
+      const duplicate = makeStem({
+        catalog: catalogId,
+        x: clamp(template.x + offsetX, 64, 660),
+        y: clamp(template.y + offsetY, 150, 735),
+        w: template.w,
+        r: (template.r || 0) + ((count % 5) - 2) * 3,
+        z: getTopZ() + 1,
+        flip: count % 2 === 0 ? (template.flip || 1) * -1 : (template.flip || 1)
+      });
+      stems.push(duplicate);
+      stemsRoot.appendChild(createStem(duplicate));
+      setActive(duplicate.uid, true);
+      renderPalette();
+    }
+
+    function deleteStem(id = activeId) {
+      if (isGiftMode || !id) return;
+      const index = stems.findIndex((stem) => stem.uid === id);
+      if (index < 0) return;
+      stems.splice(index, 1);
+      activeId = stems.length ? stems[Math.min(index, stems.length - 1)].uid : null;
+      renderStems();
+      renderPalette();
+    }
+
+    function getTopGemZ() {
+      return placedGems.reduce((top, gem) => Math.max(top, Number(gem.z) || 0), 0);
+    }
+
+    function setActiveGem(gemId) {
+      activeGemId = gemId && gemCatalogById.has(gemId) ? gemId : null;
+      document.body.classList.toggle("gem-placement-mode", Boolean(activeGemId));
+      renderGemPalette();
+    }
+
+    function toggleGemPlacement(gemId) {
+      if (isGiftMode) return;
+      setActive(null);
+      setActiveGem(activeGemId === gemId ? null : gemId);
+    }
+
+    function placeGemAt(event) {
+      const item = gemCatalogById.get(activeGemId);
+      if (!item) return;
+      const viewport = viewportSize();
+      const seed = orbitHash(`${item.id}-${nextGemId}`);
+      const gem = makeGem({
+        gem: item.id,
+        x: clamp(event.clientX / viewport.width * 100, 0, 100),
+        y: clamp(event.clientY / viewport.height * 100, 0, 100),
+        w: item.size * (.92 + (seed % 9) * .02),
+        r: ((seed % 29) - 14) * .9,
+        scale: .94 + ((seed >> 4) % 12) * .012,
+        z: getTopGemZ() + 1,
+        opacity: .9 + ((seed >> 8) % 8) * .01
+      });
+      if (!gem) return;
+      placedGems.push(gem);
+      renderPlacedGems();
+      renderGemPalette();
+    }
+
+    function renderPlacedGems() {
+      if (!gemLayer) return;
+      gemLayer.innerHTML = "";
+      placedGems.forEach((gem) => {
+        const item = gemCatalogById.get(gem.gem);
+        if (!item) return;
+        const wrapper = document.createElement("span");
+        wrapper.className = "placed-gem";
+        wrapper.style.setProperty("--gem-x", `${gem.x}%`);
+        wrapper.style.setProperty("--gem-y", `${gem.y}%`);
+        wrapper.style.setProperty("--gem-w", `${gem.w}px`);
+        wrapper.style.setProperty("--gem-r", `${gem.r || 0}deg`);
+        wrapper.style.setProperty("--gem-scale", gem.scale || 1);
+        wrapper.style.setProperty("--gem-z", gem.z || 1);
+        wrapper.style.setProperty("--gem-opacity", gem.opacity || .96);
+
+        const img = document.createElement("img");
+        img.src = assetSrc(GEM_ASSET_BASE, item.src);
+        img.alt = "";
+        img.draggable = false;
+        wrapper.appendChild(img);
+        gemLayer.appendChild(wrapper);
+      });
+    }
+
+    function isGemPlacementBlockedTarget(target) {
+      if (!(target instanceof Element)) return false;
+      return Boolean(
+        target.closest(".palette") ||
+        target.closest(".callout-layer") ||
+        target.closest(".toolbar") ||
+        target.closest(".save-btn") ||
+        target.closest(".trophy-plaque") ||
+        target.closest(".plaque-dialog") ||
+        target.closest(".flower-note-dialog") ||
+        target.closest(".plaque-modal.open") ||
+        target.closest(".flower-note-modal.open")
+      );
+    }
+
+    function handleGemPlacement(event) {
+      if (isGiftMode || !activeGemId || event.button !== 0) return;
+      if (isGemPlacementBlockedTarget(event.target)) return;
+      event.preventDefault();
+      event.stopPropagation();
+      placeGemAt(event);
+    }
+
+    const flowerStories = {
+      panicum: "妈妈，小时候我总把晚风吹过窗帘的声音听成你回家的脚步。今天这支喷泉草像那阵风，轻轻的，却总能把家里的灯吹亮。",
+      "seeded-eucalyptus": "妈妈，你以前会把洗好的水果切成小块，放在我写作业的手边。尤加利的叶子一颗一颗像那些小小的照顾，我长大以后才知道，那就是爱最安静的样子。",
+      "lily-grass": "妈妈，有一次下雨你把伞往我这边倾，自己的肩膀湿了一半。蓝丝草细细长长的，我想把它送给那天的你，像一条温柔的雨线。",
+      delphinium: "妈妈，蓝飞燕草让我想起你陪我等公交的早晨。车还没来，你一直说不急，我却记得你手心很暖，那一刻我觉得世界很稳。",
+      hydrangea: "妈妈，绣球是一小朵一小朵抱在一起的花，像我们家那些普通的晚饭。你问我今天累不累，我说还好，其实那句话一直托着我。",
+      iris: "妈妈，我第一次一个人出门前，你站在门口帮我整理领子。鸢尾像一封蓝紫色的小信，我想写给那时候努力装作不担心的你。",
+      orchid: "妈妈，蝴蝶兰安静又明亮，像你把晒好的被子铺开时的样子。那天晚上我睡得特别沉，因为整个房间都是你留下的太阳味。",
+      anemone: "妈妈，银莲花有一点倔强，也有一点柔软，像你教我遇到难事先深呼吸。后来我真的照做了，心里就像有你陪我数到三。",
+      cornflower: "妈妈，矢车菊蓝得很认真，像你给我缝扣子时低头的神情。那件衣服早就旧了，可我一直记得你把线头咬断的声音。",
+      "queen-annes-lace": "妈妈，蕾丝花细细碎碎的，像你在厨房里哼过的小调。很多年后我才发现，那些不起眼的声音，原来都是家的边缘。"
+    };
+
+    const noteVisuals = {
+      panicum: {
+        title: "Panicum Grass",
+        ink: "rgba(41, 111, 124, .92)",
+        accent: "rgba(22, 146, 168, .96)",
+        soft: "rgba(91, 210, 222, .3)",
+        pattern: "stripes",
+        patternColor: "rgba(40, 150, 170, .09)",
+        folderA: "rgba(224, 250, 255, .78)",
+        folderB: "rgba(141, 188, 178, .66)",
+        folderC: "rgba(240, 255, 252, .76)"
+      },
+      "seeded-eucalyptus": {
+        title: "Seeded Eucalyptus",
+        ink: "rgba(46, 96, 83, .92)",
+        accent: "rgba(63, 138, 121, .96)",
+        soft: "rgba(129, 194, 174, .3)",
+        pattern: "pin-dots",
+        patternColor: "rgba(63, 138, 121, .1)",
+        folderA: "rgba(237, 251, 244, .78)",
+        folderB: "rgba(147, 181, 163, .66)",
+        folderC: "rgba(236, 249, 255, .76)"
+      },
+      "lily-grass": {
+        title: "Lily Grass",
+        ink: "rgba(35, 86, 126, .92)",
+        accent: "rgba(35, 129, 186, .96)",
+        soft: "rgba(97, 186, 226, .32)",
+        pattern: "stripes",
+        patternColor: "rgba(48, 136, 198, .1)",
+        folderA: "rgba(226, 247, 255, .78)",
+        folderB: "rgba(142, 176, 190, .66)",
+        folderC: "rgba(244, 251, 255, .76)"
+      },
+      delphinium: {
+        title: "Blue Delphinium",
+        ink: "rgba(35, 63, 146, .92)",
+        accent: "rgba(47, 85, 206, .96)",
+        soft: "rgba(115, 145, 248, .32)",
+        pattern: "grid",
+        patternColor: "rgba(64, 96, 212, .1)",
+        folderA: "rgba(231, 240, 255, .78)",
+        folderB: "rgba(145, 158, 197, .66)",
+        folderC: "rgba(246, 249, 255, .76)"
+      },
+      hydrangea: {
+        title: "Blue Hydrangea",
+        ink: "rgba(38, 89, 139, .92)",
+        accent: "rgba(65, 132, 192, .96)",
+        soft: "rgba(139, 196, 242, .33)",
+        pattern: "checks",
+        patternColor: "rgba(74, 139, 194, .08)",
+        folderA: "rgba(227, 244, 255, .78)",
+        folderB: "rgba(151, 178, 196, .66)",
+        folderC: "rgba(244, 252, 255, .76)"
+      },
+      iris: {
+        title: "Violet Iris",
+        ink: "rgba(65, 54, 133, .92)",
+        accent: "rgba(91, 74, 190, .96)",
+        soft: "rgba(150, 130, 232, .32)",
+        pattern: "grid",
+        patternColor: "rgba(102, 84, 190, .1)",
+        folderA: "rgba(239, 235, 255, .78)",
+        folderB: "rgba(160, 151, 190, .66)",
+        folderC: "rgba(247, 249, 255, .76)"
+      },
+      orchid: {
+        title: "White Orchid",
+        ink: "rgba(92, 72, 106, .92)",
+        accent: "rgba(172, 52, 116, .94)",
+        soft: "rgba(236, 150, 198, .28)",
+        pattern: "pin-dots",
+        patternColor: "rgba(188, 74, 132, .09)",
+        folderA: "rgba(255, 249, 255, .8)",
+        folderB: "rgba(178, 166, 176, .64)",
+        folderC: "rgba(240, 250, 255, .76)"
+      },
+      anemone: {
+        title: "Blue Anemone",
+        ink: "rgba(23, 54, 122, .92)",
+        accent: "rgba(20, 70, 178, .96)",
+        soft: "rgba(67, 122, 225, .32)",
+        pattern: "pin-dots",
+        patternColor: "rgba(31, 78, 180, .1)",
+        folderA: "rgba(229, 240, 255, .78)",
+        folderB: "rgba(127, 154, 191, .66)",
+        folderC: "rgba(245, 250, 255, .76)"
+      },
+      cornflower: {
+        title: "Cornflower Blue",
+        ink: "rgba(26, 73, 145, .92)",
+        accent: "rgba(21, 101, 211, .96)",
+        soft: "rgba(88, 164, 244, .3)",
+        pattern: "stripes",
+        patternColor: "rgba(30, 112, 220, .1)",
+        folderA: "rgba(225, 243, 255, .78)",
+        folderB: "rgba(131, 167, 198, .66)",
+        folderC: "rgba(244, 251, 255, .76)"
+      },
+      "queen-annes-lace": {
+        title: "Queen Anne's Lace",
+        ink: "rgba(67, 91, 83, .92)",
+        accent: "rgba(112, 143, 120, .96)",
+        soft: "rgba(190, 216, 190, .32)",
+        pattern: "checks",
+        patternColor: "rgba(124, 153, 124, .09)",
+        folderA: "rgba(250, 253, 245, .8)",
+        folderB: "rgba(169, 181, 161, .64)",
+        folderC: "rgba(241, 250, 255, .76)"
+      }
+    };
+
+    const noteFlowerLayouts = {
+      panicum: {
+        "--flower-left": "56px",
+        "--flower-bottom": "70px",
+        "--flower-width": "324px",
+        "--flower-rotate": "-8deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "128px",
+        "--flower-secondary-bottom": "98px",
+        "--flower-secondary-width": "254px",
+        "--flower-secondary-rotate": "15deg",
+        "--flower-secondary-flip": "-1"
+      },
+      "seeded-eucalyptus": {
+        "--flower-left": "50px",
+        "--flower-bottom": "74px",
+        "--flower-width": "306px",
+        "--flower-rotate": "-13deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "136px",
+        "--flower-secondary-bottom": "102px",
+        "--flower-secondary-width": "244px",
+        "--flower-secondary-rotate": "10deg",
+        "--flower-secondary-flip": "-1"
+      },
+      "lily-grass": {
+        "--flower-left": "64px",
+        "--flower-bottom": "68px",
+        "--flower-width": "320px",
+        "--flower-rotate": "-10deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "130px",
+        "--flower-secondary-bottom": "110px",
+        "--flower-secondary-width": "248px",
+        "--flower-secondary-rotate": "18deg",
+        "--flower-secondary-flip": "-1"
+      },
+      delphinium: {
+        "--flower-left": "50px",
+        "--flower-bottom": "70px",
+        "--flower-width": "316px",
+        "--flower-rotate": "-6deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "132px",
+        "--flower-secondary-bottom": "104px",
+        "--flower-secondary-width": "258px",
+        "--flower-secondary-rotate": "13deg",
+        "--flower-secondary-flip": "-1"
+      },
+      hydrangea: {
+        "--flower-left": "40px",
+        "--flower-bottom": "72px",
+        "--flower-width": "330px",
+        "--flower-rotate": "-9deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "124px",
+        "--flower-secondary-bottom": "100px",
+        "--flower-secondary-width": "268px",
+        "--flower-secondary-rotate": "12deg",
+        "--flower-secondary-flip": "-1"
+      },
+      iris: {
+        "--flower-left": "48px",
+        "--flower-bottom": "68px",
+        "--flower-width": "326px",
+        "--flower-rotate": "-5deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "130px",
+        "--flower-secondary-bottom": "104px",
+        "--flower-secondary-width": "260px",
+        "--flower-secondary-rotate": "14deg",
+        "--flower-secondary-flip": "-1"
+      },
+      orchid: {
+        "--flower-left": "52px",
+        "--flower-bottom": "70px",
+        "--flower-width": "318px",
+        "--flower-rotate": "-4deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "124px",
+        "--flower-secondary-bottom": "102px",
+        "--flower-secondary-width": "260px",
+        "--flower-secondary-rotate": "12deg",
+        "--flower-secondary-flip": "-1"
+      },
+      anemone: {
+        "--flower-left": "54px",
+        "--flower-bottom": "70px",
+        "--flower-width": "310px",
+        "--flower-rotate": "-7deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "134px",
+        "--flower-secondary-bottom": "106px",
+        "--flower-secondary-width": "252px",
+        "--flower-secondary-rotate": "16deg",
+        "--flower-secondary-flip": "-1"
+      },
+      cornflower: {
+        "--flower-left": "66px",
+        "--flower-bottom": "72px",
+        "--flower-width": "300px",
+        "--flower-rotate": "-12deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "142px",
+        "--flower-secondary-bottom": "108px",
+        "--flower-secondary-width": "232px",
+        "--flower-secondary-rotate": "17deg",
+        "--flower-secondary-flip": "-1"
+      },
+      "queen-annes-lace": {
+        "--flower-left": "48px",
+        "--flower-bottom": "72px",
+        "--flower-width": "320px",
+        "--flower-rotate": "-11deg",
+        "--flower-flip": "1",
+        "--flower-secondary-left": "126px",
+        "--flower-secondary-bottom": "102px",
+        "--flower-secondary-width": "262px",
+        "--flower-secondary-rotate": "13deg",
+        "--flower-secondary-flip": "-1"
+      }
+    };
+
+    function applyNoteVisual(catalogId) {
+      const visual = noteVisuals[catalogId] || noteVisuals.hydrangea;
+      const target = flowerNoteDialog || flowerNoteModal;
+      target.style.setProperty("--note-ink", visual.ink);
+      target.style.setProperty("--note-accent", visual.accent);
+      target.style.setProperty("--note-soft", visual.soft);
+      target.style.setProperty("--note-pattern", visual.patternColor);
+      target.style.setProperty("--folder-a", visual.folderA);
+      target.style.setProperty("--folder-b", visual.folderB);
+      target.style.setProperty("--folder-c", visual.folderC);
+      const flowerLayout = noteFlowerLayouts[catalogId] || noteFlowerLayouts.hydrangea;
+      Object.entries(flowerLayout).forEach(([property, value]) => {
+        target.style.setProperty(property, value);
+      });
+      noteCard.dataset.pattern = visual.pattern;
+      noteEnglishTitle.textContent = visual.title;
+      return visual;
+    }
+
+    function updateNoteCardOrbitText(englishTitle, chineseTitle) {
+      if (!noteCardOrbitText) return;
+      const phrase = `${englishTitle} / ${chineseTitle} / `;
+      const text = Array.from({ length: 10 }, () => phrase).join("");
+      noteCardOrbitText.textContent = text;
+      const animate = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+      animate.setAttribute("attributeName", "startOffset");
+      animate.setAttribute("from", "0%");
+      animate.setAttribute("to", "100%");
+      animate.setAttribute("dur", "18s");
+      animate.setAttribute("repeatCount", "indefinite");
+      noteCardOrbitText.appendChild(animate);
+    }
+
+    const noteCandidates = [
+      { dx: -230, dy: -145, r: -7 },
+      { dx: 196, dy: -138, r: 5 },
+      { dx: -252, dy: -44, r: 4 },
+      { dx: 222, dy: -22, r: -5 },
+      { dx: -206, dy: 92, r: -4 },
+      { dx: 184, dy: 96, r: 6 },
+      { dx: -84, dy: -214, r: 3 },
+      { dx: 78, dy: -218, r: -6 },
+      { dx: -314, dy: 54, r: 7 },
+      { dx: 302, dy: 48, r: -7 },
+      { dx: -318, dy: -212, r: -5 },
+      { dx: 318, dy: -206, r: 5 },
+      { dx: -290, dy: 188, r: 4 },
+      { dx: 288, dy: 180, r: -4 }
+    ];
+
+    function estimateStemRect(stem, pad = 0) {
+      const ratio = 1.49;
+      const height = stem.w * ratio;
+      return {
+        x: stem.x - stem.w / 2 - pad,
+        y: stem.y - height / 2 - pad,
+        w: stem.w + pad * 2,
+        h: height + pad * 2
+      };
+    }
+
+    function getStemImageMetrics(stem) {
+      const el = getStemElement(stem.uid);
+      const img = el ? el.querySelector(".stem-base") : null;
+      const width = img && img.clientWidth ? img.clientWidth : stem.w;
+      const height = img && img.clientHeight ? img.clientHeight : width * 1.49;
+      return { width, height };
+    }
+
+    function getFlowerHeadLocalRect(stem, pad = 0) {
+      const { width } = getStemImageMetrics(stem);
+      const isGreenery = String(stem.catalog).includes("grass") || String(stem.catalog).includes("eucalyptus");
+      const headWidth = width * (isGreenery ? .34 : .68);
+      const headHeight = width * (isGreenery ? .58 : .52);
+      return {
+        x: width / 2 - headWidth / 2 - pad,
+        y: width * (isGreenery ? .08 : .1) - pad,
+        w: headWidth + pad * 2,
+        h: headHeight + pad * 2
+      };
+    }
+
+    function transformStemLocalPoint(stem, localX, localY) {
+      const el = getStemElement(stem.uid);
+      if (el && window.DOMMatrix && window.DOMPoint) {
+        try {
+          const style = getComputedStyle(el);
+          const matrix = new DOMMatrix(style.transform === "none" ? undefined : style.transform);
+          const origin = style.transformOrigin.split(/\s+/).map((value) => parseFloat(value) || 0);
+          const originX = origin[0] || 0;
+          const originY = origin[1] || 0;
+          const point = matrix.transformPoint(new DOMPoint(localX - originX, localY - originY));
+          return {
+            x: el.offsetLeft + originX + point.x,
+            y: el.offsetTop + originY + point.y
+          };
+        } catch (error) {
+          // Fall through to the geometric approximation below.
+        }
+      }
+
+      const { width, height } = getStemImageMetrics(stem);
+      const originX = width / 2;
+      const originY = height * .88;
+      const angle = (Number(stem.r) || 0) * Math.PI / 180;
+      const dx = (localX - originX) * (Number(stem.flip) || 1);
+      const dy = localY - originY;
+      return {
+        x: stem.x + originX - width / 2 + dx * Math.cos(angle) - dy * Math.sin(angle),
+        y: stem.y + originY - height / 2 + dx * Math.sin(angle) + dy * Math.cos(angle)
+      };
+    }
+
+    function estimateFlowerHeadRect(stem, pad = 0) {
+      const head = getFlowerHeadLocalRect(stem, pad);
+      const points = [
+        transformStemLocalPoint(stem, head.x, head.y),
+        transformStemLocalPoint(stem, head.x + head.w, head.y),
+        transformStemLocalPoint(stem, head.x + head.w, head.y + head.h),
+        transformStemLocalPoint(stem, head.x, head.y + head.h)
+      ];
+      const xs = points.map((point) => point.x);
+      const ys = points.map((point) => point.y);
+      const left = Math.min(...xs);
+      const top = Math.min(...ys);
+      const right = Math.max(...xs);
+      const bottom = Math.max(...ys);
+      return {
+        x: left,
+        y: top,
+        w: right - left,
+        h: bottom - top
+      };
+    }
+
+    function getStemCalloutAnchor(stem) {
+      const head = getFlowerHeadLocalRect(stem, 0);
+      return {
+        ...transformStemLocalPoint(stem, head.x + head.w / 2, head.y + head.h / 2),
+        radius: clamp(Math.max(head.w * .3, head.h * .25), 22, 58)
+      };
+    }
+
+    function rectsOverlap(a, b, pad = 0) {
+      return !(
+        a.x + a.w + pad < b.x ||
+        b.x + b.w + pad < a.x ||
+        a.y + a.h + pad < b.y ||
+        b.y + b.h + pad < a.y
+      );
+    }
+
+    function getNoteRect(note) {
+      return { x: note.x, y: note.y, w: note.w || 124, h: note.h || 38 };
+    }
+
+    function pickNotePlacement(stem) {
+      const tagW = 124;
+      const tagH = 38;
+      const seed = orbitHash(`${stem.uid}-${stem.catalog}`);
+      const occupied = [
+        { x: 232, y: 382, w: 256, h: 300 },
+        ...stems.map((item) => estimateFlowerHeadRect(item, 12)),
+        ...stems
+          .filter((item) => item.note && item.uid !== stem.uid)
+          .map((item) => getNoteRect(item.note))
+      ];
+      const ordered = noteCandidates.map((candidate, i) => noteCandidates[(i + seed) % noteCandidates.length]);
+      for (const candidate of ordered) {
+        const rect = {
+          x: clamp(stem.x + candidate.dx, 18, 720 - tagW - 18),
+          y: clamp(stem.y + candidate.dy, 20, 900 - tagH - 20),
+          w: tagW,
+          h: tagH
+        };
+        if (!occupied.some((other) => rectsOverlap(rect, other, 12))) {
+          return { ...rect, r: candidate.r };
+        }
+      }
+      const fallback = ordered[seed % ordered.length];
+      return {
+        x: clamp(stem.x + fallback.dx, 18, 720 - tagW - 18),
+        y: clamp(stem.y + fallback.dy, 20, 900 - tagH - 20),
+        w: tagW,
+        h: tagH,
+        r: fallback.r
+      };
+    }
+
+    function createFlowerNote(stem) {
+      const configured = configuredCards[stem.catalog] || null;
+      const placement = configured && Number.isFinite(Number(configured.x)) && Number.isFinite(Number(configured.y))
+        ? {
+            x: Number(configured.x),
+            y: Number(configured.y),
+            w: Number(configured.w) || 124,
+            h: Number(configured.h) || 38,
+            r: Number(configured.r) || 0
+          }
+        : pickNotePlacement(stem);
+      const item = catalogById.get(stem.catalog) || stem;
+      return {
+        id: `note-${stem.uid}`,
+        label: configured && configured.label ? configured.label : item.name,
+        title: configured && configured.title ? configured.title : `给妈妈的${item.name}`,
+        text: configured && configured.text ? configured.text : flowerStories[item.id] || `妈妈，这支${item.name}让我想起很多平凡的小事：你把热汤放到我手边，也把安心放进我每天的生活里。母亲节快乐。`,
+        ...placement
+      };
+    }
+
+    function addOrOpenFlowerNote(uid) {
+      const stem = getStemData(uid);
+      if (!stem) return;
+      if (!stem.note) {
+        stem.note = createFlowerNote(stem);
+        renderCallouts();
+      }
+      openFlowerNoteModal(uid);
+    }
+
+    function arrowPathFor(stem, note) {
+      const tagW = note.w || 124;
+      const tagH = note.h || 38;
+      const tagCenter = { x: note.x + tagW / 2, y: note.y + tagH / 2 };
+      const headCenter = getStemCalloutAnchor(stem);
+      const dx = tagCenter.x - headCenter.x;
+      const dy = tagCenter.y - headCenter.y;
+      const distance = Math.hypot(dx, dy) || 1;
+      const unit = { x: dx / distance, y: dy / distance };
+      const flowerRadius = headCenter.radius || 34;
+      const start = {
+        x: headCenter.x + unit.x * (flowerRadius + 13),
+        y: headCenter.y + unit.y * (flowerRadius + 10)
+      };
+      const sideGap = 13;
+      let end;
+      if (Math.abs(dx) > Math.abs(dy) * .72) {
+        end = {
+          x: dx > 0 ? note.x - sideGap : note.x + tagW + sideGap,
+          y: clamp(headCenter.y + dy * .18, note.y + 10, note.y + tagH - 10)
+        };
+      } else {
+        end = {
+          x: clamp(headCenter.x + dx * .16, note.x + 14, note.x + tagW - 14),
+          y: dy > 0 ? note.y - sideGap : note.y + tagH + sideGap
+        };
+      }
+      const vx = end.x - start.x;
+      const vy = end.y - start.y;
+      const curveLength = Math.hypot(vx, vy) || 1;
+      const dir = { x: vx / curveLength, y: vy / curveLength };
+      const perp = { x: -dir.y, y: dir.x };
+      const centerPull = { x: 360 - (start.x + end.x) / 2, y: 430 - (start.y + end.y) / 2 };
+      const pullDot = perp.x * centerPull.x + perp.y * centerPull.y;
+      const seed = orbitHash(`${stem.uid}-${note.id || note.label}`);
+      const bendSign = pullDot > 0 ? -1 : 1;
+      const bendJitter = ((seed % 13) - 6) * .9;
+      const bend = bendSign * clamp(curveLength * .2, 34, 92) + bendJitter;
+      const c1 = {
+        x: start.x + dir.x * curveLength * .32 + perp.x * bend,
+        y: start.y + dir.y * curveLength * .32 + perp.y * bend
+      };
+      const c2 = {
+        x: start.x + dir.x * curveLength * .78 + perp.x * bend * .72,
+        y: start.y + dir.y * curveLength * .78 + perp.y * bend * .72
+      };
+      const sketchShift = ((seed % 9) - 4) * .65;
+      const sketchStart = {
+        x: start.x + perp.x * sketchShift,
+        y: start.y + perp.y * sketchShift
+      };
+      const sketchEnd = {
+        x: end.x + perp.x * sketchShift * .6,
+        y: end.y + perp.y * sketchShift * .6
+      };
+      const sketchC1 = {
+        x: c1.x + perp.x * (sketchShift + 2.2) + dir.x * .9,
+        y: c1.y + perp.y * (sketchShift + 2.2) + dir.y * .9
+      };
+      const sketchC2 = {
+        x: c2.x + perp.x * (sketchShift - 1.6) - dir.x * .7,
+        y: c2.y + perp.y * (sketchShift - 1.6) - dir.y * .7
+      };
+      const path = `M${start.x.toFixed(1)} ${start.y.toFixed(1)} C${c1.x.toFixed(1)} ${c1.y.toFixed(1)} ${c2.x.toFixed(1)} ${c2.y.toFixed(1)} ${end.x.toFixed(1)} ${end.y.toFixed(1)}`;
+      const sketch = `M${sketchStart.x.toFixed(1)} ${sketchStart.y.toFixed(1)} C${sketchC1.x.toFixed(1)} ${sketchC1.y.toFixed(1)} ${sketchC2.x.toFixed(1)} ${sketchC2.y.toFixed(1)} ${sketchEnd.x.toFixed(1)} ${sketchEnd.y.toFixed(1)}`;
+      const finalAngle = Math.atan2(end.y - c2.y, end.x - c2.x);
+      const size = 10.5;
+      const left = {
+        x: end.x - Math.cos(finalAngle - .62) * size,
+        y: end.y - Math.sin(finalAngle - .62) * size
+      };
+      const right = {
+        x: end.x - Math.cos(finalAngle + .62) * size,
+        y: end.y - Math.sin(finalAngle + .62) * size
+      };
+      return {
+        curve: path,
+        sketch,
+        tip: `M${left.x.toFixed(1)} ${left.y.toFixed(1)} L${end.x.toFixed(1)} ${end.y.toFixed(1)} L${right.x.toFixed(1)} ${right.y.toFixed(1)}`
+      };
+    }
+
+    function renderCallouts() {
+      if (!calloutLayer) return;
+      const callouts = stems.filter((stem) => stem.note);
+      calloutLayer.innerHTML = callouts.map((stem) => {
+        const note = stem.note;
+        const arrow = arrowPathFor(stem, note);
+        return `
+          <svg class="callout-arrow" viewBox="0 0 720 900" aria-hidden="true">
+            <path class="callout-sketch" d="${arrow.sketch}" />
+            <path d="${arrow.curve}" />
+            <path class="arrow-tip" d="${arrow.tip}" />
+          </svg>
+          <div class="flower-callout" style="left:${note.x}px; top:${note.y}px; --note-r:${note.r || 0}deg">
+            <button class="flower-note-chip" type="button" data-note-stem="${stem.uid}" aria-label="查看${note.label}小卡片">${escapeText(note.label)}</button>
+          </div>`;
+      }).join("");
+      calloutLayer.querySelectorAll("[data-note-stem]").forEach((button) => {
+        button.addEventListener("pointerdown", (event) => {
+          event.stopPropagation();
+          if (!isGiftMode) {
+            startNoteDrag(button.dataset.noteStem, event);
+          }
+        });
+        button.addEventListener("click", (event) => {
+          event.stopPropagation();
+          if (suppressedNoteClickUid === button.dataset.noteStem) {
+            suppressedNoteClickUid = null;
+            return;
+          }
+          openFlowerNoteModal(button.dataset.noteStem);
+        });
+      });
+    }
+
+    function serializeStem(stem) {
+      return {
+        uid: stem.uid,
+        catalog: stem.catalog,
+        x: stem.x,
+        y: stem.y,
+        w: stem.w,
+        r: stem.r || 0,
+        z: stem.z,
+        flip: stem.flip || 1,
+        note: stem.note ? { ...stem.note } : null
+      };
+    }
+
+    function serializeGem(gem) {
+      return {
+        uid: gem.uid,
+        gem: gem.gem,
+        x: gem.x,
+        y: gem.y,
+        w: gem.w,
+        r: gem.r || 0,
+        scale: gem.scale || 1,
+        z: gem.z,
+        opacity: gem.opacity
+      };
+    }
+
+    function getLayoutSnapshot() {
+      return {
+        version: ORBIT_VERSION,
+        nextStemId,
+        nextOrbitId,
+        nextGemId,
+        activeId,
+        stems: stems.map(serializeStem),
+        nameOrbits,
+        placedGems: placedGems.map(serializeGem)
+      };
+    }
+
+    function encodeLayout(layout) {
+      const json = JSON.stringify(layout);
+      const bytes = new TextEncoder().encode(json);
+      let binary = "";
+      bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+      });
+      return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+    }
+
+    function decodeLayout(payload) {
+      const normalized = payload.replace(/-/g, "+").replace(/_/g, "/");
+      const padded = normalized + "=".repeat((4 - normalized.length % 4) % 4);
+      const binary = atob(padded);
+      const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));
+      return JSON.parse(new TextDecoder().decode(bytes));
+    }
+
+    function hydrateLayout(parsed) {
+      if (!parsed || !Array.isArray(parsed.stems)) return null;
+      const savedStems = parsed.stems
+        .filter((stem) => catalogById.has(stem.catalog))
+        .map((stem) => makeStem(stem));
+      savedStems.forEach((stem) => {
+        if (!stem.note && configuredCards[stem.catalog]) {
+          stem.note = createFlowerNote(stem);
+        }
+      });
+
+      const maxUid = savedStems.reduce((max, stem) => {
+        const value = Number(String(stem.uid).replace("stem-", ""));
+        return Number.isFinite(value) ? Math.max(max, value) : max;
+      }, 0);
+      nextStemId = Math.max(Number(parsed.nextStemId) || 1, maxUid + 1);
+      const loadedOrbits = Array.isArray(parsed.nameOrbits)
+        ? parsed.nameOrbits.filter((orbit) => orbit && orbit.version === ORBIT_VERSION && catalogById.has(orbit.catalog) && orbit.path)
+        : [];
+      const savedOrbits = pruneLoadedNameOrbits(loadedOrbits);
+      nameOrbits.splice(0, nameOrbits.length, ...savedOrbits);
+      const maxOrbitUid = savedOrbits.reduce((max, orbit) => {
+        const value = Number(String(orbit.uid).replace("orbit-", ""));
+        return Number.isFinite(value) ? Math.max(max, value) : max;
+      }, 0);
+      nextOrbitId = Math.max(Number(parsed.nextOrbitId) || 1, maxOrbitUid + 1);
+      const savedGems = Array.isArray(parsed.placedGems)
+        ? parsed.placedGems.map((gem) => makeGem(gem)).filter(Boolean)
+        : [];
+      const maxGemUid = savedGems.reduce((max, gem) => {
+        const value = Number(String(gem.uid).replace("gem-", ""));
+        return Number.isFinite(value) ? Math.max(max, value) : max;
+      }, 0);
+      nextGemId = Math.max(Number(parsed.nextGemId) || 1, maxGemUid + 1);
+      return {
+        stems: savedStems,
+        activeId: parsed.activeId,
+        placedGems: savedGems
+      };
+    }
+
+    function loadHashLayout() {
+      try {
+        const hash = window.location.hash || "";
+        const prefix = "#gift=";
+        if (!hash.startsWith(prefix)) return null;
+        return hydrateLayout(decodeLayout(hash.slice(prefix.length)));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function syncHomesToCurrent() {
+      stems.forEach((stem) => {
+        stem.home = {
+          x: stem.x,
+          y: stem.y,
+          w: stem.w,
+          r: stem.r || 0,
+          flip: stem.flip || 1
+        };
+      });
+    }
+
+    function loadSavedLayout() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return hydrateLayout(JSON.parse(raw));
+      } catch (error) {
+        return null;
+      }
+    }
+
+    function persistPrunedLocalLayout() {
+      if (!didPruneNameOrbits || hashLayout) return;
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(getLayoutSnapshot()));
+      } catch (error) {
+        // Ignore storage failures; the current page still uses the pruned layout.
+      }
+    }
+
+    function setGiftMode(next) {
+      isGiftMode = next;
+      document.body.classList.toggle("gift-mode", isGiftMode);
+      if (isGiftMode) {
+        dragState = null;
+        dragPoint = null;
+        if (dragFrame) {
+          cancelAnimationFrame(dragFrame);
+          dragFrame = 0;
+        }
+        setPerformanceEditing(false);
+        activeId = null;
+        setActiveGem(null);
+        document.querySelectorAll(".stem-item").forEach((el) => {
+          el.classList.remove("selected");
+        });
+      } else {
+        setActive(activeId);
+      }
+    }
+
+    function saveLayout() {
+      try {
+        const layout = getLayoutSnapshot();
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+        window.location.hash = `gift=${encodeLayout(layout)}`;
+        syncHomesToCurrent();
+        setGiftMode(true);
+        saveBtn.textContent = "已保存";
+        saveBtn.classList.add("saved");
+        window.setTimeout(() => {
+          saveBtn.textContent = "保存";
+          saveBtn.classList.remove("saved");
+        }, 1400);
+      } catch (error) {
+        saveBtn.textContent = "保存失败";
+        window.setTimeout(() => {
+          saveBtn.textContent = "保存";
+        }, 1600);
+      }
+    }
+
+    function applyDragFrame() {
+      dragFrame = 0;
+      if (isGiftMode || !dragState || !dragPoint) return;
+
+      const dx = (dragPoint.x - dragState.startX) / stageScale;
+      const dy = (dragPoint.y - dragState.startY) / stageScale;
+
+      if (dragState.mode === "note") {
+        const stem = getStemData(dragState.uid);
+        const note = stem && stem.note;
+        if (!note) return;
+        const noteW = note.w || 124;
+        const noteH = note.h || 38;
+        note.x = clamp(dragState.baseNoteX + dx, 8, 720 - noteW - 8);
+        note.y = clamp(dragState.baseNoteY + dy, 12, 900 - noteH - 12);
+        if (Math.hypot(dx, dy) > 3) {
+          dragState.moved = true;
+        }
+        renderCallouts();
+        return;
+      }
+
+      const data = getStemData(dragState.uid);
+      if (!data) return;
+
+      if (dragState.mode === "move") {
+        data.x = clamp(dragState.baseX + dx, 42, 684);
+        data.y = clamp(dragState.baseY + dy, 120, 760);
+      } else if (dragState.mode === "resize") {
+        const nextDistance = Math.hypot(dragPoint.x - dragState.center.x, dragPoint.y - dragState.center.y) || 1;
+        data.w = clamp(dragState.baseW * (nextDistance / dragState.baseDistance), 92, 520);
+      } else if (dragState.mode === "rotate") {
+        const nextAngle = Math.atan2(dragPoint.y - dragState.center.y, dragPoint.x - dragState.center.x) * 180 / Math.PI;
+        data.r = normalizeAngle(dragState.baseR + nextAngle - dragState.startAngle);
+      }
+      updateStemElement(data);
+      renderCallouts();
+    }
+
+    function handleDrag(event) {
+      if (isGiftMode || !dragState) return;
+      event.preventDefault();
+      dragPoint = {
+        x: event.clientX,
+        y: event.clientY
+      };
+      if (!dragFrame) {
+        dragFrame = requestAnimationFrame(applyDragFrame);
+      }
+    }
+
+    function stopDrag(event) {
+      const stoppedState = dragState;
+      if (dragState && dragPoint && dragFrame) {
+        cancelAnimationFrame(dragFrame);
+        applyDragFrame();
+      }
+      dragPoint = null;
+      dragFrame = 0;
+      dragState = null;
+      setPerformanceEditing(false);
+      if (stoppedState && stoppedState.mode === "note" && event && event.type !== "pointercancel") {
+        suppressNextNoteClick(stoppedState.uid);
+        if (!stoppedState.moved) {
+          openFlowerNoteModal(stoppedState.uid);
+        }
+      }
+    }
+
+    function openPlaqueModal() {
+      plaqueModal.classList.add("open");
+      plaqueModal.setAttribute("aria-hidden", "false");
+      plaqueClose.focus({ preventScroll: true });
+    }
+
+    function closePlaqueModal() {
+      plaqueModal.classList.remove("open");
+      plaqueModal.setAttribute("aria-hidden", "true");
+      trophyPlaque.focus({ preventScroll: true });
+    }
+
+    function openFlowerNoteModal(uid) {
+      const stem = getStemData(uid);
+      if (!stem || !stem.note) return;
+      const visual = applyNoteVisual(stem.catalog);
+      noteFlowerPreview.src = assetSrc(ASSET_BASE, stem.src);
+      noteFlowerPreviewSecondary.src = assetSrc(ASSET_BASE, stem.src);
+      noteCardTitle.textContent = stem.note.title;
+      noteCardText.textContent = stem.note.text;
+      updateNoteCardOrbitText(visual.title, stem.note.title);
+      flowerNoteModal.classList.add("open");
+      flowerNoteModal.setAttribute("aria-hidden", "false");
+      flowerNoteClose.focus({ preventScroll: true });
+    }
+
+    function closeFlowerNoteModal() {
+      flowerNoteModal.classList.remove("open");
+      flowerNoteModal.setAttribute("aria-hidden", "true");
+    }
+
+    function clearSelectionFromBlank(event) {
+      if (isGiftMode || dragState) return;
+      const target = event.target;
+      if (
+        target.closest(".stem-item") ||
+        target.closest(".callout-layer") ||
+        target.closest(".toolbar") ||
+        target.closest(".palette") ||
+        target.closest(".save-btn") ||
+        target.closest(".trophy-plaque") ||
+        target.closest(".plaque-dialog") ||
+        target.closest(".flower-note-dialog")
+      ) {
+        return;
+      }
+      setActive(null);
+    }
+
+    mirrorBtn.addEventListener("click", () => {
+      if (isGiftMode) return;
+      flipStem();
+    });
+
+    sendBackBtn.addEventListener("click", () => {
+      if (isGiftMode) return;
+      sendStemToBack();
+    });
+
+    sizeDownBtn.addEventListener("click", () => {
+      if (isGiftMode) return;
+      resizeStem(getStemData(), -16);
+    });
+
+    sizeUpBtn.addEventListener("click", () => {
+      if (isGiftMode) return;
+      resizeStem(getStemData(), 16);
+    });
+
+    deleteBtn.addEventListener("click", () => {
+      deleteStem();
+    });
+
+    resetBtn.addEventListener("click", () => {
+      if (isGiftMode) return;
+      resetActiveStem();
+    });
+
+    saveBtn.addEventListener("click", saveLayout);
+    trophyPlaque.addEventListener("click", openPlaqueModal);
+    plaqueBackdrop.addEventListener("click", closePlaqueModal);
+    plaqueClose.addEventListener("click", closePlaqueModal);
+    flowerNoteBackdrop.addEventListener("click", closeFlowerNoteModal);
+    flowerNoteClose.addEventListener("click", closeFlowerNoteModal);
+    paletteTabs.forEach((tab) => {
+      tab.addEventListener("click", () => switchPalettePanel(tab.dataset.paletteTab));
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && activeGemId) {
+        setActiveGem(null);
+      }
+      if (event.key === "Escape" && plaqueModal.classList.contains("open")) {
+        closePlaqueModal();
+      }
+      if (event.key === "Escape" && flowerNoteModal.classList.contains("open")) {
+        closeFlowerNoteModal();
+      }
+    });
+
+    function resizeStage() {
+      stageScale = Math.min(window.innerWidth / 900, window.innerHeight / 980, 1);
+      stage.style.transform = `translate(-50%, -50%) scale(${stageScale})`;
+    }
+
+    stemsRoot.addEventListener("pointerdown", handleStemLayerPointerDown, { capture: true });
+    window.addEventListener("pointermove", handleDrag, { passive: false });
+    window.addEventListener("pointerdown", handleGemPlacement, { capture: true });
+    window.addEventListener("pointerdown", clearSelectionFromBlank);
+    window.addEventListener("pointerup", stopDrag);
+    window.addEventListener("pointercancel", stopDrag);
+    document.addEventListener("visibilitychange", () => {
+      updateAllNameOrbitAnimationStates();
+    });
+
+    const halo = document.getElementById("halo");
+    const ctx = halo.getContext("2d");
+    const HALO_FRAME_INTERVAL = 1000 / 24;
+    const PARTICLE_ALPHA_STEPS = 64;
+    const particlePalette = [
+      [12, 55, 152],
+      [18, 82, 196],
+      [41, 122, 232],
+      [88, 167, 249],
+      [133, 203, 255],
+      [73, 111, 205]
+    ];
+    const particleColorCache = new Map();
+    let dpr = 1;
+    let w = 0;
+    let h = 0;
+    let particles = [];
+    let lastHaloFrameTime = 0;
+
+    function seededRandom(seed) {
+      return () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+    }
+
+    function gaussian(rand) {
+      const u = 1 - rand();
+      const v = 1 - rand();
+      return Math.sqrt(-2 * Math.log(u)) * Math.cos(Math.PI * 2 * v);
+    }
+
+    function smoothstep(edge0, edge1, value) {
+      const x = clamp((value - edge0) / (edge1 - edge0), 0, 1);
+      return x * x * (3 - 2 * x);
+    }
+
+    function resizeCanvas() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      w = Math.floor(window.innerWidth);
+      h = Math.floor(window.innerHeight);
+      halo.width = Math.floor(w * dpr);
+      halo.height = Math.floor(h * dpr);
+      halo.style.width = `${w}px`;
+      halo.style.height = `${h}px`;
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const rand = seededRandom(92841);
+      const lobes = [
+        { x: .5, y: .42, sx: .14, sy: .14 },
+        { x: .39, y: .58, sx: .16, sy: .13 },
+        { x: .62, y: .58, sx: .17, sy: .14 },
+        { x: .5, y: .74, sx: .13, sy: .1 },
+        { x: .5, y: .26, sx: .12, sy: .13 },
+        { x: .18, y: .28, sx: .22, sy: .2 },
+        { x: .82, y: .26, sx: .22, sy: .2 },
+        { x: .18, y: .72, sx: .23, sy: .18 },
+        { x: .84, y: .72, sx: .24, sy: .18 },
+        { x: .5, y: .16, sx: .32, sy: .1 },
+        { x: .5, y: .9, sx: .34, sy: .12 }
+      ];
+      const count = clamp(Math.floor((w * h) / 26), 42000, 86000);
+      particles = Array.from({ length: count }, (_, i) => {
+        const isDust = rand() < .46;
+        const isStream = !isDust && rand() < .66;
+        const lobe = lobes[Math.floor(rand() * lobes.length)];
+        const lane = Math.floor(rand() * 15);
+        const u = rand();
+        return {
+          nx: isDust
+            ? rand()
+            : isStream
+              ? -.14 + u * 1.28 + gaussian(rand) * .014
+              : lobe.x + gaussian(rand) * lobe.sx,
+          ny: isDust
+            ? rand()
+            : isStream
+              ? -.08 + lane * .079 + Math.sin(u * 16.5 + lane * .9) * .068 + gaussian(rand) * .022
+              : lobe.y + gaussian(rand) * lobe.sy,
+          z: rand(),
+          phase: rand() * Math.PI * 2,
+          phase2: rand() * Math.PI * 2,
+          size: .42 + rand() * .9,
+          shade: Math.floor(rand() * 6),
+          dust: isDust,
+          stream: isStream
+        };
+      });
+      particles.forEach((particle) => {
+        particle.baseX = particle.nx * w;
+        particle.baseY = particle.ny * h;
+      });
+      resizeStage();
+    }
+
+    function particleColor(shade, alpha) {
+      const colorIndex = shade % particlePalette.length;
+      const alphaStep = clamp(Math.round(alpha * PARTICLE_ALPHA_STEPS), 0, PARTICLE_ALPHA_STEPS);
+      const cacheKey = `${colorIndex}-${alphaStep}`;
+      if (particleColorCache.has(cacheKey)) return particleColorCache.get(cacheKey);
+      const [r, g, b] = particlePalette[colorIndex];
+      const color = `rgba(${r}, ${g}, ${b}, ${(alphaStep / PARTICLE_ALPHA_STEPS).toFixed(3)})`;
+      particleColorCache.set(cacheKey, color);
+      return color;
+    }
+
+    function drawHalo(time) {
+      requestAnimationFrame(drawHalo);
+      if (document.hidden || isPerformanceEditing) return;
+      if (time - lastHaloFrameTime < HALO_FRAME_INTERVAL) return;
+      lastHaloFrameTime = time;
+      const t = time * .001;
+      ctx.clearRect(0, 0, w, h);
+
+      const cx = w * .5;
+      const cy = h * .49;
+      const driftX = Math.sin(t * .18) * w * .045;
+      const driftY = Math.cos(t * .15) * h * .04;
+
+      ctx.save();
+      ctx.globalCompositeOperation = "multiply";
+
+      particles.forEach((p, i) => {
+        const baseX = p.baseX;
+        const baseY = p.baseY;
+        const rx = baseX - cx;
+        const ry = baseY - cy;
+        const depth = .28 + p.z * .96;
+        const waveA = Math.sin(ry * .011 + t * (1.1 + p.z * .56) + p.phase);
+        const waveB = Math.cos(rx * .008 - t * (.88 + p.z * .42) + p.phase2);
+        const waveField = Math.sin(baseX * .012 + t * 1.35 + p.phase * .22) * Math.cos(baseY * .008 - t * .82 + p.phase2 * .16);
+        const fold = Math.sin((rx + ry) * .006 + Math.sin(ry * .01 + t * .62) * 2.6 - t * 1.42 + p.phase * .34);
+        const x = baseX + driftX + waveA * (24 + depth * 52) + fold * (12 + p.z * 28);
+        const y = baseY + driftY + waveB * (18 + depth * 34) + waveField * (18 + p.z * 38);
+        const dx = (x - (cx + driftX * .45)) / (w * .31);
+        const dy = (y - (cy + driftY * .4)) / (h * .39);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const core = 1 - smoothstep(.34, 1.02, distance);
+        const edge = 1 - smoothstep(.9, 1.13, distance);
+        const ridge = Math.pow(Math.max(0, Math.sin(x * .015 + y * .019 + Math.sin(y * .008 + t * .62) * 1.9 - t * 1.55 + p.phase * .28)), 2.15);
+        const counterRidge = Math.pow(Math.max(0, Math.sin(x * -.019 + y * .013 + t * 1.22 + p.phase2)), 2.55);
+        const wideFalloff = 1 - smoothstep(1.18, 2.75, distance);
+        const globalWave = Math.pow(Math.max(0, Math.sin(x * .01 + Math.sin(y * .006 + t * .46) * 3.6 - t * 1.28 + p.phase2)), 1.7);
+        const farRibbon = Math.pow(Math.max(0, Math.sin(y * .024 + Math.cos(x * .006 + t * .34) * 4.8 - t * 1.78 + p.phase)), 2.1);
+        const streamWave = Math.pow(Math.max(0, Math.sin(y * .038 + Math.sin(x * .007 + t * .55) * 3.2 - t * 2.15 + p.phase)), 1.8);
+        const streamBand = p.stream
+          ? (.12 + p.z * .22) * (.22 + wideFalloff * .58 + globalWave * .48 + farRibbon * .42) * (.25 + streamWave * .82)
+          : 0;
+        const dust = p.dust ? (.022 + p.z * .026) * (.38 + globalWave * .85 + farRibbon * .7) : 0;
+        const alpha = (dust + streamBand + core * (.08 + p.z * .12) + ridge * edge * (.28 + p.z * .36) + counterRidge * wideFalloff * .22) * (p.dust ? .88 : 1);
+        if (alpha < .02 || x < -8 || x > w + 8 || y < -8 || y > h + 8) return;
+        const size = p.size * (.62 + p.z * 1.05);
+        ctx.fillStyle = particleColor(p.shade, Math.min(alpha, .92));
+        ctx.fillRect(x, y, size, size);
+
+        if (i % 520 === 0 && core > .34) {
+          ctx.globalCompositeOperation = "screen";
+          ctx.fillStyle = `rgba(255, 255, 255, ${.28 + p.z * .18})`;
+          ctx.fillRect(x - size * 2, y - size * 2, size * 4, size * 4);
+          ctx.globalCompositeOperation = "multiply";
+        }
+      });
+      ctx.restore();
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+
+    function applyGiftCopy() {
+      const recipient = configuredGiftCopy.recipient;
+      const message = configuredGiftCopy.message;
+      if (!recipient && !message) return;
+      document.querySelectorAll(".trophy-plaque span:first-child, .plaque-large-message span:first-child").forEach((element) => {
+        if (recipient) element.textContent = recipient;
+      });
+      document.querySelectorAll(".gift-card .message, .trophy-plaque span:last-child, .plaque-large-message span:last-child").forEach((element) => {
+        if (message) element.textContent = message;
+      });
+    }
+
+    applyGiftCopy();
+    renderStems();
+    renderPalette();
+    renderGemPalette();
+    renderPlacedGems();
+    renderNameOrbits();
+    persistPrunedLocalLayout();
+    setGiftMode(isGiftMode);
+    resizeCanvas();
+    requestAnimationFrame(drawHalo);
+  </script>
+</body>
+</html>
