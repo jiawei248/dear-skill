@@ -26,9 +26,11 @@ Dragging images into the chat also works — they become part of the intake.
 If the user wants to fill an existing pre-designed template instead of designing from scratch:
 
 ```
-/dear --template paper-house ~/Desktop/for-mia/    # use a specific template
-/dear 用 paper-house 模板给 Mia 做 ~/Desktop/for-mia/   # natural-language form
-/dear 有什么模板可以用？                              # browse available templates
+/dear --template paper-house ~/Desktop/for-mia/       # use a specific template
+/dear 用 paper-house 模板给 Mia 做 ~/Desktop/for-mia/      # natural-language form
+/dear --template bouquet 给妈妈做一束可以拖动的花
+/dear 用 bouquet 模板给朋友做一份生日礼物
+/dear 有什么模板可以用？                                 # browse available templates
 ```
 
 Template mode skips the from-scratch creative pipeline and goes straight to filling the template's slots with the user's content. See `{baseDir}/references/templates.md`.

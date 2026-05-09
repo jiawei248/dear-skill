@@ -36,8 +36,9 @@ Available templates:
    Best for: anniversaries, partners, very-close-friends, love-letter-as-H5.
 
 💐 bouquet — Editable Flowers and Cards
-   A draggable bouquet canvas with flowers, gem accents, and editable paper-card notes.
-   Best for: Mother's Day, birthdays, thank-you gifts, friend comfort, congratulations.
+   可拖拽花材、自由加宝石、可改小纸片内容的互动花束。
+   Best for: birthdays, Mother's Day, thank-you gifts, friend comfort, anniversaries.
+   Positioning: 比 paper-house 轻，但比纯图片更可玩。
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
@@ -50,6 +51,8 @@ Three triggers, all valid:
 ```
 /dear --template paper-house ~/Desktop/for-mia/
 /dear use the paper-house template for Mia with ~/Desktop/for-mia/
+/dear --template bouquet 给妈妈做一束可以拖动的花
+/dear 用 bouquet 模板给朋友做一份生日礼物
 ```
 Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
 
@@ -405,3 +408,19 @@ Production + content spec (8 production rules, content organization principles, 
 Asset bundle: ~149 MB zip / ~156 MB extracted: stickers, fonts, and reference examples, fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
 Format: `h5`. Status: ready.
+
+### `bouquet` — Editable Flowers and Cards
+
+可拖拽花材、自由加宝石、可改小纸片内容的互动花束。适合生日、母亲节、感谢、朋友安慰、纪念日；比 paper-house 轻，但比纯图片更可玩。
+
+Users can choose built-in flowers/gems or ask for new florals when image generation is available. The gift is still evidence-based: paper-card text should quote or closely echo user-provided screenshots, notes, or relationship details.
+
+Canonical authored HTML: `{baseDir}/assets/templates/bouquet/template-source/mothers-day-blue-bouquet.html`.
+
+Production + content spec: `{baseDir}/assets/templates/bouquet/SPEC.md`.
+
+Preview: `{baseDir}/assets/templates/bouquet/preview.jpg`.
+
+Asset bundle: ~97 MB zip with flowers, greenery, gems, fonts, and references, fetched once via `scripts/fetch-asset-bundle.sh --template bouquet`. The bundle URL and sha256 live in `template.json.asset_bundle`.
+
+Format: `h5`. Status: phase-3-runtime-builder.
