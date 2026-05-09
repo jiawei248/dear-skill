@@ -2,11 +2,11 @@
 
 This spec describes how dear should treat the `bouquet` template.
 
-## Phase 1 Scope
+## Ready Scope
+
+The `bouquet` template is a ready, first-class dear template: it is discoverable through the template registry, uses an external asset bundle for large visual assets, maps user material into bouquet-specific slots, and builds a standalone H5 through `template-source/build.py`.
 
 The canonical HTML is read-only: `template-source/mothers-day-blue-bouquet.html` is copied from the source project and should not be modified directly. Runtime work happens through `template-source/build.py`, which reads filled slots and writes a separate gift `index.html`.
-
-Phase 1 makes the template discoverable and bundle-ready. Later phases will deepen slot matching and build-time injection.
 
 ## User-Facing Opening
 
@@ -53,7 +53,7 @@ Built-in and generated flowers should preserve the existing style:
 Users can add new flowers and gems later. Generated additions may use a general image generation model, but must use the existing bundle's flowers and original references as style anchors.
 
 
-## Phase 2 Slot Matching Contract
+## Slot Mapping Contract
 
 The bouquet manifest follows the common template schema where possible, with bouquet-specific details in supplemental fields. Slot matching should fill these slots before the build step.
 
@@ -104,7 +104,7 @@ At activation, tell the user:
 
 This is part of the template experience, not an implementation detail.
 
-## Phase 1 Runtime Mapping
+## Runtime Slot Mapping
 
 - `recipient_material` supplies the facts, quotes, screenshots, and language for card text.
 - `bouquet_style_direction` captures color palette, occasion, and emotional tone.
@@ -112,7 +112,7 @@ This is part of the template experience, not an implementation detail.
 - `gem_picks` maps to bundle gems.
 - `card_notes` maps to small editable paper notes.
 
-## Phase 3 Runtime Mapping
+## Runtime Builder Contract
 
 `template-source/build.py` reads `filled-slots.json`, normalizes bouquet slots, and injects a single `window.BOUQUET_GIFT_CONFIG` script into the generated `index.html`. The builder does not modify the canonical HTML source; it only reads `template-source/mothers-day-blue-bouquet.html` and writes the requested `--out` file.
 

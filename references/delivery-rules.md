@@ -217,7 +217,7 @@ Warm/deep gift + user seems tired:
 - "today's you deserves this."
 - [no text — just deliver the artifact directly]
 
-Casual/light daily gift:
+Casual/light user-triggered gift:
 - "passing by, dropping this off~"
 - "✨" (a single emoji is enough)
 

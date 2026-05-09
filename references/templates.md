@@ -423,4 +423,4 @@ Preview: `{baseDir}/assets/templates/bouquet/preview.jpg`.
 
 Asset bundle: ~97 MB zip with flowers, greenery, gems, fonts, and references, fetched once via `scripts/fetch-asset-bundle.sh --template bouquet`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
-Format: `h5`. Status: phase-3-runtime-builder.
+Format: `h5`. Status: ready.

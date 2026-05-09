@@ -110,13 +110,7 @@ A strong concept should feel like a small world with its own logic, not just con
 
 #### Step 1: Generate 5 Candidates
 
-This full creative concept workflow applies to every gift trigger that reaches Stage `2.5`:
-
-- cron `daily-run`: full workflow in silent mode
-- manual gift trigger: full workflow with `1-2` brief warm progress messages while the user waits
-- onboarding first gift: full workflow, with slightly more conversational warmth because setup is an active interaction
-
-The trigger changes progress reporting, not concept quality standards. Do not skip the `5`-candidate generation step for speed. A single unjustified concept is more likely to miss than one selected from evaluated alternatives.
+This full creative concept workflow applies to every user-triggered gift that reaches Stage `2.5`. Invocation style changes progress reporting, not concept quality standards. Do not skip the `5`-candidate generation step for speed. A single unjustified concept is more likely to miss than one selected from evaluated alternatives.
 
 Use these thinking angles to spark ideas:
 
@@ -293,7 +287,7 @@ Resolution options for either collision:
 - change the concept theme (e.g. from another airport metaphor to a cooking metaphor, weather metaphor, or game metaphor)
 - change the format (e.g. if the last gift was also a borrowed-media document, make this one an image or an interactive H5 with completely different visual language)
 
-Both checks apply to BOTH manual and cron-triggered gifts. Manual triggers do not get a free pass on repetition.
+Both checks apply to every user-triggered gift. Manual invocation does not get a free pass on repetition.
 
 Example visual collision:
 - last gift visual_elements: [paper-texture, red-stamp, table-rows, handwriting-blue, cream-background]

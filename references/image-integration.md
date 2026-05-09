@@ -209,8 +209,8 @@ Outside of the single onboarding ask described in setup flow, do not prompt the 
 
 Exception:
 
-- a rare, lightweight reminder is allowed in manual user-present runs when image capability is still missing and the current gift would be materially stronger as an image; see `{baseDir}/references/main-flow.md`
-- do not do this in cron-triggered runs
+- a rare, lightweight reminder is allowed in user-present runs when image capability is still missing and the current gift would be materially stronger as an image; see `{baseDir}/references/main-flow.md`
+- do not interrupt artifact generation once the user has already asked the skill to proceed
 
 See also:
 
@@ -310,7 +310,7 @@ Division of labor:
 
 - this file defines universal image-quality and prompt-building principles that apply for all users
 - `assets/examples/` and the image-genre reference assets define the concrete visual benchmark for what counts as good-looking in this skill; if the needed binary references are missing locally, fetch the relevant bundle first via `{baseDir}/scripts/fetch-asset-bundle.sh`
-- the recipient brief, `MEMORY.md`, and live interaction context help infer the user's personal taste and how strongly to lean toward it
+- the recipient brief, current conversation, and any explicitly supplied taste notes help infer the user's personal taste and how strongly to lean toward it
 
 ## When To Prefer Image
 

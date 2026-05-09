@@ -6,7 +6,7 @@ Complete instructions for visualization, rendering paths (H5, Image, Text, Text-
 
 Turn the chosen format into a polished final gift artifact.
 
-Before rendering characters, read the character profiles from `./user-taste-profile.json` when it exists. Decide human versus non-human form based on the gift's style. Include all fixed features in prompts that render that character. Never put human features onto animal forms.
+Only read character profiles when the recipient brief or user request explicitly makes a recurring character relevant. Otherwise, render from the current recipient material and gift thesis, not from stored persona defaults. When a character profile is used, decide human versus non-human form based on the gift's style, include fixed features in prompts that render that character, and never put human features onto animal forms.
 
 If the chosen format is `h5`, use this assembly priority order:
 
@@ -212,7 +212,7 @@ Recommended sequence:
 
 Treat these as separate execution steps, not one monolithic pass. Persist progress after each step so that if a later step fails or stalls, the agent can continue from the last working revision instead of losing the entire gift.
 
-For cron-driven `h5` gifts, keep the user-facing output silent, but still use this incremental approach internally. For manual gifts, pair it with the lightweight progress rules from `main-flow.md`.
+Use this incremental approach for every `h5` gift, pairing it with the lightweight progress rules from `main-flow.md`.
 
 ### Visual Quality Gate (H5)
 
@@ -361,14 +361,9 @@ When a gift is assessed as rich:
    - deliver through the normal delivery path
 5. Rich gift mode should be used selectively:
    - yes for deliberate, special, manual, or milestone gifts
-   - no for routine cron gifts that should stay lightweight and dependable
+   - no when the concept can stay lightweight and dependable
 
-This does not conflict with the cron delegation rule above.
-
-- Rich gift mode is about execution complexity.
-- Cron delegation is about token-budget reliability in the main-session orchestration model.
-- A routine cron gift may still be handed off to a spawned sub-agent for rendering and delivery when it is non-`h5`, even when it is not classified as a rich gift.
-- Rich `h5` gifts still stay in the main session because incremental direct execution is more reliable than spawned execution for `h5`.
+Rich gift mode is about execution complexity. Keep rich `h5` gifts in the main session because incremental direct execution is more reliable than spawned execution for `h5`.
 
 If background removal fails or the quota is exhausted, fall back gracefully. For H5 layering, a last-resort approach such as `mix-blend-mode: multiply` may sometimes hide a white background on dark scenes, but only use that as a fallback, not as the preferred path.
 

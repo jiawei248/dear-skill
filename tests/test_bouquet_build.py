@@ -129,6 +129,43 @@ def extract_bouquet_config(html_text):
     return json.loads(match.group(1))
 
 
+def run_playwright_smoke(script, url):
+    result = subprocess.run(
+        ["python3", str(script), url],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+    )
+    if result.returncode != 0 and "PLAYWRIGHT_LAUNCH_UNAVAILABLE" in result.stderr:
+        pytest.skip("Playwright browser launch is unavailable in this environment")
+    result.check_returncode()
+    return result
+
+
+def test_bouquet_runtime_config_does_not_expose_workdir(tmp_path):
+    out, workdir, _ = run_bouquet_builder(tmp_path, sample_phase4_slots())
+    html_text = out.read_text(encoding="utf-8")
+    config = extract_bouquet_config(html_text)
+
+    assert "workdir" not in config
+    assert str(workdir) not in html_text
+
+
+def test_bouquet_playwright_launch_unavailable_is_skipped(monkeypatch):
+    def fake_run(args, **_kwargs):
+        return subprocess.CompletedProcess(
+            args,
+            1,
+            stdout="",
+            stderr="PLAYWRIGHT_LAUNCH_UNAVAILABLE: browser blocked by sandbox",
+        )
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+
+    with pytest.raises(pytest.skip.Exception):
+        run_playwright_smoke(Path("check_bouquet_page.py"), "file:///tmp/index.html")
+
+
 def test_bouquet_builder_injects_runtime_config(tmp_path):
     out, workdir, _ = run_bouquet_builder(tmp_path, sample_phase4_slots())
     html_text = out.read_text(encoding="utf-8")
@@ -198,11 +235,14 @@ def test_bouquet_generated_html_loads_without_console_errors(tmp_path):
     script.write_text(
         """
 import sys
-from playwright.sync_api import sync_playwright
+from playwright.sync_api import sync_playwright, Error as PlaywrightError
 
 url = sys.argv[1]
 with sync_playwright() as p:
-    browser = p.chromium.launch(headless=True)
+    try:
+        browser = p.chromium.launch(headless=True)
+    except PlaywrightError as exc:
+        raise SystemExit(f"PLAYWRIGHT_LAUNCH_UNAVAILABLE: {exc}")
     page = browser.new_page(viewport={"width": 390, "height": 844})
     errors = []
     page.on("console", lambda message: errors.append(message.text) if message.type == "error" else None)
@@ -240,11 +280,4 @@ if errors:
         encoding="utf-8",
     )
 
-    result = subprocess.run(
-        ["python3", str(script), out.resolve().as_uri()],
-        cwd=ROOT,
-        text=True,
-        capture_output=True,
-        check=True,
-    )
-    assert result.returncode == 0
+    run_playwright_smoke(script, out.resolve().as_uri())

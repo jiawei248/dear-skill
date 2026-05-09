@@ -83,9 +83,13 @@ The stored `user_portrait.description` may be injected into prompts or briefs as
 
 ### Character Identity in Generated Images
 
-When the gift concept involves the user or the skill as characters in a scene:
+Do not read or apply stored character/persona context by default. This skill is recipient-centered: the user's material, the recipient relationship, and the current gift thesis should drive the output before any recurring persona files.
 
-1. Read `./user-portrait/` metadata and any OC definitions from the recipient brief, the supplied user context, `./setup-state.json`, or `./user-taste-profile.json` when those fields exist.
+Only use stored character identity when the user explicitly asks for a recurring character, the recipient brief names an OC/avatar/persona, or the concept would be impossible to render correctly without a previously established character form.
+
+When stored character identity is explicitly relevant:
+
+1. Read `./user-portrait/` metadata and any OC definitions from the recipient brief or supplied user context first; consult `./setup-state.json` or `./user-taste-profile.json` only when they contain the requested recurring character data.
 2. Use the established character forms rather than improvising generic stand-ins:
    - the user's `human_form` and or `nonhuman_form`
    - the skill's `human_form` and or `nonhuman_form`
@@ -142,7 +146,7 @@ After the creative concept is locked, assess whether it can be executed in one a
 
 `Light gift`:
 
-- the default for ordinary daily gifts
+- the default for ordinary lightweight gifts
 - one image generation call or zero
 - simple H5 with code-only rendering or one background image
 - no post-processing such as background removal
@@ -159,11 +163,10 @@ After the creative concept is locked, assess whether it can be executed in one a
 Use rich gift mode when:
 
 - a manual request explicitly asks for something elaborate
-- a milestone, anniversary, or unusually important daily gift justifies extra effort
+- a milestone, anniversary, or unusually important gift justifies extra effort
 
 Do not use rich gift mode when:
 
-- this is a routine cron-triggered daily gift that should stay light and reliable
 - the concept can be simplified without losing its punch
 
 If rich gift mode is needed, prepare a richer execution brief rather than trying to rush the whole thing inside one fragile turn.
@@ -189,11 +192,11 @@ If the chosen format is `h5`, do not proceed to Stage 4 without completing steps
 
 If the chosen format is `image`, `text`, or `text-play`, still read `{baseDir}/references/gift-mechanics.md` and `{baseDir}/references/pattern-boundaries.md`, but you do not need to force the brief through an H5 pattern card or template unless that reference genuinely helps the chosen concept.
 
-When `./user-taste-profile.json` exists, use it during visual strategy:
+When `./user-taste-profile.json` exists, use it during visual strategy only when the current gift brief makes the user's taste or recurring character context directly relevant:
 
-- read `aesthetics_baseline` to calibrate the visual quality bar
+- read `aesthetics_baseline` to calibrate the visual quality bar when the user asks for their own taste to guide the piece
 - read `style_exposure` to avoid visual repetition beyond the short `recent_gifts` window
-- read `user_character` and `hermes_character` to decide whether the gift should use human or non-human forms when characters appear
+- read `user_character` and skill character data only when characters appear by explicit request or by concept necessity
 
 Departure check after reading the pattern and any relevant template:
 

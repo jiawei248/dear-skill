@@ -206,7 +206,6 @@ def build_runtime_config(slots: dict, workdir: Path) -> dict:
     ]
     config = {
         "template": "bouquet",
-        "workdir": str(workdir),
         "style": normalize_style(slots),
         "catalog": inline_catalog_assets(catalog, workdir, "transparent-png"),
         "gemCatalog": inline_catalog_assets(gem_catalog, workdir, "gems"),

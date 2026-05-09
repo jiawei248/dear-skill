@@ -56,9 +56,14 @@ def test_bouquet_bundle_artifact_is_prepared_but_not_expanded_in_repo():
     assert not (TEMPLATE_DIR / "base" / "fonts").exists()
 
 
-def test_bouquet_spec_describes_phase_one_readonly_source_and_bundle():
+def test_bouquet_spec_describes_ready_scope_and_runtime_builder():
     spec = (TEMPLATE_DIR / "SPEC.md").read_text(encoding="utf-8")
 
+    assert "## Ready Scope" in spec
+    assert "## Slot Mapping Contract" in spec
+    assert "## Runtime Builder Contract" in spec
+    assert "Phase 1 Scope" not in spec
+    assert "Later phases" not in spec
     assert "canonical HTML is read-only" in spec
     assert "template-source/mothers-day-blue-bouquet.html" in spec
     assert "template-source/build.py" in spec
@@ -165,7 +170,7 @@ def test_bouquet_spec_documents_phase3_runtime_mapping():
     spec = (TEMPLATE_DIR / "SPEC.md").read_text(encoding="utf-8")
 
     for phrase in [
-        "Phase 3 Runtime Mapping",
+        "Runtime Builder Contract",
         "window.BOUQUET_GIFT_CONFIG",
         "catalog",
         "gemCatalog",
@@ -177,6 +182,20 @@ def test_bouquet_spec_documents_phase3_runtime_mapping():
         "does not modify the canonical HTML",
     ]:
         assert phrase in spec
+
+
+def test_bouquet_status_docs_describe_ready_builder_not_skeleton():
+    manifest = load_manifest()
+    readme = (TEMPLATE_DIR / "README.md").read_text(encoding="utf-8")
+    templates = (ROOT / "references" / "templates.md").read_text(encoding="utf-8")
+
+    assert manifest["status"] == "ready"
+    for text in [readme, templates]:
+        assert "phase-1-skeleton" not in text
+        assert "phase-3-runtime-builder" not in text
+        assert "build stub" not in text
+    assert "runtime builder" in readme
+    assert "Status: ready" in templates
 
 
 def test_bouquet_phase4_is_documented_as_first_class_template():
