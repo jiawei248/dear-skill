@@ -245,6 +245,8 @@ The builder:
 
 It does not modify `template-source/tincase-box-loop.html`.
 
+Asset paths may be written either relative to the workdir (`generated/fridge/photos/couple.jpg`) or with the documented workdir prefix (`empty-boxes-work/generated/fridge/photos/couple.jpg`). The builder strips the `empty-boxes-work/` prefix before inlining, so the final single-file HTML does not keep fragile local relative paths. The builder also accepts both the manifest slot name `box_surface_selection` and the legacy override name `box_assets` for custom loop box surfaces.
+
 ## 5. Per-Gift Checklist
 
 - [ ] The gift has 3-8 boxes, or fewer if the material is intentionally sparse.

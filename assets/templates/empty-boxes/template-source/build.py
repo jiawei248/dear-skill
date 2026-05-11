@@ -14,6 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CANONICAL = ROOT / "template-source" / "tincase-box-loop.html"
 CONFIG_MARKER = "</head>"
 ASSET_PREFIXES = ("boxes/", "stickers/", "generated/", "figures/", "fonts/")
+WORKDIR_ASSET_PREFIX = "empty-boxes-work/"
 
 
 def parse_args() -> argparse.Namespace:
@@ -62,7 +63,7 @@ def normalize_chrome(slots: dict[str, Any]) -> dict[str, Any]:
 
 
 def normalize_box_assets(slots: dict[str, Any]) -> list[dict[str, Any]]:
-    assets = as_list(slots.get("box_assets"))
+    assets = as_list(slots.get("box_surface_selection")) or as_list(slots.get("box_assets"))
     normalized = []
     for item in assets:
         if not isinstance(item, dict):
@@ -125,8 +126,19 @@ def encode_asset(path: Path) -> str:
     return f"data:{mime};base64,{data}"
 
 
-def looks_like_asset_path(value: str) -> bool:
-    return value.startswith(ASSET_PREFIXES)
+def looks_like_asset_path(value: str, workdir: Path) -> bool:
+    return (
+        value.startswith(ASSET_PREFIXES)
+        or value.startswith(f"{workdir.name}/")
+        or value.startswith(WORKDIR_ASSET_PREFIX)
+    )
+
+
+def strip_workdir_prefix(workdir: Path, src_path: Path) -> Path | None:
+    parts = src_path.parts
+    if parts and parts[0] in {workdir.name, "empty-boxes-work"} and len(parts) > 1:
+        return workdir.joinpath(*parts[1:])
+    return None
 
 
 def resolve_asset_path(workdir: Path, src: str) -> Path | None:
@@ -135,7 +147,9 @@ def resolve_asset_path(workdir: Path, src: str) -> Path | None:
     src_path = Path(src)
     if src_path.is_absolute():
         return src_path if src_path.is_file() else None
+    workdir_relative_path = strip_workdir_prefix(workdir, src_path)
     candidates = [
+        *([workdir_relative_path] if workdir_relative_path else []),
         workdir / src,
         ROOT / "base" / src,
         ROOT / "template-source" / src,
@@ -148,7 +162,7 @@ def inline_config_assets(value: Any, workdir: Path) -> Any:
         return {key: inline_config_assets(item, workdir) for key, item in value.items()}
     if isinstance(value, list):
         return [inline_config_assets(item, workdir) for item in value]
-    if isinstance(value, str) and looks_like_asset_path(value):
+    if isinstance(value, str) and looks_like_asset_path(value, workdir):
         path = resolve_asset_path(workdir, value)
         if path:
             return encode_asset(path)

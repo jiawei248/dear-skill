@@ -32,8 +32,14 @@ def extract_runtime_config(html_text):
 def run_empty_boxes_builder(tmp_path, slots):
     workdir = tmp_path / "empty-boxes-work"
     workdir.mkdir()
+    (workdir / "boxes").mkdir(parents=True)
     (workdir / "stickers" / "gems").mkdir(parents=True)
     (workdir / "generated" / "fridge" / "photos").mkdir(parents=True)
+    (workdir / "boxes" / "custom-box.png").write_bytes(
+        b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+        b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
+        b"\x00\x00\x05\x00\x01\r\n-\xb4\x00\x00\x00\x00IEND\xaeB`\x82"
+    )
     (workdir / "stickers" / "gems" / "sample.png").write_bytes(
         b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
         b"\x08\x06\x00\x00\x00\x1f\x15\xc4\x89\x00\x00\x00\nIDATx\x9cc\x00\x01"
@@ -73,10 +79,15 @@ def sample_slots():
             "memory_label": "我们的小票和冰箱",
         },
         "ambient_gems": [{"src": "stickers/gems/sample.png"}],
+        "box_surface_selection": {
+            "items": [
+                {"src": "empty-boxes-work/boxes/custom-box.png", "boost": 1.2, "collage": "fridgeConflict"}
+            ]
+        },
         "box_collages": {
             "fridgeConflict": {
                 "assets": {
-                    "coupleKitchen": "generated/fridge/photos/couple.jpg"
+                    "coupleKitchen": "empty-boxes-work/generated/fridge/photos/couple.jpg"
                 },
                 "layersById": {
                     "main-couple-photo": {
@@ -201,6 +212,9 @@ def test_empty_boxes_builder_injects_runtime_config_and_preserves_source(tmp_pat
         ["我们的小票和冰箱", "label-memory"],
     ]
     assert config["gemAssets"][0].startswith("data:image/png;base64,")
+    assert config["boxAssets"][0]["src"].startswith("data:image/png;base64,")
+    assert config["boxAssets"][0]["boost"] == 1.2
+    assert config["boxAssets"][0]["collage"] == "fridgeConflict"
     assert config["collages"]["fridgeConflict"]["assets"]["coupleKitchen"].startswith("data:image/jpeg;base64,")
     assert config["collages"]["fridgeConflict"]["layersById"]["main-couple-photo"]["caption"] == "把冷战放进冰箱"
     assert "window.EMPTY_BOXES_GIFT_CONFIG" in html_text
