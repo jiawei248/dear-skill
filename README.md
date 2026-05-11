@@ -96,6 +96,7 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 ```bash
 /dear --template paper-house ~/Desktop/for-mia/
 /dear --template bouquet 给妈妈做一束可以拖动的花
+/dear --template empty-boxes 给 TA 做一组装满零食和小票的回忆盒子
 /dear 用 bouquet 模板给朋友做一份生日礼物
 /dear 有什么模板可以用？
 ```
@@ -106,8 +107,9 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 |---|---|---|---|
 | `paper-house` | 伴侣、周年、很亲密的朋友、长故事 | `assets/templates/paper-house/preview.jpg` | 把你们的回忆变成四个可爱的小房间，每个房间都有一首专属 BGM。 |
 | `bouquet` | 生日、母亲节、感谢、朋友安慰、纪念日 | `assets/templates/bouquet/preview.jpg` | 给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。 |
+| `empty-boxes` | 伴侣、520、生日、朋友、日常小仪式 | `assets/templates/empty-boxes/preview.jpg` | 把冰箱、购物篮、纸箱和铁盒做成一圈可以翻看的回忆收藏盒。 |
 
-### 模板 Demo：先看两个已经做好的礼物
+### 模板 Demo：先看几个已经做好的礼物
 
 #### paper-house
 
@@ -120,6 +122,12 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 给妈妈做一个赛博奖杯插画：一束花像一座发光的奖杯，每一朵花都蕴藏着一个你们的故事。
 
 ![bouquet demo](assets/templates/bouquet/demo-preview.png)
+
+#### empty-boxes
+
+把一只只空盒子变成回忆收藏盒：冰箱里放下和好的小蛋糕，购物篮里装满零食和小票，每一层都有具体故事。
+
+![empty-boxes demo](assets/templates/empty-boxes/demo-preview.png)
 
 ---
 
@@ -342,6 +350,7 @@ If you want to start from a polished template, specify it directly:
 ```bash
 /dear --template paper-house ~/Desktop/for-mia/
 /dear --template bouquet make mom a draggable bouquet
+/dear --template empty-boxes make a snack-run memory box for Ren
 /dear use the bouquet template for a friend's birthday gift
 /dear show me templates
 ```
@@ -352,8 +361,9 @@ Polished templates:
 |---|---|---|---|
 | `paper-house` | anniversaries, partners, very close friends, longer stories | `assets/templates/paper-house/preview.jpg` | Turns your shared memories into four charming little rooms, each with its own BGM. |
 | `bouquet` | birthdays, Mother's Day, thank-you gifts, friend comfort, anniversaries | `assets/templates/bouquet/preview.jpg` | Makes mom a cyber-trophy bouquet illustration where every flower holds one of your stories. |
+| `empty-boxes` | partners, 520, birthdays, close friends, everyday rituals | `assets/templates/empty-boxes/preview.jpg` | Turns refrigerators, shopping baskets, cardboard boxes, and tin cases into a loop of collectible memory boxes. |
 
-### Template demos: two finished gift examples
+### Template demos: finished gift examples
 
 #### paper-house
 
@@ -366,6 +376,12 @@ A little glowing house for the days you shared: every room has its own music, it
 Makes mom a cyber-trophy illustration: a luminous bouquet where every flower carries one story between you.
 
 ![Bouquet demo](assets/templates/bouquet/demo-preview.png)
+
+#### empty-boxes
+
+Turns empty containers into memory boxes: a refrigerator shelf can hold a small reconciliation, a shopping basket can hold a snack run, and each collage stays grounded in concrete details.
+
+![Empty-boxes demo](assets/templates/empty-boxes/demo-preview.png)
 
 ---
 

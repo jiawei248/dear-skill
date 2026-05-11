@@ -4,6 +4,12 @@ All notable changes to `dear` are documented here.
 
 This file follows a lightweight changelog style: concise, human-readable, and focused on user-visible capability changes.
 
+## [Unreleased]
+
+### Added
+
+- added the `empty-boxes` rich template: a Three.js loop of collectible container collages with box-fitted photos, grouped stickers, English production docs, a runtime builder, and a GitHub Release asset bundle contract
+
 ## [1.0.0] - 2026-04-10
 
 First public release of `dear` as a relationship-aware gift skill for Claude Code.

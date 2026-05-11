@@ -1,0 +1,237 @@
+{
+  "id": "empty-boxes",
+  "aliases": ["empty_boxes", "empty boxes", "tincase", "memory boxes"],
+  "name": "Empty Boxes — Tin-Case Memory Loop",
+  "description": "A playful Three.js loop of collectible empty boxes that become dense handmade memory collages. Each box can hold generated photos, cutout figures, clustered stickers, labels, tapes, and handwritten notes. Best when a relationship can be told through containers: a refrigerator shelf, a shopping basket, a library cardboard box, a trip tin, or another object that physically frames the memory.",
+  "preview": "preview.jpg",
+  "best_for": [
+    "anniversary",
+    "partner",
+    "close-friend",
+    "birthday",
+    "520",
+    "light-love-letter",
+    "shared-everyday-rituals"
+  ],
+  "tone": [
+    "playful",
+    "specific",
+    "handmade",
+    "collage-like",
+    "cute",
+    "memory-dense"
+  ],
+  "format": "h5",
+  "approx_size_mb": 120,
+  "status": "ready",
+  "canonical_html_reference": "template-source/tincase-box-loop.html",
+  "spec_doc": "SPEC.md",
+  "slots": [
+    {
+      "id": "recipient_material",
+      "type": "user_context",
+      "required": true,
+      "purpose": "Photos, screenshots, chat excerpts, notes, nicknames, quotes, dates, and small story fragments that make the boxes belong to the recipient instead of reading as generic cute collage.",
+      "accepted_inputs": [
+        "photos",
+        "chat_screenshots",
+        "social_screenshots",
+        "text",
+        "notes",
+        "folder"
+      ],
+      "grounding_rules": [
+        "Every visible note, caption, and label must trace to a concrete detail, quote, habit, place, date, food, object, or phrase from the user's material.",
+        "Use the language and address form the user naturally uses with the recipient in the final gift copy.",
+        "Never fill a box with broad praise, generic romance, or vague birthday-copy when the available material contains specific details."
+      ]
+    },
+    {
+      "id": "box_story_plan",
+      "type": "ai_text",
+      "required": true,
+      "count_range": [3, 8],
+      "purpose": "A per-box editorial plan. Each box gets one tight theme, one physical container, one memory anchor, and a small set of details or quotations.",
+      "output_fields_per_box": {
+        "box_id": "stable runtime id such as firstTincase, fridgeConflict, foodCart, libraryCardboard, or a custom id",
+        "container": "the physical box/container metaphor, e.g. three-layer refrigerator, shopping basket, library cardboard box",
+        "theme": "one focused emotional theme, e.g. making up after a tiny fight, snack run, rainy library first date",
+        "memory_anchor": "the specific source detail this box protects",
+        "quoted_or_echoed_detail": "a short quote, nickname, object, date, food, or line from the user's material",
+        "visual_motif": "what grouped stickers and photos should form as one readable image"
+      },
+      "rules": [
+        "A box is a micro-scene, not a mood board.",
+        "Write captions and notes in the user's usual language with the recipient.",
+        "If material is sparse, make fewer boxes rather than padding every box with generic filler."
+      ]
+    },
+    {
+      "id": "box_surface_selection",
+      "type": "asset_picks",
+      "library_subpaths": [
+        "boxes/"
+      ],
+      "count_range": [3, 8],
+      "placement_zone": "3d-loop",
+      "selection_hint": "Choose container assets whose physical shape supports the memory: refrigerator for layered cold/warm domestic scenes, shopping basket for grocery/snack rituals, cardboard/library box for books and paper records, tin case for travel keepsakes.",
+      "runtime_mapping": {
+        "output_paths": "empty-boxes-work/boxes/{n}.{png,jpg}",
+        "layout_source": "BOX_ASSETS in the canonical HTML"
+      }
+    },
+    {
+      "id": "box_photo_generation",
+      "type": "ai_generated_image",
+      "per_box": true,
+      "count_per_box_range": [1, 3],
+      "purpose": "Generated or processed photos that fit the actual container zones. A three-layer refrigerator should receive shelf-height photos/figures, while a shopping basket should use a top-down or cart-rim pose.",
+      "identity_rules": [
+        "When recipient photos are available, preserve recognizable face shape, hair, age, skin tone, and styling across all generated photos.",
+        "When no photos are available, keep a consistent non-specific protagonist design across boxes.",
+        "Generated figures should be composed to physically fit the box: one figure per refrigerator shelf or staggered left/right, a person leaning on the shopping basket rim, a reader tucked behind a library-card frame, etc."
+      ],
+      "physical_rules": [
+        "Photo height must match the container subdivision it occupies. Do not paste a full-body portrait across multiple shelves unless the box plan explicitly says so.",
+        "Use left/right staggering for multiple figures so the collage feels naturally arranged, not stacked in a vertical grid.",
+        "Every photo should be crop-safe for the target collage layer and leave room for stickers or captions without covering faces."
+      ],
+      "runtime_mapping": {
+        "output_paths": "empty-boxes-work/generated/{box_id}/photos/{photo_id}.{jpg,png}",
+        "layout_source": "box_collages assets + layers"
+      },
+      "model_hint": "Use an image model that supports identity-preserving multi-image prompts when user photos are provided."
+    },
+    {
+      "id": "sticker_cluster_picks",
+      "type": "sticker_picks",
+      "per_box": true,
+      "library_subpaths": [
+        "stickers/food/",
+        "stickers/decorations/",
+        "stickers/frames/",
+        "stickers/electronic_devices/",
+        "stickers/gems/",
+        "stickers/dolls/"
+      ],
+      "count_range": [5, 14],
+      "placement_zone": "inside-current-box-collage",
+      "selection_hint": "Pick stickers that belong to the container and the memory. Refrigerator boxes prefer food, cold drinks, cake, magnets, and notes. Shopping baskets prefer supermarket snacks, drinks, produce, checkout labels, and basket-adjacent objects. Library boxes prefer paper slips, folders, frames, coffee, glasses, stamps, and bookish tags.",
+      "placement_rules": [
+        "All stickers must stay within the container's visual bounds unless the layer is intentionally an outside label or receipt.",
+        "Cluster stickers into 2-4 small groups that form a readable motif such as a shelf of desserts, a checkout snack pile, or a library receipt corner.",
+        "Avoid scattering single stickers evenly across the whole box. The collage should have grouped gravity.",
+        "If a sticker is a frame, screen, notebook window, or other container, pair it with an inner photo or paper layer so it never appears empty.",
+        "Stickers may partially overlap photos, but should not cover eyes, key gestures, or the quoted detail."
+      ],
+      "runtime_mapping": {
+        "output_paths": "empty-boxes-work/stickers/{box_id}/{1..14}.png",
+        "layout_source": "box_collages.layers in filled-slots.json"
+      }
+    },
+    {
+      "id": "box_collages",
+      "type": "layout_config",
+      "required": false,
+      "purpose": "Optional precise runtime overrides for collage assets/layers. Use layersById for small edits or layers for a full replacement.",
+      "schema_note": "Maps directly into window.EMPTY_BOXES_GIFT_CONFIG.collages. Each collage may override canvas, assets, layersById, or layers. Layer coordinates are in the collage canvas coordinate system and x/y are centers except for type=box.",
+      "supported_layer_types": [
+        "box",
+        "paper",
+        "tape",
+        "sticker",
+        "label",
+        "letterBeads",
+        "miniCircle",
+        "filmPhoto",
+        "outlinedPhoto",
+        "polaroid",
+        "framedPhoto",
+        "cutoutPhoto",
+        "note",
+        "receipt"
+      ],
+      "bounds_rule": "For each custom layer, verify the full rotated bounding box still sits inside the intended container zone unless it is explicitly marked as outside decoration."
+    },
+    {
+      "id": "gift_copy",
+      "type": "ai_text",
+      "required": false,
+      "purpose": "Chrome labels, ticker text, and small visible copy. These are not documentation; they are part of the gift and must follow the user's normal language with the recipient.",
+      "output_fields": {
+        "recipient": "short address form",
+        "occasion": "short top-left label",
+        "collection_label": "small action label",
+        "object_label": "large object label",
+        "memory_label": "bottom/right memory label",
+        "ticker_text": "optional loop ribbon text"
+      },
+      "language_rule": "Use the user's habitual language, writing system, and level of warmth for final gift text."
+    },
+    {
+      "id": "ambient_gems",
+      "type": "asset_picks",
+      "required": false,
+      "library_subpaths": [
+        "stickers/gems/"
+      ],
+      "count_range": [16, 48],
+      "placement_zone": "background-sticker-field",
+      "purpose": "Small floating gem stickers in the background field. They are atmosphere only and should not compete with the actual box collages."
+    }
+  ],
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-empty-boxes-v1/empty-boxes-v1.zip",
+    "sha256": "f2e11e0d76fd0779561970ae3b4a9ee0a216fdb2cb7920b89ccbc10ec7517b48",
+    "size_mb": 113,
+    "contents": [
+      "boxes/",
+      "stickers/",
+      "fonts/",
+      "figures/",
+      "generated/"
+    ]
+  },
+  "build_script": "template-source/build.py",
+  "build_contract": {
+    "input": "filled-slots.json containing optional chrome labels, selected box assets, ambient gems, and per-box collage overrides",
+    "cli": "python3 template-source/build.py --slots <gift-dir>/empty-boxes-work/filled-slots.json --workdir <gift-dir>/empty-boxes-work --out <gift-dir>/index.html",
+    "output": "single index.html in the gift folder",
+    "single_file": true,
+    "source_policy": "template-source/tincase-box-loop.html is canonical and read-only; build.py writes a separate output file.",
+    "runtime_global": "window.EMPTY_BOXES_GIFT_CONFIG",
+    "supported_runtime_groups": [
+      "chrome",
+      "boxAssets",
+      "gemAssets",
+      "collages"
+    ]
+  },
+  "activation_disclosure": {
+    "message": "This template downloads a large box/sticker asset bundle the first time. For the strongest version, it also benefits from identity-preserving image generation for the photos inside each box.",
+    "show_before": "fetching asset bundle or generating custom photos",
+    "cost_notes": [
+      "Asset bundle download is about 120MB on first use.",
+      "Full personalization may use several AI image generations for box photos and cutout figures.",
+      "The final gift text should be written in the user's habitual language with the recipient."
+    ],
+    "options": [
+      {
+        "id": "full",
+        "label": "full box-collage version",
+        "description": "Download the asset bundle, generate box-fitted photos, pick grouped stickers, and build the complete interactive H5."
+      },
+      {
+        "id": "asset_only_draft",
+        "label": "asset-only draft",
+        "description": "Use bundled example photos and stickers to make a quick draft before custom generation."
+      },
+      {
+        "id": "text_image_fallback",
+        "label": "text/image fallback",
+        "description": "Skip the heavy H5 and make a sendable image or text gift from the same recipient brief."
+      }
+    ]
+  }
+}

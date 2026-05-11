@@ -1,0 +1,1675 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>tincase memory loop</title>
+    <script defer src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script defer src="https://unpkg.com/p5@1.9.0/lib/p5.min.js"></script>
+    <script defer src="https://unpkg.com/preact@10.19.2/dist/preact.umd.js"></script>
+    <script defer src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #27251f;
+        --paper: #fbf7ee;
+        --mint: #b6efcf;
+        --blue: #9bcaff;
+        --pink: #ff92ad;
+        --yellow: #f4ff72;
+        --lilac: #d3bcff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background:
+          repeating-linear-gradient(90deg, rgba(77, 213, 233, 0.42) 0 18px, transparent 18px 66px),
+          repeating-linear-gradient(90deg, rgba(35, 199, 145, 0.27) 0 4px, transparent 4px 66px),
+          repeating-linear-gradient(0deg, rgba(255, 230, 142, 0.62) 0 28px, transparent 28px 96px),
+          var(--paper);
+        font-family:
+          ui-rounded,
+          "SF Pro Rounded",
+          "Arial Rounded MT Bold",
+          system-ui,
+          sans-serif;
+      }
+
+      body::before {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        content: "";
+        background:
+          radial-gradient(circle at 50% 50%, rgba(45, 42, 34, 0.18) 0 2px, transparent 2.4px) 0 0 / 58px 58px,
+          radial-gradient(circle at 50% 50%, rgba(45, 42, 34, 0.12) 0 1.7px, transparent 2.2px) 29px 29px / 58px 58px;
+        mix-blend-mode: multiply;
+      }
+
+      body::after {
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        pointer-events: none;
+        content: "";
+        background:
+          linear-gradient(to bottom, rgba(255, 255, 255, 0.28), transparent 18%, transparent 78%, rgba(255, 245, 214, 0.5)),
+          radial-gradient(circle at 50% 48%, transparent 0 44%, rgba(255, 248, 226, 0.35) 76%, rgba(42, 37, 31, 0.11) 100%);
+      }
+
+      #app,
+      #p5-layer,
+      #three-stage {
+        position: fixed;
+        inset: 0;
+      }
+
+      #app {
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      #p5-layer {
+        z-index: 2;
+        pointer-events: none;
+      }
+
+      #p5-layer canvas {
+        display: block;
+      }
+
+      #three-stage {
+        z-index: 10;
+        cursor: grab;
+        touch-action: none;
+      }
+
+      #three-stage:active {
+        cursor: grabbing;
+      }
+
+      #three-stage canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+      }
+
+      .sticker-field {
+        position: fixed;
+        inset: -9vh -9vw;
+        overflow: hidden;
+      }
+
+      .gem-tile {
+        position: absolute;
+        left: var(--x);
+        top: var(--y);
+        width: var(--size);
+        opacity: var(--alpha);
+        transform: translate(-50%, -50%);
+        animation: gem-breathe var(--duration) ease-in-out infinite alternate;
+        animation-delay: var(--delay);
+        filter: drop-shadow(0 8px 9px rgba(41, 37, 31, 0.1));
+        will-change: translate;
+      }
+
+      .gem-tile img {
+        display: block;
+        width: 100%;
+        height: auto;
+        transform: rotate(var(--rot)) scale(var(--scale));
+        transform-origin: 50% 55%;
+        animation: gem-spark var(--spark-duration) ease-in-out infinite;
+        animation-delay: var(--spark-delay);
+        filter: brightness(1) saturate(1);
+        will-change: transform, opacity, filter;
+        user-select: none;
+        -webkit-user-drag: none;
+      }
+
+      @keyframes gem-breathe {
+        0% {
+          translate: 0 0;
+        }
+        100% {
+          translate: var(--dx) var(--dy);
+        }
+      }
+
+      @keyframes gem-spark {
+        0%,
+        100% {
+          opacity: 0.62;
+          filter: brightness(0.92) saturate(0.96);
+          transform: rotate(var(--rot)) scale(calc(var(--scale) * 0.82));
+        }
+        38% {
+          opacity: 0.92;
+          filter: brightness(1.1) saturate(1.18);
+          transform: rotate(var(--rot)) scale(calc(var(--scale) * 1.08));
+        }
+        58% {
+          opacity: 1;
+          filter: brightness(1.28) saturate(1.35);
+          transform: rotate(var(--rot)) scale(calc(var(--scale) * 1.22));
+        }
+        78% {
+          opacity: 0.76;
+          filter: brightness(1.02) saturate(1.08);
+          transform: rotate(var(--rot)) scale(calc(var(--scale) * 0.95));
+        }
+      }
+
+      .label-layer {
+        position: fixed;
+        inset: 0;
+        z-index: 4;
+      }
+
+      .hand-label {
+        position: absolute;
+        z-index: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        isolation: isolate;
+        min-width: var(--block-w);
+        min-height: var(--block-h);
+        padding: var(--block-pad-y) var(--block-pad-x);
+        color: rgba(255, 255, 255, 0.46);
+        line-height: 0.88;
+        letter-spacing: 0;
+        white-space: nowrap;
+        -webkit-text-stroke: clamp(1px, 0.18vw, 2.8px) var(--stroke);
+        text-shadow:
+          1px 1px 0 rgba(255, 255, 255, 0.72),
+          0 8px 18px rgba(43, 38, 32, 0.12);
+        transform: rotate(var(--tilt));
+      }
+
+      .hand-label::before {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        content: "";
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: var(--block-radius);
+        background: var(--block-bg);
+        box-shadow: 0 16px 34px rgba(51, 43, 35, 0.08);
+      }
+
+      .label-happy {
+        left: 4.2vw;
+        top: 6.4vh;
+        --tilt: -5deg;
+        --stroke: #ff4f80;
+        --block-bg: rgba(255, 120, 164, 0.38);
+        --block-w: clamp(190px, 24vw, 430px);
+        --block-h: clamp(58px, 8.4vh, 102px);
+        --block-pad-x: 0.24em;
+        --block-pad-y: 0.08em;
+        --block-radius: 18px;
+        font-family: "Marker Felt", "Comic Sans MS", "Kaiti SC", cursive;
+        font-size: clamp(1.72rem, 4.25vw, 4.45rem);
+      }
+
+      .label-for {
+        right: 5.6vw;
+        top: 9.2vh;
+        --tilt: 4deg;
+        --stroke: #2f63a4;
+        --block-bg: rgba(136, 208, 255, 0.35);
+        --block-w: clamp(184px, 21vw, 390px);
+        --block-h: clamp(56px, 8.2vh, 98px);
+        --block-pad-x: 0.28em;
+        --block-pad-y: 0.08em;
+        --block-radius: 20px;
+        font-family: "Snell Roundhand", "Bradley Hand", "Comic Sans MS", cursive;
+        font-size: clamp(1.95rem, 4.55vw, 5rem);
+      }
+
+      .label-pick {
+        left: 3.7vw;
+        top: 42.5vh;
+        --tilt: -3deg;
+        --stroke: #263f35;
+        --block-bg: rgba(152, 255, 188, 0.36);
+        --block-w: clamp(136px, 14.5vw, 250px);
+        --block-h: clamp(54px, 7.2vh, 90px);
+        --block-pad-x: 0.35em;
+        --block-pad-y: 0.16em;
+        --block-radius: 18px;
+        font-family: "Kaiti SC", "Yuanti SC", "Comic Sans MS", cursive;
+        font-size: clamp(1.32rem, 2.85vw, 3.15rem);
+      }
+
+      .label-tincase {
+        left: 4.2vw;
+        bottom: 7.8vh;
+        --tilt: 2deg;
+        --stroke: #473a2e;
+        --block-bg: rgba(255, 126, 158, 0.35);
+        --block-w: clamp(220px, 30vw, 520px);
+        --block-h: clamp(58px, 8.4vh, 98px);
+        --block-pad-x: 0.28em;
+        --block-pad-y: 0.06em;
+        --block-radius: 18px;
+        font-family: Impact, "Arial Black", fantasy;
+        font-size: clamp(2rem, 5.95vw, 6.55rem);
+        text-transform: lowercase;
+      }
+
+      .label-memory {
+        right: 5.3vw;
+        bottom: 15.2vh;
+        --tilt: -5deg;
+        --stroke: #2d7c69;
+        --block-bg: rgba(202, 174, 255, 0.34);
+        --block-w: clamp(190px, 23vw, 420px);
+        --block-h: clamp(52px, 7.2vh, 86px);
+        --block-pad-x: 0.32em;
+        --block-pad-y: 0.13em;
+        --block-radius: 18px;
+        font-family: "Hannotate SC", "Kaiti SC", "Comic Sans MS", cursive;
+        font-size: clamp(1.28rem, 2.9vw, 3.2rem);
+      }
+
+      .ticker-ribbon {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 35;
+        display: flex;
+        gap: 2rem;
+        align-items: center;
+        height: clamp(50px, 7.2vh, 78px);
+        overflow: hidden;
+        background: #f3ff25;
+        border-top: 1px solid rgba(39, 37, 31, 0.18);
+        box-shadow: 0 -14px 28px rgba(255, 246, 82, 0.26);
+        color: rgba(35, 32, 24, 0.84);
+        font-size: clamp(0.8rem, 1.4vw, 1.18rem);
+        font-weight: 800;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .ticker-ribbon span {
+        display: inline-flex;
+        gap: 2rem;
+        align-items: center;
+        animation: ticker 22s linear infinite;
+      }
+
+      .ticker-ribbon i {
+        display: inline-block;
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 50%;
+        background: rgba(39, 37, 31, 0.45);
+      }
+
+      @keyframes ticker {
+        from {
+          transform: translateX(0);
+        }
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      .countmark {
+        position: fixed;
+        top: clamp(14px, 3vw, 34px);
+        left: 50%;
+        z-index: 14;
+        display: inline-flex;
+        gap: 0.32em;
+        align-items: baseline;
+        color: rgba(39, 37, 31, 0.72);
+        font-family: "Courier New", monospace;
+        font-size: clamp(0.82rem, 1.6vw, 1.2rem);
+        font-weight: 800;
+        letter-spacing: 0;
+        transform: translateX(-50%);
+      }
+
+      .countmark b {
+        color: #ff567f;
+        font-size: 1.8em;
+        line-height: 0.85;
+        -webkit-text-stroke: 0.7px rgba(39, 37, 31, 0.55);
+      }
+
+      .fallback-note {
+        position: fixed;
+        inset: auto 1rem 1rem;
+        z-index: 30;
+        display: none;
+        color: #2b2620;
+        font-size: 0.9rem;
+        text-align: center;
+      }
+
+      body.no-three .fallback-note {
+        display: block;
+      }
+
+      @media (max-width: 720px) {
+        body::before {
+          background:
+            radial-gradient(circle at 50% 50%, rgba(45, 42, 34, 0.16) 0 1.7px, transparent 2px) 0 0 / 46px 46px,
+            radial-gradient(circle at 50% 50%, rgba(45, 42, 34, 0.1) 0 1.4px, transparent 1.9px) 23px 23px / 46px 46px;
+        }
+
+        .sticker-field {
+          inset: -7vh -17vw;
+        }
+
+        .label-happy {
+          left: 4vw;
+          top: 8vh;
+        }
+
+        .label-for {
+          right: 3vw;
+          top: 18vh;
+        }
+
+        .label-pick {
+          left: 2vw;
+          top: 46vh;
+        }
+
+        .label-tincase {
+          left: 3vw;
+          bottom: 7vh;
+        }
+
+        .label-memory {
+          right: 2.5vw;
+          bottom: 23vh;
+          white-space: nowrap;
+          max-width: none;
+          text-align: right;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main id="app" aria-hidden="true"></main>
+    <div id="p5-layer" aria-hidden="true"></div>
+    <div id="three-stage" aria-label="tincase 3D boxes"></div>
+    <div class="ticker-ribbon" aria-hidden="true">
+      <span>
+        TIN CASE COLLECTION SERIES <i></i> MEMORY BOX <i></i> FOR YOU <i></i> 520 HAPPY <i></i>
+        TIN CASE COLLECTION SERIES <i></i> MEMORY BOX <i></i> FOR YOU <i></i> 520 HAPPY <i></i>
+      </span>
+    </div>
+    <p class="fallback-note">Three.js is still loading.</p>
+
+    <script>
+      window.addEventListener("load", () => {
+        const RUNTIME_CONFIG = window.EMPTY_BOXES_GIFT_CONFIG || {};
+        const runtimeCollages = RUNTIME_CONFIG.collages || {};
+
+        const mergeLayer = (baseLayer, overrideLayer = {}) => ({
+          ...baseLayer,
+          ...overrideLayer,
+          note: baseLayer.note || overrideLayer.note ? { ...(baseLayer.note || {}), ...(overrideLayer.note || {}) } : undefined,
+        });
+
+        const mergeCollageConfig = (baseConfig, override = {}) => {
+          const layersById = override.layersById || {};
+          const layers = Array.isArray(override.layers)
+            ? override.layers
+            : baseConfig.layers.map((layer) => mergeLayer(layer, layersById[layer.id]));
+          return {
+            ...baseConfig,
+            ...override,
+            canvas: { ...baseConfig.canvas, ...(override.canvas || {}) },
+            assets: { ...baseConfig.assets, ...(override.assets || {}) },
+            layers,
+          };
+        };
+
+        const BOX_ASSETS = Array.isArray(RUNTIME_CONFIG.boxAssets) ? RUNTIME_CONFIG.boxAssets : [
+          { src: "boxes/box_1.png", boost: 1.18, collage: true },
+          { src: "boxes/box_2.png", boost: 1.06 },
+          { src: "boxes/box_3.jpeg", boost: 1.04, collage: "fridgeConflict" },
+          { src: "boxes/box_4.png", boost: 1.02, collage: "foodCart" },
+          { src: "boxes/box_5.png", boost: 1.08, collage: "libraryCardboard" },
+          { src: "boxes/box_6.png", boost: 1.04 },
+          { src: "boxes/box_7.png", boost: 1.02 },
+          { src: "boxes/box_8.png", boost: 1.08 },
+        ];
+
+        const GEM_ASSETS = Array.isArray(RUNTIME_CONFIG.gemAssets) ? RUNTIME_CONFIG.gemAssets : [
+          "stickers/gems/sticker_1.png",
+          "stickers/gems/sticker_2.png",
+          "stickers/gems/sticker_3.png",
+          "stickers/gems/sticker_4.png",
+          "stickers/gems/sticker_5.png",
+          "stickers/gems/sticker_6.png",
+          "stickers/gems/sticker_7.png",
+          "stickers/gems/sticker_8.png",
+          "stickers/gems/sticker_9.png",
+          "stickers/gems/sticker_10.png",
+          "stickers/gems/sticker_11.png",
+          "stickers/gems/sticker_12.png",
+          "stickers/gems/sticker_13.png",
+          "stickers/gems/sticker_14.png",
+          "stickers/gems/sticker_15.png",
+          "stickers/gems/sticker_16.png",
+          "stickers/gems/sticker_17.png",
+          "stickers/gems/sticker_18.png",
+          "stickers/gems/sticker_19.png",
+          "stickers/gems/sticker_20.png",
+          "stickers/gems/sticker_21.png",
+          "stickers/gems/sticker_22.png",
+          "stickers/gems/sticker_23.png",
+          "stickers/gems/sticker_24.png",
+          "stickers/gems/sticker_25.png",
+          "stickers/gems/sticker_26.png",
+          "stickers/gems/sticker_27.png",
+          "stickers/gems/sticker_28.png",
+          "stickers/gems/sticker_29.png",
+          "stickers/gems/sticker_30.png",
+          "stickers/gems/sticker_31.png",
+          "stickers/gems/sticker_32.png",
+          "stickers/gems/sticker_33.png",
+          "stickers/gems/sticker_34.png",
+          "stickers/gems/sticker_35.png",
+          "stickers/gems/sticker_36.png",
+          "stickers/gems/sticker_37.png",
+          "stickers/gems/sticker_38.png",
+          "stickers/gems/sticker_39.png",
+          "stickers/gems/sticker_40.png",
+          "stickers/gems/sticker_41.png",
+          "stickers/gems/sticker_42.png",
+          "stickers/gems/sticker_43.png",
+          "stickers/gems/sticker_44.png",
+          "stickers/gems/sticker_45.png",
+          "stickers/gems/sticker_46.png",
+          "stickers/gems/sticker_47.png",
+          "stickers/gems/sticker_49.png",
+          "stickers/gems/sticker_50.png",
+        ];
+
+        // Edit this object to tune the first tin-case collage.
+        // Coordinates use the 1500 x 1500 collage canvas; x/y are centers unless a layer says otherwise.
+        // z controls stacking order: larger z values sit on top; equal z values keep the array order.
+        const FIRST_TINCASE_COLLAGE = mergeCollageConfig({
+          canvas: { width: 1500, height: 1500 },
+          assets: {
+            box: "boxes/box_1.png",
+            couple: "generated/couple_memory_01/photos/coastal_train_window.jpg",
+            girlCutout: "generated/couple_memory_01/photos/seaside_market_girl_cutout.png",
+            boy: "generated/couple_memory_01/photos/evening_bus_boy.jpg",
+            airplane: "stickers/decorations/Airplane.png",
+            lovePaper: "stickers/decorations/Free_ I love you ripped paper _ Free PSD - rawpixel.png",
+            camera: "stickers/electronic_devices/sticker_73.png",
+            blueDrink: "stickers/food/sticker_23.png",
+            croissant: "stickers/food/popular French sweets.png",
+            ticket: "stickers/decorations/sticker_103.png",
+            bow: "stickers/gems/sticker_23.png",
+            pinkHeart: "stickers/decorations/sticker_128.png",
+            goldStar: "stickers/gems/sticker_50.png",
+            redHeart: "stickers/gems/sticker_31.png",
+            silverStar: "stickers/gems/sticker_10.png",
+            gemBlue: "stickers/gems/sticker_43.png",
+            gemPearl: "stickers/gems/sticker_2.png",
+            frame4: "stickers/frames/sticker_4.png",
+            shells: "stickers/decorations/Shells And Pearls PNG Images,  Shell, Pearl, Jewelry PNG Transparent Background - Pngtree.png",
+            lime: "stickers/food/sticker_21.png",
+            heartCookie: "stickers/food/sticker_25.png",
+            pinkStar: "stickers/gems/sticker_20.png",
+          },
+          layers: [
+            { id: "outside-receipt", z: 0, type: "receipt", x: 1058, y: 278, width: 220, height: 326, angle: 11, text: "TRIP RECEIPT" },
+            { id: "box-base", z: 1, type: "box", asset: "box", x: 240, y: 210, width: 980 },
+
+            { id: "top-cream-paper", z: 2, type: "paper", x: 720, y: 435, width: 510, height: 220, angle: -2, fill: "rgba(255, 247, 220, 0.36)", stroke: "rgba(255,255,255,0.18)" },
+            { id: "word-kamakura", z: 3, type: "letterBeads", text: "KAMAKURA", x: 470, y: 324, radius: 18, angle: -6 },
+            { id: "main-film-photo", z: 4, type: "filmPhoto", asset: "couple", x: 646, y: 432, width: 448, height: 236, angle: -5, caption: "镰仓七里滨" },
+            { id: "main-photo-tape", z: 5, type: "tape", x: 508, y: 317, width: 156, height: 34, angle: -3, color: "rgba(255, 223, 116, 0.55)" },
+            { id: "paper-airplane", z: 6, type: "sticker", asset: "airplane", x: 984, y: 402, width: 160, angle: 12 },
+            { id: "love-ripped-paper", z: 7, type: "sticker", asset: "lovePaper", x: 930, y: 508, width: 208, angle: -10 },
+            { id: "silver-camera", z: 8, type: "sticker", asset: "camera", x: 948, y: 608, width: 168, angle: 6 },
+            { id: "silver-star", z: 9, type: "sticker", asset: "silverStar", x: 980, y: 320, width: 64, angle: 8 },
+            { id: "gold-star", z: 10, type: "sticker", asset: "goldStar", x: 416, y: 602, width: 74, angle: -11 },
+            { id: "num-01-camera", z: 11, type: "miniCircle", text: "01", x: 880, y: 580, radius: 23, angle: -8, fill: "#fff4a6", color: "#3b3c34" },
+
+            { id: "lower-paper-slip", z: 12, type: "paper", x: 596, y: 960, width: 335, height: 198, angle: -9, fill: "rgba(244, 239, 215, 0.94)" },
+            { id: "lower-pink-tape", z: 13, type: "tape", x: 573, y: 753, width: 138, height: 30, angle: -2, color: "rgba(255, 184, 204, 0.55)" },
+            { id: "lower-green-tape", z: 14, type: "tape", x: 843, y: 785, width: 146, height: 30, angle: 3, color: "rgba(191, 230, 175, 0.56)" },
+            { id: "ticket-stub", z: 15, type: "sticker", asset: "ticket", x: 682, y: 794, width: 218, angle: -5 },
+            { id: "boy-framed-photo", z: 16, type: "framedPhoto", asset: "boy", frame: "frame4", x: 782, y: 923, frameWidth: 280, angle: -5, windowRect: { x: 74, y: 95, w: 282, h: 178 }, caption: "你把车票夹进相机包" },
+            { id: "girl-cutout-photo", z: 17, type: "cutoutPhoto", asset: "girlCutout", x: 540, y: 942, width: 162, angle: 4, caption: "青柠汽水在冒泡" },
+            { id: "blue-soda", z: 18, type: "sticker", asset: "blueDrink", x: 980, y: 926, width: 170, angle: -8 },
+            { id: "shells", z: 19, type: "sticker", asset: "shells", x: 442, y: 840, width: 175, angle: -16 },
+            { id: "heart-cookies", z: 20, type: "sticker", asset: "heartCookie", x: 620, y: 1050, width: 112, angle: 8 },
+            { id: "croissant", z: 21, type: "sticker", asset: "croissant", x: 1000, y: 790, width: 158, angle: 10 },
+            { id: "pink-heart", z: 22, type: "sticker", asset: "pinkHeart", x: 888, y: 1050, width: 126, angle: -8 },
+            { id: "red-heart", z: 23, type: "sticker", asset: "redHeart", x: 900, y: 480, width: 52, angle: 14 },
+            { id: "pearl", z: 24, type: "sticker", asset: "gemPearl", x: 330, y: 1180, width: 42, angle: 0 },
+            { id: "pink-star", z: 25, type: "sticker", asset: "pinkStar", x: 302, y: 360, width: 68, angle: -18 },
+            { id: "num-02-framed-photo", z: 26, type: "miniCircle", text: "02", x: 940, y: 825, radius: 22, angle: 8, fill: "#ffdce8", color: "#6b3d4b" },
+            { id: "num-03-soda", z: 27, type: "miniCircle", text: "03", x: 445, y: 785, radius: 18, angle: -10, fill: "#eef7ff", color: "#30485c" },
+            { id: "num-04-note", z: 28, type: "miniCircle", text: "04", x: 780, y: 740, radius: 18, angle: 6, fill: "#fff4a6", color: "#4d4a36" },
+
+            { id: "outside-note", z: 29, type: "note", x: 1115, y: 1086, scale: 1, angle: -6 },
+            { id: "location-label", z: 30, type: "label", text: "SHICHIRIGAHAMA", x: 358, y: 210, width: 284, height: 54, angle: -5, fill: "rgba(248, 240, 143, 0.9)", color: "#4e5042" },
+            { id: "for-you-label", z: 31, type: "label", text: "for you", x: 1165, y: 284, width: 172, height: 50, angle: 6, fill: "rgba(178, 218, 247, 0.84)", color: "#365475" },
+          ],
+        }, runtimeCollages.firstTincase || runtimeCollages.box1);
+
+        // Edit this object to tune the library-date cardboard-box collage.
+        // Coordinates use the 1200 x 2000 collage canvas; x/y are centers unless a layer says otherwise.
+        // Each image/sticker layer is configurable through id, asset, x, y, width and angle.
+        // z controls stacking order: larger z values sit on top; equal z values keep the array order.
+        const LIBRARY_CARDBOARD_COLLAGE = mergeCollageConfig({
+          canvas: { width: 1200, height: 2000 },
+          assets: {
+            box: "boxes/box_5.png",
+            tablePhoto: "generated/library_date_01/photos/library_window_table.jpg",
+            girlCutout: "generated/library_date_01/photos/library_book_aisle_girl_cutout.png",
+            boyPhoto: "generated/library_date_01/photos/library_card_boy.jpg",
+            libraryFrame: "stickers/frames/sticker_8.png",
+            folder: "stickers/decorations/sticker_102.png",
+            librarySlip: "stickers/decorations/sticker_132.png",
+            notebook: "stickers/decorations/sticker_126.png",
+            graphCard: "stickers/decorations/sticker_133.png",
+            stamp: "stickers/decorations/sticker_149.png",
+            bow: "stickers/decorations/sticker_151.png",
+            artStrip: "stickers/decorations/sticker_154.png",
+            glasses: "stickers/decorations/sticker_157.png",
+            clip: "stickers/decorations/sticker_159.png",
+            coffee: "stickers/food/sticker_30.png",
+            candy: "stickers/food/sticker_26.png",
+            blueStar: "stickers/gems/sticker_17.png",
+            lilacGem: "stickers/gems/sticker_36.png",
+            paperStar: "stickers/gems/sticker_25.png",
+          },
+          layers: [
+            { id: "box-base", z: 0, type: "box", asset: "box", x: 100, y: 110, width: 1000 },
+            { id: "inside-cream-paper", z: 1, type: "paper", x: 600, y: 820, width: 720, height: 600, angle: -3, fill: "rgba(255, 248, 220, 0.45)", stroke: "rgba(255,255,255,0.16)" },
+            { id: "word-library", z: 6, type: "letterBeads", text: "LIBRARY", x: 275, y: 420, radius: 20, angle: -7 },
+            { id: "date-label", z: 3, type: "label", text: "FIRST DATE", x: 335, y: 320, width: 210, height: 52, angle: -5, fill: "rgba(248, 240, 143, 0.9)", color: "#4e5042" },
+            { id: "place-label", z: 4, type: "label", text: "library day", x: 920, y: 335, width: 180, height: 46, angle: 6, fill: "rgba(178, 218, 247, 0.82)", color: "#365475" },
+
+            { id: "main-framed-photo", z: 5, type: "framedPhoto", asset: "tablePhoto", frame: "libraryFrame", x: 610, y: 610, frameWidth: 560, angle: -4, windowRect: { x: 61, y: 67, w: 414, h: 312 }, caption: "三楼窗边的雨" },
+            { id: "main-photo-tape", z: 6, type: "tape", x: 430, y: 430, width: 150, height: 32, angle: -4, color: "rgba(255, 223, 116, 0.5)" },
+            { id: "folder-tab", z: 7, type: "sticker", asset: "folder", x: 910, y: 650, width: 190, angle: 8 },
+            { id: "paper-star-top", z: 8, type: "sticker", asset: "paperStar", x: 280, y: 620, width: 200, angle: -12 },
+            { id: "library-slip", z: 9, type: "sticker", asset: "librarySlip", x: 270, y: 805, width: 210, angle: -8 },
+            { id: "num-01-ticket", z: 10, type: "miniCircle", text: "01", x: 850, y: 540, radius: 22, angle: -5, fill: "#fff4a6", color: "#3b3c34" },
+
+            { id: "girl-cutout", z: 11, type: "cutoutPhoto", asset: "girlCutout", x: 405, y: 1045, width: 180, angle: 4, caption: "我从书架后探出头" },
+            { id: "girl-bow", z: 12, type: "sticker", asset: "bow", x: 525, y: 1008, width: 108, angle: 10 },
+            { id: "num-02-girl", z: 13, type: "miniCircle", text: "02", x: 510, y: 940, radius: 20, angle: 6, fill: "#ffdce8", color: "#6b3d4b" },
+            { id: "coffee", z: 14, type: "sticker", asset: "coffee", x: 300, y: 1170, width: 135, angle: -10 },
+            { id: "lilac-gem", z: 15, type: "sticker", asset: "lilacGem", x: 280, y: 1510, width: 44, angle: 0 },
+
+            { id: "boy-polaroid", z: 16, type: "polaroid", asset: "boyPhoto", x: 725, y: 1080, width: 250, height: 310, angle: 6, caption: "书签背面" },
+            { id: "graph-card", z: 17, type: "sticker", asset: "graphCard", x: 465, y: 1440, width: 325, angle: -8 },
+            { id: "blue-star", z: 18, type: "sticker", asset: "blueStar", x: 910, y: 900, width: 102, angle: 10 },
+            { id: "glasses", z: 19, type: "sticker", asset: "glasses", x: 905, y: 1180, width: 155, angle: 6 },
+            { id: "num-03-bookmark", z: 20, type: "miniCircle", text: "03", x: 950, y: 1140, radius: 19, angle: 8, fill: "#eef7ff", color: "#30485c" },
+
+            { id: "notebook", z: 21, type: "sticker", asset: "notebook", x: 825, y: 1360, width: 190, angle: -9 },
+            { id: "clip", z: 22, type: "sticker", asset: "clip", x: 700, y: 850, width: 175, angle: 6 },
+            { id: "stamp", z: 23, type: "sticker", asset: "stamp", x: 405, y: 1490, width: 130, angle: -10 },
+            { id: "art-strip", z: 24, type: "sticker", asset: "artStrip", x: 435, y: 1600, width: 280, angle: 4 },
+            { id: "blue-candy", z: 25, type: "sticker", asset: "candy", x: 535, y: 1420, width: 125, angle: -8 },
+            { id: "num-04-note", z: 28, type: "miniCircle", text: "04", x: 715, y: 1285, radius: 18, angle: 6, fill: "#fff4a6", color: "#4d4a36" },
+
+            {
+              id: "library-note", z: 27,
+              type: "note",
+              x: 785,
+              y: 1570,
+              scale: 1,
+              angle: -5,
+              note: {
+                title: "for you",
+                lines: [
+                  "第一次约会那天，",
+                  "我们躲进钟书阁三楼。",
+                  "你把我想看的书推过来，",
+                  "书签背面写着：下次还来。",
+                  "雨声很轻，我的心跳很响。",
+                ],
+                sign: "520快乐，给我的图书馆同桌。",
+              },
+            },
+          ],
+        }, runtimeCollages.libraryCardboard || runtimeCollages.box5);
+
+        // Edit this object to tune the refrigerator reconciliation collage.
+        // Coordinates use the 1200 x 1547 collage canvas; x/y are centers unless a layer says otherwise.
+        // z controls stacking order: larger z values sit on top; equal z values keep the array order.
+        const FRIDGE_CONFLICT_COLLAGE = mergeCollageConfig({
+          canvas: { width: 1200, height: 1547 },
+          assets: {
+            fridge: "boxes/box_3.jpeg",
+            coupleKitchen: "generated/fridge_conflict_01/photos/kitchen_reconcile_couple.jpg",
+            boyCutout: "generated/fridge_conflict_01/photos/fridge_boy_note_cutout.png",
+            girlCutout: "generated/fridge_conflict_01/photos/fridge_girl_magnet_cutout.png",
+            iceCream: "stickers/food/sticker_24.png",
+            blueDrink: "stickers/food/sticker_23.png",
+            ramune: "stickers/food/_ (20).png",
+            shavedIce: "stickers/food/_ (65).png",
+            blueCandy: "stickers/food/_ (70).png",
+            ticket: "stickers/decorations/sticker_103.png",
+            portfolio: "stickers/decorations/sticker_126.png",
+            stamp: "stickers/decorations/sticker_149.png",
+            clip: "stickers/decorations/sticker_159.png",
+            bow: "stickers/decorations/sticker_151.png",
+            lovePaper: "stickers/decorations/Free_ I love you ripped paper _ Free PSD - rawpixel.png",
+            blueHeart: "stickers/gems/sticker_43.png",
+            blueStar: "stickers/gems/sticker_17.png",
+            greenStar: "stickers/gems/sticker_36.png",
+            goldStar: "stickers/gems/sticker_50.png",
+          },
+          layers: [
+            { id: "fridge-base", z: 0, type: "box", asset: "fridge", x: 100, y: 45, width: 1000 },
+            { id: "cool-blue-paper", z: 1, type: "paper", x: 600, y: 365, width: 600, height: 340, angle: -4, fill: "rgba(220, 246, 255, 0.38)", stroke: "rgba(255,255,255,0.18)" },
+            { id: "word-thaw", z: 5, type: "letterBeads", text: "THAW", x: 312, y: 210, radius: 20, angle: -6 },
+            { id: "soft-freeze-label", z: 5, type: "label", text: "freeze!", x: 812, y: 226, width: 210, height: 50, angle: 5, fill: "rgba(178, 218, 247, 0.86)", color: "#365475" },
+
+            { id: "main-couple-photo", z: 4, type: "outlinedPhoto", asset: "coupleKitchen", x: 610, y: 340, width: 510, height: 320, angle: 0, caption: "把冷战放进冰箱" },
+            { id: "main-photo-tape-left", z: 5, type: "tape", x: 375, y: 358, width: 150, height: 32, angle: -7, color: "rgba(169, 215, 246, 0.56)" },
+            { id: "main-photo-tape-right", z: 6, type: "tape", x: 885, y: 500, width: 160, height: 41, angle: 5, color: "rgba(255, 223, 116, 0.5)" },
+            { id: "num-01-couple", z: 7, type: "miniCircle", text: "01", x: 835, y: 500, radius: 22, angle: 8, fill: "#e7fbff", color: "#30485c" },
+
+            { id: "ice-cream", z: 8, type: "sticker", asset: "iceCream", x: 230, y: 420, width: 150, angle: -22 },
+            { id: "ramune", z: 9, type: "sticker", asset: "ramune", x: 262, y: 735, width: 220, angle: 5 },
+            { id: "ticket", z: 10, type: "sticker", asset: "ticket", x: 387, y: 790, width: 170, angle: -9 },
+            { id: "clip", z: 11, type: "sticker", asset: "clip", x: 387, y: 720, width: 142, angle: -9 },
+            { id: "blue-star", z: 12, type: "sticker", asset: "blueStar", x: 875, y: 360, width: 85, angle: 10 },
+            { id: "gold-star", z: 13, type: "sticker", asset: "goldStar", x: 332, y: 430, width: 78, angle: -14 },
+
+            { id: "boy-cutout", z: 14, type: "cutoutPhoto", asset: "boyCutout", x: 335, y: 1102, width: 265, angle: 5, caption: "先低头的人更勇敢", captionOffsetY: -16 },
+            { id: "girl-cutout", z: 15, type: "cutoutPhoto", asset: "girlCutout", x: 860, y: 710, width: 268, angle: -4, caption: "我也学着好好说话", captionOffsetY: -12 },
+            { id: "num-02-boy", z: 16, type: "miniCircle", text: "02", x: 320, y: 750, radius: 20, angle: -7, fill: "#fff4a6", color: "#4d4a36" },
+            { id: "num-03-girl", z: 17, type: "miniCircle", text: "03", x: 870, y: 812, radius: 20, angle: 8, fill: "#ffdce8", color: "#6b3d4b" },
+            { id: "bow", z: 28, type: "sticker", asset: "bow", x: 730, y: 580, width: 118, angle: -12 },
+            { id: "love-paper", z: 19, type: "sticker", asset: "lovePaper", x: 600, y: 720, width: 288, angle: -6 },
+            { id: "blue-drink", z: 20, type: "sticker", asset: "blueDrink", x: 940, y: 1080, width: 138, angle: 10 },
+            { id: "shaved-ice", z: 21, type: "sticker", asset: "shavedIce", x: 825, y: 1110, width: 238, angle: -8 },
+            { id: "blue-candy", z: 22, type: "sticker", asset: "blueCandy", x: 722, y: 770, width: 190, angle: -12 },
+            { id: "green-star", z: 23, type: "sticker", asset: "greenStar", x: 450, y: 1112, width: 128, angle: 6 },
+            { id: "blue-heart", z: 26, type: "sticker", asset: "blueHeart", x: 730, y: 1130, width: 162, angle: -8 },
+            { id: "portfolio", z: 25, type: "sticker", asset: "portfolio", x: 615, y: 1060, width: 195, angle: -10 },
+            { id: "stamp", z: 26, type: "sticker", asset: "stamp", x: 650, y: 620, width: 152, angle: 9 },
+
+            {
+              id: "fridge-note", z: 27,
+              type: "note",
+              x: 820,
+              y: 1348,
+              scale: 1,
+              angle: -5,
+              note: {
+                theme: "fridge",
+                title: "for you",
+                lines: [
+                  "那晚我们因为晚餐迟到吵架，",
+                  "谁都不肯先把声音放轻。",
+                  "后来你把小蛋糕放进冰箱，",
+                  "说：坏情绪也先冷藏一下。",
+                  "下次我们都慢一点，好好说。",
+                ],
+                sign: "一起把争执冻成更好的我们。",
+              },
+            },
+          ],
+        }, runtimeCollages.fridgeConflict || runtimeCollages.box3);
+
+        // Edit this object to tune the food-shopping cart collage.
+        // Coordinates use the 1200 x 2000 collage canvas; x/y are centers unless a layer says otherwise.
+        // z controls stacking order: larger z values sit on top; equal z values keep the array order.
+        const SHOPPING_CART_COLLAGE = mergeCollageConfig({
+          canvas: { width: 1200, height: 2000 },
+          assets: {
+            cart: "boxes/box_4.png",
+            coupleFood: "generated/food_cart_01/photos/food_cart_overhead_couple.jpg",
+            boyCartCutout: "generated/food_cart_01/photos/boy_cart_person_cutout.png",
+            icedLatte: "stickers/food/sticker_18.png",
+            sourCan: "stickers/food/_ (20).png",
+            taiyaki: "stickers/food/_ (61).png",
+            cupcake: "stickers/food/Cherry Cupcake 🍒.png",
+            starDonut: "stickers/food/Donuts PNG Images,  Snacks, Dessert PNG Transparent Background - Pngtree.png",
+            ramune: "stickers/food/✢Ramune PNG pic✢.png",
+            gummyBear: "stickers/food/Download Orange Gummy Bear Transparent PNG on YELLOW Images - YI3602685.png",
+            watermelon: "stickers/food/WATERMELON PNG WHITE BACKGROUND ICON.png",
+            shavedIce: "stickers/food/_ (65).png",
+            bunnyToast: "stickers/food/_ (33).png",
+            blueCandy: "stickers/food/_ (70).png",
+            appleCharm: "stickers/decorations/౨🍎ৎ.png",
+            strawberryCap: "stickers/decorations/Strawberry Soda.png",
+            tealBow: "stickers/decorations/sticker_80.png",
+            bubbles: "stickers/decorations/sticker_105.png",
+            starTrail: "stickers/decorations/sticker_104.png",
+          },
+          layers: [
+            { id: "cart-base", z: 0, type: "box", asset: "cart", x: 190, y: 220, width: 820 },
+            { id: "checkout-paper", z: 2, type: "paper", x: 600, y: 630, width: 520, height: 280, angle: -4, fill: "rgba(255, 248, 218, 0.58)", stroke: "rgba(111, 92, 62, 0.18)" },
+            { id: "snack-run-label", z: 3, type: "label", text: "SNACK RUN", x: 410, y: 510, width: 210, height: 50, angle: -6, fill: "rgba(255, 203, 92, 0.88)", color: "#4b4131" },
+            { id: "word-yummy", z: 6, type: "letterBeads", text: "YUMMY", x: 682, y: 510, radius: 18, angle: 5 },
+            { id: "couple-food-photo", z: 5, type: "outlinedPhoto", asset: "coupleFood", x: 610, y: 690, width: 420, height: 305, angle: -6, caption: "超市~" },
+            { id: "photo-tape-left", z: 6, type: "tape", x: 420, y: 555, width: 150, height: 32, angle: -7, color: "rgba(138, 221, 207, 0.52)" },
+            { id: "photo-tape-right", z: 7, type: "tape", x: 795, y: 790, width: 142, height: 30, angle: 4, color: "rgba(255, 176, 184, 0.52)" },
+
+            { id: "sour-can", z: 8, type: "sticker", asset: "sourCan", x: 365, y: 730, width: 120, angle: -10 },
+            { id: "strawberry-cap", z: 9, type: "sticker", asset: "strawberryCap", x: 840, y: 590, width: 118, angle: 10 },
+            { id: "iced-latte", z: 10, type: "sticker", asset: "icedLatte", x: 850, y: 840, width: 110, angle: 7 },
+            { id: "gummy-bear", z: 11, type: "sticker", asset: "gummyBear", x: 578, y: 945, width: 142, angle: -11 },
+            { id: "num-01-drinks", z: 12, type: "miniCircle", text: "01", x: 830, y: 780, radius: 21, angle: 8, fill: "#e7fbff", color: "#30485c" },
+
+            { id: "boy-cart-cutout", z: 13, type: "cutoutPhoto", asset: "boyCartCutout", x: 420, y: 1235, width: 315, angle: 0, caption: "你认真挑零食时很可爱", captionOffsetY: -30 },
+            { id: "boy-pink-tape", z: 14, type: "tape", x: 472, y: 799, width: 168, height: 34, angle: -2, color: "rgba(255, 185, 216, 0.56)" },
+            { id: "taiyaki", z: 15, type: "sticker", asset: "taiyaki", x: 485, y: 985, width: 134, angle: -12 },
+            { id: "ramune", z: 16, type: "sticker", asset: "ramune", x: 755, y: 978, width: 188, angle: 18 },
+            { id: "teal-bow", z: 17, type: "sticker", asset: "tealBow", x: 400, y: 988, width: 112, angle: -10 },
+            { id: "num-02-cart", z: 18, type: "miniCircle", text: "02", x: 735, y: 960, radius: 22, angle: -8, fill: "#fff4a6", color: "#4d4a36" },
+
+            { id: "market-note-paper", z: 19, type: "note", x: 830, y: 1395, scale: 1, angle: -5, note: { theme: "market", title: "for you", lines: ["那天我们说只买一点点，", "结果购物车里塞满汽水、", "鲷鱼烧和冰淇淋。", "你每拿起一样都先问我：", "这个你会不会喜欢？"], sign: "我最喜欢你认真挑零食的样子。" } },
+            { id: "shaved-ice", z: 20, type: "sticker", asset: "shavedIce", x: 550, y: 1055, width: 184, angle: -10 },
+            { id: "bunny-toast", z: 21, type: "sticker", asset: "bunnyToast", x: 650, y: 1050, width: 188, angle: 8 },
+            { id: "star-donut", z: 22, type: "sticker", asset: "starDonut", x: 560, y: 1200, width: 176, angle: 12 },
+            { id: "cupcake", z: 23, type: "sticker", asset: "cupcake", x: 664, y: 1150, width: 178, angle: -9 },
+            { id: "watermelon", z: 24, type: "sticker", asset: "watermelon", x: 790, y: 1050, width: 262, angle: 10 },
+            { id: "blue-candy", z: 25, type: "sticker", asset: "blueCandy", x: 668, y: 938, width: 168, angle: -12 },
+            { id: "apple-charm", z: 26, type: "sticker", asset: "appleCharm", x: 380, y: 965, width: 244, angle: 5 },
+            { id: "bubbles", z: 27, type: "sticker", asset: "bubbles", x: 860, y: 930, width: 198, angle: -6 },
+            { id: "star-trail", z: 28, type: "sticker", asset: "starTrail", x: 330, y: 620, width: 182, angle: -10 },
+            { id: "num-03-dessert", z: 29, type: "miniCircle", text: "03", x: 510, y: 990, radius: 18, angle: -6, fill: "#ffdce8", color: "#6b3d4b" },
+            { id: "sweet-label", z: 30, type: "label", text: "sweet aisle", x: 800, y: 1130, width: 150, height: 42, angle: 6, fill: "rgba(183, 229, 255, 0.86)", color: "#365475" },
+          ],
+        }, runtimeCollages.foodCart || runtimeCollages.box4);
+
+        const rand = (seed) => {
+          const n = Math.sin(seed * 127.1 + 311.7) * 43758.5453123;
+          return n - Math.floor(n);
+        };
+
+        const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+        if (window.preact && window.htm) {
+          const { h, render } = window.preact;
+          const html = window.htm.bind(h);
+          const gemItems = Array.from({ length: 204 }, (_, i) => {
+            const columns = 17;
+            const rows = 12;
+            const col = i % columns;
+            const row = Math.floor(i / columns);
+            const x = (col / (columns - 1)) * 114 - 7 + (rand(i + 2) - 0.5) * 5.6;
+            const y = (row / (rows - 1)) * 114 - 7 + (rand(i + 4) - 0.5) * 6;
+            return {
+              src: GEM_ASSETS[(i * 7 + row * 3) % GEM_ASSETS.length],
+              style: {
+                "--x": `${x}%`,
+                "--y": `${y}%`,
+                "--size": `clamp(20px, ${1.85 + rand(i + 8) * 2.45}vw, ${34 + rand(i + 9) * 38}px)`,
+                "--rot": `${-28 + rand(i + 11) * 56}deg`,
+                "--scale": `${0.72 + rand(i + 13) * 0.62}`,
+                "--alpha": `${0.52 + rand(i + 15) * 0.26}`,
+                "--duration": `${4.8 + rand(i + 17) * 4.4}s`,
+                "--delay": `${-rand(i + 19) * 5.5}s`,
+                "--dx": `${-9 + rand(i + 21) * 18}px`,
+                "--dy": `${-8 + rand(i + 23) * 16}px`,
+                "--spark-duration": `${2.2 + rand(i + 25) * 2.4}s`,
+                "--spark-delay": `${-rand(i + 27) * 4.6}s`,
+              },
+            };
+          });
+
+          const chrome = RUNTIME_CONFIG.chrome || {};
+          const labelItems = Array.isArray(chrome.labels) ? chrome.labels : [
+            ["Happy 520", "label-happy"],
+            ["For you", "label-for"],
+            ["Curated", "label-pick"],
+            ["tincase", "label-tincase"],
+            ["Our memories", "label-memory"],
+          ];
+          const countTotal = String(BOX_ASSETS.length).padStart(2, "0");
+
+          const App = () => html`
+            <div class="sticker-field">
+              ${gemItems.map(
+                (item, i) => html`
+                  <span class="gem-tile" style=${item.style} key=${i}>
+                    <img src=${item.src} alt="" draggable="false" />
+                  </span>
+                `,
+              )}
+            </div>
+            <div class="label-layer">
+              ${labelItems.map(
+                ([text, name]) => html`<span class=${`hand-label ${name}`} key=${name}>${text}</span>`,
+              )}
+            </div>
+            <div class="countmark"><b id="active-number">01</b><span>/${countTotal}</span></div>
+          `;
+
+          render(html`<${App} />`, document.getElementById("app"));
+        }
+
+        if (window.p5) {
+          new window.p5((p) => {
+            p.setup = () => {
+              const canvas = p.createCanvas(window.innerWidth, window.innerHeight);
+              canvas.parent("p5-layer");
+              p.pixelDensity(Math.min(window.devicePixelRatio || 1, 2));
+              p.noStroke();
+            };
+
+            p.draw = () => {
+              p.clear();
+              const t = p.millis() * 0.001;
+              p.drawingContext.globalCompositeOperation = "multiply";
+              for (let i = 0; i < 5; i += 1) {
+                const w = p.width * (0.018 + i * 0.003);
+                const h = w * 0.62;
+                const x = p.width * (0.18 + i * 0.17) + Math.sin(t * 0.5 + i) * 10;
+                const y = p.height * (0.18 + ((i * 29) % 64) / 100) + Math.cos(t * 0.55 + i * 1.7) * 10;
+                p.push();
+                p.translate(x, y);
+                p.rotate(Math.sin(t * 0.4 + i) * 0.12);
+                p.fill(255, 90 + i * 22, 160 + i * 12, 18);
+                p.rect(-w / 2, -h / 2, w, h, Math.min(14, h * 0.5));
+                p.pop();
+              }
+              p.drawingContext.globalCompositeOperation = "source-over";
+            };
+
+            p.windowResized = () => {
+              p.resizeCanvas(window.innerWidth, window.innerHeight);
+            };
+          });
+        }
+
+        if (!window.THREE) {
+          document.body.classList.add("no-three");
+          return;
+        }
+
+        const stage = document.getElementById("three-stage");
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(38, window.innerWidth / window.innerHeight, 0.1, 100);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+        renderer.setClearColor(0xffffff, 0);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.outputColorSpace = THREE.SRGBColorSpace;
+        stage.appendChild(renderer.domElement);
+
+        const group = new THREE.Group();
+        scene.add(group);
+
+        const loopGeometry = new THREE.BufferGeometry();
+        const loopPoints = [];
+        for (let i = 0; i <= 180; i += 1) {
+          const angle = (i / 180) * Math.PI * 2;
+          loopPoints.push(new THREE.Vector3(Math.sin(angle * 2) * 0.18, Math.sin(angle) * 4.1, Math.cos(angle) * 2.35 - 0.22));
+        }
+        loopGeometry.setFromPoints(loopPoints);
+        const loopLine = new THREE.Line(
+          loopGeometry,
+          new THREE.LineBasicMaterial({ color: 0x2c2822, transparent: true, opacity: 0.12 }),
+        );
+        loopLine.renderOrder = 1;
+        scene.add(loopLine);
+
+        const loadImage = (src) =>
+          new Promise((resolve, reject) => {
+            const image = new Image();
+            image.decoding = "async";
+            image.onload = () => resolve(image);
+            image.onerror = () => reject(new Error(`Failed to load ${src}`));
+            image.src = src;
+          });
+
+        function makeCanvas(width, height) {
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          return canvas;
+        }
+
+        let collageFontsPromise = null;
+        function loadCollageFonts() {
+          if (collageFontsPromise) return collageFontsPromise;
+          if (!window.FontFace || !document.fonts) {
+            collageFontsPromise = Promise.resolve();
+            return collageFontsPromise;
+          }
+          const faces = [
+            new FontFace("WanWeiHand", "url('fonts/我爱万伟伟手写体.ttf')"),
+            new FontFace("FushengKai", "url('fonts/张穸洛浮生楷体.ttf')"),
+          ];
+          collageFontsPromise = Promise.all(faces.map((face) => face.load()))
+            .then((loadedFaces) => {
+              loadedFaces.forEach((face) => document.fonts.add(face));
+              return document.fonts.ready;
+            })
+            .catch(() => undefined);
+          return collageFontsPromise;
+        }
+
+        function roundedRectPath(ctx, x, y, width, height, radius) {
+          const r = Math.min(radius, width / 2, height / 2);
+          ctx.beginPath();
+          ctx.moveTo(x + r, y);
+          ctx.arcTo(x + width, y, x + width, y + height, r);
+          ctx.arcTo(x + width, y + height, x, y + height, r);
+          ctx.arcTo(x, y + height, x, y, r);
+          ctx.arcTo(x, y, x + width, y, r);
+          ctx.closePath();
+        }
+
+        function drawRotated(ctx, cx, cy, angle, draw) {
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate((angle * Math.PI) / 180);
+          draw(ctx);
+          ctx.restore();
+        }
+
+        function drawImageCover(ctx, image, x, y, width, height, cropX = 0.5, cropY = 0.5) {
+          const imgW = image.naturalWidth || image.width;
+          const imgH = image.naturalHeight || image.height;
+          const scale = Math.max(width / imgW, height / imgH);
+          const sw = width / scale;
+          const sh = height / scale;
+          const sx = clamp((imgW - sw) * cropX, 0, Math.max(0, imgW - sw));
+          const sy = clamp((imgH - sh) * cropY, 0, Math.max(0, imgH - sh));
+          ctx.drawImage(image, sx, sy, sw, sh, x, y, width, height);
+        }
+
+        function drawSoftShadow(ctx, color = "rgba(32, 27, 22, 0.28)", blur = 26, ox = 12, oy = 18) {
+          ctx.shadowColor = color;
+          ctx.shadowBlur = blur;
+          ctx.shadowOffsetX = ox;
+          ctx.shadowOffsetY = oy;
+        }
+
+        function drawTape(ctx, x, y, width, height, color = "rgba(172, 216, 246, 0.58)") {
+          ctx.save();
+          ctx.globalAlpha = 0.95;
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(x + 8, y);
+          ctx.lineTo(x + width - 8, y + 3);
+          ctx.lineTo(x + width, y + height - 4);
+          ctx.lineTo(x + 7, y + height);
+          ctx.closePath();
+          ctx.fill();
+          ctx.globalAlpha = 0.22;
+          ctx.fillStyle = "#fff9d8";
+          for (let i = 0; i < 5; i += 1) {
+            ctx.fillRect(x + 8 + i * (width / 5), y + 4, 3, height - 8);
+          }
+          ctx.restore();
+        }
+
+        function drawTapePiece(ctx, cx, cy, width, height, angle, color) {
+          drawRotated(ctx, cx, cy, angle, () => {
+            drawTape(ctx, -width / 2, -height / 2, width, height, color);
+          });
+        }
+
+        function drawSticker(ctx, image, cx, cy, width, angle = 0, shadow = true) {
+          const imgW = image.naturalWidth || image.width;
+          const imgH = image.naturalHeight || image.height;
+          const height = width * (imgH / imgW);
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            if (shadow) drawSoftShadow(ctx, "rgba(31, 28, 23, 0.2)", 18, 8, 12);
+            ctx.drawImage(image, -width / 2, -height / 2, width, height);
+            ctx.restore();
+          });
+        }
+
+        function drawPaper(ctx, cx, cy, width, height, angle, fill, stroke = "rgba(79, 67, 47, 0.22)") {
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(35, 30, 24, 0.23)", 24, 10, 14);
+            roundedRectPath(ctx, -width / 2, -height / 2, width, height, 18);
+            ctx.fillStyle = fill;
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = stroke;
+            ctx.stroke();
+            ctx.restore();
+          });
+        }
+
+        function drawReceipt(ctx, cx, cy, width, height, angle, title) {
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(32, 28, 22, 0.22)", 22, 9, 16);
+            ctx.fillStyle = "rgba(253, 251, 244, 0.96)";
+            ctx.fillRect(-width / 2, -height / 2, width, height);
+            ctx.shadowColor = "transparent";
+            ctx.fillStyle = "rgba(46, 45, 41, 0.78)";
+            ctx.font = '700 24px "Courier New", monospace';
+            ctx.fillText(title, -width / 2 + 18, -height / 2 + 38);
+            ctx.font = '15px "Courier New", monospace';
+            for (let i = 0; i < 11; i += 1) {
+              const y = -height / 2 + 70 + i * 21;
+              ctx.globalAlpha = i % 3 === 0 ? 0.92 : 0.58;
+              ctx.fillText(i % 2 ? "sea bus    05.20" : "ticket     coast", -width / 2 + 18, y);
+            }
+            ctx.globalAlpha = 1;
+            ctx.fillStyle = "rgba(20, 20, 18, 0.68)";
+            for (let i = 0; i < 18; i += 1) {
+              ctx.fillRect(-width / 2 + 20 + i * 6, height / 2 - 34, i % 3 === 0 ? 4 : 2, 22);
+            }
+            ctx.restore();
+          });
+        }
+
+        function drawLabel(ctx, text, cx, cy, width, height, angle, fill, color = "#273238") {
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(39, 32, 26, 0.14)", 14, 6, 8);
+            roundedRectPath(ctx, -width / 2, -height / 2, width, height, 8);
+            ctx.fillStyle = fill;
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.fillStyle = color;
+            ctx.font = `800 ${Math.round(height * 0.48)}px Arial, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, 0, 1);
+            ctx.restore();
+          });
+        }
+
+        function drawMiniCircle(ctx, text, cx, cy, radius, angle, fill = "#fff8c6", color = "#34332d") {
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(35, 30, 24, 0.16)", 10, 4, 7);
+            ctx.beginPath();
+            ctx.arc(0, 0, radius, 0, Math.PI * 2);
+            ctx.fillStyle = fill;
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = "rgba(68, 58, 44, 0.25)";
+            ctx.stroke();
+            ctx.fillStyle = color;
+            ctx.font = `800 ${Math.round(radius * 1.05)}px Arial, sans-serif`;
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(text, 0, 1);
+            ctx.restore();
+          });
+        }
+
+        function drawLetterBeads(ctx, text, x, y, angle, radius = 21) {
+          drawRotated(ctx, x, y, angle, () => {
+            [...text].forEach((letter, i) => {
+              const dx = i * radius * 1.72;
+              const dy = Math.sin(i * 0.9) * 8;
+              drawMiniCircle(ctx, letter, dx, dy, radius, -angle, i % 2 ? "#eef7ff" : "#fff6b5", "#313437");
+            });
+          });
+        }
+
+        function drawFramedPhoto(ctx, photo, frame, cx, cy, frameWidth, angle, windowRect, caption) {
+          const fw = frameWidth;
+          const fh = fw * ((frame.naturalHeight || frame.height) / (frame.naturalWidth || frame.width));
+          const sx = fw / (frame.naturalWidth || frame.width);
+          const sy = fh / (frame.naturalHeight || frame.height);
+          const wx = -fw / 2 + windowRect.x * sx;
+          const wy = -fh / 2 + windowRect.y * sy;
+          const ww = windowRect.w * sx;
+          const wh = windowRect.h * sy;
+
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(25, 20, 16, 0.24)", 22, 10, 16);
+            ctx.fillStyle = "#fffdf5";
+            roundedRectPath(ctx, wx - 8, wy - 8, ww + 16, wh + 16, 18);
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.save();
+            roundedRectPath(ctx, wx, wy, ww, wh, 12);
+            ctx.clip();
+            drawImageCover(ctx, photo, wx, wy, ww, wh, 0.5, 0.42);
+            ctx.restore();
+            ctx.drawImage(frame, -fw / 2, -fh / 2, fw, fh);
+            if (caption) {
+              ctx.fillStyle = "#314c53";
+              ctx.font = '24px WanWeiHand, "Hannotate SC", "Kaiti SC", cursive';
+              ctx.fillText(caption, wx + 8, wy + wh + 30);
+            }
+            ctx.restore();
+          });
+        }
+
+        function drawFilmPhoto(ctx, image, cx, cy, width, height, angle, caption) {
+          drawRotated(ctx, cx, cy, angle, () => {
+            const stripH = height + 92;
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(18, 15, 12, 0.32)", 28, 14, 20);
+            roundedRectPath(ctx, -width / 2 - 22, -stripH / 2, width + 44, stripH, 10);
+            ctx.fillStyle = "#1f211f";
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.fillStyle = "#f7f3e7";
+            for (let i = 0; i < 12; i += 1) {
+              const x = -width / 2 + i * (width / 11) - 5;
+              ctx.fillRect(x, -stripH / 2 + 12, 12, 22);
+              ctx.fillRect(x, stripH / 2 - 34, 12, 22);
+            }
+            ctx.fillStyle = "#fffaf0";
+            ctx.fillRect(-width / 2 + 20, -height / 2 - 8, width - 40, height + 16);
+            drawImageCover(ctx, image, -width / 2 + 32, -height / 2 + 4, width - 64, height - 8, 0.5, 0.48);
+            ctx.fillStyle = "#f9f1de";
+            ctx.fillRect(-width / 2 + 20, height / 2 + 8, width - 40, 38);
+            ctx.fillStyle = "#3f4b4d";
+            ctx.font = '31px WanWeiHand, "Bradley Hand", "Comic Sans MS", cursive';
+            ctx.fillText(caption, -width / 2 + 45, height / 2 + 36);
+            ctx.restore();
+          });
+        }
+
+        function drawPolaroid(ctx, image, cx, cy, width, height, angle, caption) {
+          const border = 24;
+          const bottom = 66;
+          const cardW = width + border * 2;
+          const cardH = height + border + bottom;
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(26, 22, 17, 0.26)", 25, 12, 18);
+            ctx.fillStyle = "#fffaf0";
+            ctx.fillRect(-cardW / 2, -cardH / 2, cardW, cardH);
+            ctx.shadowColor = "transparent";
+            ctx.strokeStyle = "rgba(187, 176, 155, 0.5)";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(-cardW / 2, -cardH / 2, cardW, cardH);
+            drawImageCover(ctx, image, -width / 2, -cardH / 2 + border, width, height, 0.5, 0.35);
+            ctx.fillStyle = "#374244";
+            ctx.font = '30px WanWeiHand, "Bradley Hand", "Comic Sans MS", cursive';
+            ctx.fillText(caption, -width / 2 + 12, cardH / 2 - 23);
+            ctx.restore();
+          });
+        }
+
+        function drawOutlinedPhoto(ctx, image, cx, cy, width, height, angle, caption) {
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(28, 23, 17, 0.22)", 22, 10, 16);
+            roundedRectPath(ctx, -width / 2 - 18, -height / 2 - 18, width + 36, height + 36, 42);
+            ctx.fillStyle = "#fffdf5";
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            roundedRectPath(ctx, -width / 2, -height / 2, width, height, 32);
+            ctx.clip();
+            drawImageCover(ctx, image, -width / 2, -height / 2, width, height, 0.48, 0.38);
+            ctx.restore();
+            ctx.save();
+            roundedRectPath(ctx, -width / 2 - 18, -height / 2 - 18, width + 36, height + 36, 42);
+            ctx.strokeStyle = "#fffdf5";
+            ctx.lineWidth = 18;
+            ctx.stroke();
+            roundedRectPath(ctx, -width / 2 - 5, -height / 2 - 5, width + 10, height + 10, 35);
+            ctx.strokeStyle = "rgba(89, 122, 157, 0.55)";
+            ctx.lineWidth = 4;
+            ctx.stroke();
+            ctx.fillStyle = "#2c454e";
+            ctx.font = '28px "Bradley Hand", "Comic Sans MS", cursive';
+            ctx.fillText(caption, -width / 2 + 6, height / 2 + 45);
+            ctx.restore();
+          });
+        }
+
+        function drawCutoutPhoto(ctx, image, cx, cy, width, angle, caption, captionOffsetY = 0) {
+          const imgW = image.naturalWidth || image.width;
+          const imgH = image.naturalHeight || image.height;
+          const height = width * (imgH / imgW);
+          const pad = 28;
+          const scaled = makeCanvas(width + pad * 2, height + pad * 2);
+          const sctx = scaled.getContext("2d");
+          sctx.drawImage(image, pad, pad, width, height);
+
+          const tint = makeCanvas(scaled.width, scaled.height);
+          const tctx = tint.getContext("2d");
+          tctx.drawImage(scaled, 0, 0);
+          tctx.globalCompositeOperation = "source-in";
+          tctx.fillStyle = "#fffdf5";
+          tctx.fillRect(0, 0, tint.width, tint.height);
+
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(25, 20, 16, 0.26)", 24, 12, 17);
+            ctx.drawImage(tint, -tint.width / 2, -tint.height / 2);
+            ctx.shadowColor = "transparent";
+            for (let i = 0; i < 18; i += 1) {
+              const a = (i / 18) * Math.PI * 2;
+              ctx.drawImage(tint, -tint.width / 2 + Math.cos(a) * 8, -tint.height / 2 + Math.sin(a) * 8);
+            }
+            ctx.drawImage(scaled, -scaled.width / 2, -scaled.height / 2);
+            ctx.fillStyle = "#284550";
+            ctx.font = '28px WanWeiHand, "Hannotate SC", "Kaiti SC", cursive';
+            ctx.fillText(caption, -width / 2 + 8, height / 2 + 42 + captionOffsetY);
+            ctx.restore();
+          });
+        }
+
+        function drawChineseNote(ctx, cx, cy, angle, scale = 1, note = {}) {
+          const title = note.title || "for you";
+          const lines = note.lines || ["在镰仓七里滨下车后，", "你把我的汽水接过去，", "替我拧开，又装作若无其事。", "海风把车票吹皱了，", "我却只记得你低头笑的样子。"];
+          const sign = note.sign || "520快乐，今天也想和你去海边。";
+          const marketTheme = note.theme === "market";
+          const fridgeTheme = note.theme === "fridge";
+          drawRotated(ctx, cx, cy, angle, () => {
+            ctx.scale(scale, scale);
+            const width = 485;
+            const height = 338;
+            ctx.save();
+            drawSoftShadow(ctx, "rgba(28, 23, 18, 0.25)", 26, 12, 18);
+            roundedRectPath(ctx, -width / 2, -height / 2, width, height, 20);
+            ctx.fillStyle = fridgeTheme ? "rgba(230, 248, 255, 0.98)" : marketTheme ? "rgba(255, 244, 198, 0.98)" : "rgba(255, 249, 213, 0.97)";
+            ctx.fill();
+            ctx.shadowColor = "transparent";
+            ctx.strokeStyle = fridgeTheme ? "rgba(82, 148, 180, 0.5)" : marketTheme ? "rgba(224, 118, 92, 0.48)" : "rgba(181, 142, 70, 0.64)";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            if (marketTheme || fridgeTheme) {
+              ctx.fillStyle = fridgeTheme ? "rgba(123, 203, 226, 0.16)" : "rgba(255, 160, 148, 0.18)";
+              for (let y = -height / 2 + 18; y < height / 2; y += 34) {
+                ctx.fillRect(-width / 2 + 16, y, width - 32, 15);
+              }
+              ctx.strokeStyle = fridgeTheme ? "rgba(83, 146, 182, 0.2)" : "rgba(74, 147, 130, 0.24)";
+              ctx.lineWidth = 1.6;
+              for (let x = -width / 2 + 36; x < width / 2 - 24; x += 34) {
+                ctx.beginPath();
+                ctx.moveTo(x, -height / 2 + 16);
+                ctx.lineTo(x, height / 2 - 16);
+                ctx.stroke();
+              }
+            } else {
+              ctx.fillStyle = "rgba(248, 205, 220, 0.5)";
+              ctx.fillRect(-width / 2 + 30, -height / 2, 42, height);
+              ctx.strokeStyle = "rgba(70, 133, 143, 0.34)";
+              ctx.lineWidth = 2;
+              for (let y = -height / 2 + 74; y < height / 2 - 24; y += 33) {
+                ctx.beginPath();
+                ctx.moveTo(-width / 2 + 52, y);
+                ctx.lineTo(width / 2 - 38, y);
+                ctx.stroke();
+              }
+            }
+            ctx.fillStyle = fridgeTheme ? "#4b78a0" : marketTheme ? "#d24f59" : "#5f7ca2";
+            ctx.font = marketTheme ? '58px "Marker Felt", "Apple Chancery", cursive' : '60px "Apple Chancery", "Snell Roundhand", cursive';
+            ctx.fillText(title, -width / 2 + 82, -height / 2 + 70);
+            ctx.fillStyle = fridgeTheme ? "#415c66" : marketTheme ? "#4d5140" : "#546159";
+            ctx.font = '27px WanWeiHand, "Hannotate SC", "Kaiti SC", "PingFang SC", serif';
+            lines.forEach((line, i) => ctx.fillText(line, -width / 2 + 82, -height / 2 + 116 + i * 33));
+            ctx.fillStyle = fridgeTheme ? "#3b8193" : marketTheme ? "#2f7d72" : "#c45a72";
+            ctx.font = '28px WanWeiHand, "Hannotate SC", "Kaiti SC", "PingFang SC", serif';
+            ctx.fillText(sign, -width / 2 + 66, height / 2 - 24);
+            drawTape(ctx, -74, -height / 2 - 12, 158, 34, fridgeTheme ? "rgba(135, 205, 229, 0.55)" : marketTheme ? "rgba(255, 147, 112, 0.58)" : "rgba(169, 215, 246, 0.58)");
+            ctx.restore();
+          });
+        }
+
+        function drawCollageLayer(ctx, images, layer) {
+          switch (layer.type) {
+            case "receipt":
+              drawReceipt(ctx, layer.x, layer.y, layer.width, layer.height, layer.angle, layer.text);
+              break;
+            case "box": {
+              const image = images[layer.asset];
+              const height = layer.width * ((image.naturalHeight || image.height) / (image.naturalWidth || image.width));
+              ctx.save();
+              drawSoftShadow(ctx, "rgba(22, 18, 14, 0.22)", 34, 14, 22);
+              ctx.drawImage(image, layer.x, layer.y, layer.width, height);
+              ctx.restore();
+              break;
+            }
+            case "paper":
+              drawPaper(ctx, layer.x, layer.y, layer.width, layer.height, layer.angle, layer.fill, layer.stroke);
+              break;
+            case "tape":
+              drawTapePiece(ctx, layer.x, layer.y, layer.width, layer.height, layer.angle, layer.color);
+              break;
+            case "sticker":
+              drawSticker(ctx, images[layer.asset], layer.x, layer.y, layer.width, layer.angle, layer.shadow ?? true);
+              break;
+            case "label":
+              drawLabel(ctx, layer.text, layer.x, layer.y, layer.width, layer.height, layer.angle, layer.fill, layer.color);
+              break;
+            case "letterBeads":
+              drawLetterBeads(ctx, layer.text, layer.x, layer.y, layer.angle, layer.radius);
+              break;
+            case "miniCircle":
+              drawMiniCircle(ctx, layer.text, layer.x, layer.y, layer.radius, layer.angle, layer.fill, layer.color);
+              break;
+            case "filmPhoto":
+              drawFilmPhoto(ctx, images[layer.asset], layer.x, layer.y, layer.width, layer.height, layer.angle, layer.caption);
+              break;
+            case "outlinedPhoto":
+              drawOutlinedPhoto(ctx, images[layer.asset], layer.x, layer.y, layer.width, layer.height, layer.angle, layer.caption);
+              break;
+            case "polaroid":
+              drawPolaroid(ctx, images[layer.asset], layer.x, layer.y, layer.width, layer.height, layer.angle, layer.caption);
+              break;
+            case "framedPhoto":
+              drawFramedPhoto(ctx, images[layer.asset], images[layer.frame], layer.x, layer.y, layer.frameWidth, layer.angle, layer.windowRect, layer.caption);
+              break;
+            case "cutoutPhoto":
+              drawCutoutPhoto(ctx, images[layer.asset], layer.x, layer.y, layer.width, layer.angle, layer.caption, layer.captionOffsetY || 0);
+              break;
+            case "note":
+              drawChineseNote(ctx, layer.x, layer.y, layer.angle, layer.scale, layer.note);
+              break;
+          }
+        }
+
+        async function makeConfiguredCollageTexture(config) {
+          await loadCollageFonts();
+          const images = Object.fromEntries(
+            await Promise.all(Object.entries(config.assets).map(async ([name, src]) => [name, await loadImage(src)])),
+          );
+
+          const canvas = makeCanvas(config.canvas.width, config.canvas.height);
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = "high";
+          config.layers
+            .map((layer, index) => ({ layer, index }))
+            .sort((a, b) => (a.layer.z ?? a.index) - (b.layer.z ?? b.index) || a.index - b.index)
+            .forEach(({ layer }) => drawCollageLayer(ctx, images, layer));
+
+          const texture = new THREE.CanvasTexture(canvas);
+          texture.colorSpace = THREE.SRGBColorSpace;
+          texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+          texture.needsUpdate = true;
+          return texture;
+        }
+
+        async function makeFirstTincaseTexture() {
+          return makeConfiguredCollageTexture(FIRST_TINCASE_COLLAGE);
+        }
+
+        async function makeLibraryCardboardTexture() {
+          return makeConfiguredCollageTexture(LIBRARY_CARDBOARD_COLLAGE);
+        }
+
+        async function makeFridgeConflictTexture() {
+          return makeConfiguredCollageTexture(FRIDGE_CONFLICT_COLLAGE);
+        }
+
+        async function makeShoppingCartTexture() {
+          return makeConfiguredCollageTexture(SHOPPING_CART_COLLAGE);
+        }
+
+        const textureLoader = new THREE.TextureLoader();
+        const loadTexture = (asset) => {
+          if (asset.collage) {
+            const collageFactory = asset.collage === "libraryCardboard" ? makeLibraryCardboardTexture : asset.collage === "foodCart" ? makeShoppingCartTexture : asset.collage === "fridgeConflict" ? makeFridgeConflictTexture : makeFirstTincaseTexture;
+            return collageFactory()
+              .then((texture) => ({ asset, texture }))
+              .catch(() => loadTexture({ ...asset, collage: false }));
+          }
+
+          return new Promise((resolve, reject) => {
+            textureLoader.load(
+              asset.src,
+              (texture) => {
+                texture.colorSpace = THREE.SRGBColorSpace;
+                texture.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+                resolve({ asset, texture });
+              },
+              undefined,
+              reject,
+            );
+          });
+        };
+
+        function makeTrimmedTexture(texture) {
+          const image = texture.image;
+          const width = image.naturalWidth || image.width || 1;
+          const height = image.naturalHeight || image.height || 1;
+          const scan = document.createElement("canvas");
+          scan.width = width;
+          scan.height = height;
+          const scanCtx = scan.getContext("2d", { willReadFrequently: true });
+          scanCtx.drawImage(image, 0, 0, width, height);
+          const pixels = scanCtx.getImageData(0, 0, width, height).data;
+          let minX = width;
+          let minY = height;
+          let maxX = -1;
+          let maxY = -1;
+
+          for (let y = 0; y < height; y += 1) {
+            for (let x = 0; x < width; x += 1) {
+              if (pixels[(y * width + x) * 4 + 3] > 10) {
+                if (x < minX) minX = x;
+                if (x > maxX) maxX = x;
+                if (y < minY) minY = y;
+                if (y > maxY) maxY = y;
+              }
+            }
+          }
+
+          if (maxX < minX || maxY < minY) {
+            minX = 0;
+            minY = 0;
+            maxX = width - 1;
+            maxY = height - 1;
+          }
+
+          const margin = Math.round(Math.max(maxX - minX, maxY - minY) * 0.035);
+          minX = Math.max(0, minX - margin);
+          minY = Math.max(0, minY - margin);
+          maxX = Math.min(width - 1, maxX + margin);
+          maxY = Math.min(height - 1, maxY + margin);
+
+          const cropWidth = maxX - minX + 1;
+          const cropHeight = maxY - minY + 1;
+          const canvas = document.createElement("canvas");
+          canvas.width = cropWidth;
+          canvas.height = cropHeight;
+          canvas.getContext("2d").drawImage(image, minX, minY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+          const trimmed = new THREE.CanvasTexture(canvas);
+          trimmed.colorSpace = THREE.SRGBColorSpace;
+          trimmed.anisotropy = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
+          trimmed.needsUpdate = true;
+
+          return {
+            texture: trimmed,
+            aspect: cropWidth / cropHeight,
+          };
+        }
+
+        const requestedBox = Number.parseInt(new URLSearchParams(window.location.search).get("box") || "1", 10);
+        const initialBox = Number.isFinite(requestedBox) ? clamp(requestedBox - 1, 0, BOX_ASSETS.length - 1) : 0;
+        let target = initialBox;
+        let current = initialBox;
+        let ringY = 4.05;
+        let ringZ = 2.35;
+        let baseSize = 1.12;
+        let snapTimer = 0;
+        let isPointerDown = false;
+        let pointerStartY = 0;
+        let pointerStartTarget = 0;
+        let activeIndex = -1;
+        const activeNumber = () => document.getElementById("active-number");
+
+        function exposeState() {
+          window.__tincaseState = {
+            target,
+            current,
+            activeIndex,
+          };
+        }
+
+        function normalizedIndex(value, total) {
+          return ((value % total) + total) % total;
+        }
+
+        function snapSoon() {
+          window.clearTimeout(snapTimer);
+          snapTimer = window.setTimeout(() => {
+            target = Math.round(target);
+            exposeState();
+          }, 210);
+        }
+
+        function handleWheel(event) {
+          event.preventDefault();
+          target += clamp(event.deltaY, -80, 80) * 0.0055;
+          window.__lastTincaseWheel = event.deltaY;
+          exposeState();
+          snapSoon();
+        }
+
+        window.addEventListener("wheel", handleWheel, { passive: false });
+
+        stage.addEventListener("pointerdown", (event) => {
+          isPointerDown = true;
+          pointerStartY = event.clientY;
+          pointerStartTarget = target;
+          stage.setPointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointermove", (event) => {
+          if (!isPointerDown) return;
+          const drag = pointerStartY - event.clientY;
+          target = pointerStartTarget + drag / 180;
+        });
+
+        stage.addEventListener("pointerup", (event) => {
+          isPointerDown = false;
+          target = Math.round(target);
+          stage.releasePointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointercancel", () => {
+          isPointerDown = false;
+          target = Math.round(target);
+        });
+
+        window.addEventListener("keydown", (event) => {
+          if (event.key === "ArrowDown" || event.key === "PageDown") {
+            target = Math.round(target + 1);
+            exposeState();
+          }
+          if (event.key === "ArrowUp" || event.key === "PageUp") {
+            target = Math.round(target - 1);
+            exposeState();
+          }
+        });
+
+        function resize() {
+          const width = window.innerWidth;
+          const height = window.innerHeight;
+          const aspect = width / height;
+          renderer.setSize(width, height, false);
+          camera.aspect = aspect;
+          camera.fov = width < 720 ? 48 : 38;
+          camera.position.set(0, 0, width < 720 ? 11.7 : 10.2);
+          camera.updateProjectionMatrix();
+          ringY = width < 720 ? 4.62 : 5.08;
+          ringZ = width < 720 ? 2.05 : 2.45;
+          baseSize = width < 720 ? 0.72 : clamp(width / 1400, 0.78, 1);
+          loopLine.scale.set(width < 720 ? 0.86 : 1, width < 720 ? 0.9 : 1, width < 720 ? 0.82 : 1);
+        }
+
+        window.addEventListener("resize", resize);
+        resize();
+
+        Promise.all(BOX_ASSETS.map(loadTexture))
+          .then((loaded) => {
+            const meshes = loaded.map(({ asset, texture }, index) => {
+              const trimmed = makeTrimmedTexture(texture);
+              const geometry = new THREE.PlaneGeometry(trimmed.aspect * 2, 2);
+              const material = new THREE.MeshBasicMaterial({
+                map: trimmed.texture,
+                transparent: true,
+                alphaTest: 0.025,
+                depthTest: false,
+                depthWrite: false,
+                side: THREE.DoubleSide,
+              });
+              const mesh = new THREE.Mesh(geometry, material);
+              mesh.userData.index = index;
+              mesh.userData.boost = asset.boost || 1;
+              mesh.renderOrder = 10;
+              group.add(mesh);
+              return mesh;
+            });
+
+            let lastFrame = performance.now();
+            const introStart = performance.now();
+            const introDuration = 5600;
+            const easeOutQuart = (t) => 1 - Math.pow(1 - t, 4);
+
+            function draw(now = performance.now()) {
+              requestAnimationFrame(draw);
+              const delta = Math.min(0.08, (now - lastFrame) / 1000);
+              lastFrame = now;
+              current += (target - current) * (1 - Math.exp(-delta * 8.5));
+              const introProgress = clamp((now - introStart) / introDuration, 0, 1);
+              const introEase = easeOutQuart(introProgress);
+              const introSpin = (1 - introEase) * meshes.length * 2;
+              const introScale = 0.54 + introEase * 0.46;
+              const displayCurrent = current + introSpin;
+              const step = (Math.PI * 2) / meshes.length;
+
+              meshes.forEach((mesh, index) => {
+                const angle = (index - displayCurrent) * step;
+                const front = (Math.cos(angle) + 1) / 2;
+                const focus = Math.pow(front, 4.15);
+                const x = Math.sin(angle * 1.2) * 0.78;
+                const y = -Math.sin(angle) * ringY;
+                const z = Math.cos(angle) * ringZ;
+                mesh.position.set(x, y, z);
+                mesh.rotation.set(0, 0, 0);
+                mesh.scale.setScalar(baseSize * introScale * (0.31 + focus * 1.56 * mesh.userData.boost));
+                mesh.material.opacity = 0.2 + focus * 0.8;
+                mesh.renderOrder = 20 + Math.round(front * 120);
+              });
+
+              const nextIndex = normalizedIndex(Math.round(current), meshes.length);
+              if (nextIndex !== activeIndex) {
+                activeIndex = nextIndex;
+                const node = activeNumber();
+                if (node) node.textContent = String(activeIndex + 1).padStart(2, "0");
+              }
+              exposeState();
+
+              loopLine.rotation.x = Math.sin(performance.now() * 0.00022) * 0.018;
+              renderer.render(scene, camera);
+            }
+
+            draw();
+          })
+          .catch((error) => {
+            console.error("Tincase texture setup failed", error);
+            document.body.classList.add("no-three");
+          });
+      });
+    </script>
+  </body>
+</html>

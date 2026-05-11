@@ -38,6 +38,10 @@ Available templates:
 💐 bouquet — Cyber Trophy Bouquet
    给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。
    Best for: birthdays, Mother's Day, thank-you gifts, friend comfort, anniversaries.
+
+🧺 empty-boxes — Tin-Case Memory Loop
+   A rotating loop of collectible boxes: fridge shelves, shopping baskets, cardboard boxes, and tin cases become dense grounded memory collages.
+   Best for: partners, 520, birthdays, close friends, everyday rituals, snack runs, small reconciliations.
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
@@ -52,6 +56,7 @@ Three triggers, all valid:
 /dear use the paper-house template for Mia with ~/Desktop/for-mia/
 /dear --template bouquet 给妈妈做一束可以拖动的花
 /dear 用 bouquet 模板给朋友做一份生日礼物
+/dear --template empty-boxes 给 TA 做一个零食购物篮回忆盒
 ```
 Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
 
@@ -421,5 +426,21 @@ Production + content spec: `{baseDir}/assets/templates/bouquet/SPEC.md`.
 Preview: `{baseDir}/assets/templates/bouquet/preview.jpg`.
 
 Asset bundle: ~97 MB zip with flowers, greenery, gems, fonts, and references, fetched once via `scripts/fetch-asset-bundle.sh --template bouquet`. The bundle URL and sha256 live in `template.json.asset_bundle`.
+
+Format: `h5`. Status: ready.
+
+### `empty-boxes` — Tin-Case Memory Loop
+
+A Three.js loop of collectible containers that become handmade memory collages. Featured boxes can be a three-layer refrigerator, shopping basket, library cardboard box, tin case, or another container whose physical shape frames the memory. Each box can hold generated photos, cutout figures, sticker clusters, tape, labels, number beads, receipts, and handwritten notes.
+
+Use this template when the relationship material contains concrete everyday objects: snacks, cold drinks, grocery trips, apology notes, book slips, ticket stubs, small trips, inside-joke objects, or repeated phrases. The key production rule is physical fit: a refrigerator should use shelf-height photos and food/magnet clusters; a shopping basket should use supermarket/snack stickers and a person leaning on or holding the basket; sticker groups must stay inside the container and form readable motifs rather than scattered decoration.
+
+Canonical authored HTML: `{baseDir}/assets/templates/empty-boxes/template-source/tincase-box-loop.html`.
+
+Production + content spec: `{baseDir}/assets/templates/empty-boxes/SPEC.md`. **Read this before producing an empty-boxes gift.** It contains the box-fit rules, sticker-cluster rules, and the language rule: final gift text follows the user's habitual language with the recipient.
+
+Preview: `{baseDir}/assets/templates/empty-boxes/preview.jpg`.
+
+Asset bundle: ~113 MB zip with boxes, stickers, fonts, reference figures, and example generated photos, fetched once via `scripts/fetch-asset-bundle.sh --template empty-boxes`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
 Format: `h5`. Status: ready.
