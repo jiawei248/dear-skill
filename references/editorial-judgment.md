@@ -56,7 +56,7 @@ Choose one primary direction. The creative concept stage will elaborate.
 | `gift-from-elsewhere` | An unrelated delight that has nothing to do with today — a tiny surprise from the user's world to TA's. | Low-context moments; when the user just wants to drop something warm into TA's day. |
 | `real-world-nudge` | Gently suggest a real-world action (call TA, visit somewhere together). | When the gift itself would be less valuable than a small push toward real life. Frame playfully. |
 | `utility` | Something genuinely useful to the recipient wrapped in a creative format. | TA has an active need or project; a thoughtful useful thing beats a symbolic one. Dress it as a gift (a fake newspaper, recipe card, treasure map) — never as homework. |
-| `delayed-payoff` | Two-stage gift: Stage 1 feels like play, Stage 2 reveals a connected surprise. | Best for synchronous relationships where TA will engage with both stages. Usually text-play or H5. |
+| `delayed-payoff` | Two-stage gift: Stage 1 feels like play, Stage 2 reveals a connected surprise. | Best when the recipient will engage with both stages. Usually H5. |
 
 ## Direction Guidance Heuristics
 

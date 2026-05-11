@@ -76,19 +76,16 @@
     "trigger": "inspiration",
     "gift_weight": "light",
     "content_direction": "play",
-    "format": "text-play",
-    "output_shape": "text-play-riddle",
-    "visual_style": "chat-native",
-    "visual_elements": [],
+    "format": "h5",
+    "output_shape": "riddle-cards",
+    "visual_style": "colorful-playful",
+    "visual_elements": ["emoji-clues", "detective-board", "sticky-notes"],
     "concept_family": "game-puzzle",
     "concept_theme": "detective",
     "tone": "warm-playful",
     "content_tags": ["welcome-back-from-sabbatical", "inside-joke"],
     "emotional_intent": "amused",
-    "artifact_path": "",
-    "summary": "6-turn emoji-riddle text-play about his sabbatical trip, ending with a callback to the team group-chat joke about him becoming a monk.",
-    "text_play_type": "riddle",
-    "text_play_turn_count": 6,
-    "text_play_completed": true
+    "artifact_path": "./gifts/2026-05-12-lilei/index.html",
+    "summary": "A detective-board H5 about his sabbatical trip, ending with a callback to the team group-chat joke about him becoming a monk."
   }
 ]

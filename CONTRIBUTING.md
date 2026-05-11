@@ -1,6 +1,6 @@
 # Contributing
 
-Thanks for wanting to contribute to `gift-everyday`.
+Thanks for wanting to contribute to `dear`.
 
 This repo is part workflow engine, part prompt library, part creative toolkit. Good contributions usually improve one of these:
 
@@ -30,7 +30,7 @@ Before adding anything, keep these project rules in mind:
 - Treat templates and examples as references, not things to copy literally.
 - Prefer additions that create new expressive territory, not near-duplicates of existing cards or genres.
 - Keep the user's experience warm and non-technical. Avoid turning gift flows into setup funnels.
-- Preserve the current supported formats: `h5`, `image`, `text`, and bounded `text-play`.
+- Preserve the current supported formats: `h5`, `image`, and `text`.
 
 ## Where To Add Things
 

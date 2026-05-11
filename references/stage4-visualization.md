@@ -404,19 +404,6 @@ At a minimum, the text path should:
 3. If an accompanying image is used, treat it as supplementary atmosphere rather than the main payload.
 4. Deliver the text directly in the message channel with the same emotional return the visual formats would have carried.
 
-### Text-Play Rendering Path
-
-When the chosen format is `text-play`, do not generate files. The interaction itself is the gift.
-
-At a minimum, the text-play path should:
-
-1. Open with the first move itself so the play feels legible immediately, without a prefatory explanation.
-2. Keep the interaction bounded to the planned `turn_limit`, usually `5-10` turns.
-3. Keep each skill turn concise, usually `3-4` sentences max.
-4. Ask for tiny user inputs and let the skill do most of the imaginative work.
-5. Carry the exchange toward a payoff: reveal, callback, punchline, mini ending, or emotional reframe.
-6. If the user exits or stops early, close gracefully instead of treating it as a failure.
-
 ## Self-Check Before Finalizing
 
 ### Pre-Render Checklist
@@ -430,7 +417,6 @@ Before rendering any final artifact, confirm:
 - if the format is `h5` and the mood is emotional, atmospheric, poetic, or contemplative, audio is expected rather than optional. Verify the `audio_plan` has a concrete source such as a Freesound result, preset path, or pre-encoded base64 file. If the plan is missing or says `skip`, reconsider before continuing
 - if music is desired but unavailable, the renderer has a fallback plan and will note the omission in delivery when appropriate
 - the expected `output_shape`, `visual_style`, and main visual ingredients still feel fresh relative to `recent_gifts`
-- if the format is `text-play`, the interaction is still bounded, low-friction, and suitable for a live user-present moment
 
 Before returning the gift, check:
 
@@ -445,7 +431,6 @@ Before returning the gift, check:
 - Did the non-thesis synthesis slots stay in supporting roles rather than taking over the piece
 - Does it preserve enough evidence from today's context to feel grounded
 - Does the interaction pattern fit the emotion
-- if this is `text-play`, would the first turn already feel gift-like even if the user only replies once
 - Is the chosen `output_shape` meaningfully distinct from overused recent gifts unless deliberate repetition was the point
 - Is the chosen `visual_style` fresh enough relative to the last `5` gifts, or clearly justified if repeated
 - If the last `2` gifts were both `dark-*`, did I actively consider a lighter or more colorful alternative

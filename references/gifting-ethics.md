@@ -97,7 +97,7 @@ When the recipient belongs to a different generation, culture, or social context
 
 - Default to more restraint, not more creativity. A modest, warm gift will translate; an avant-garde concept may land as alienating.
 - Avoid inside jokes or memes unless the intake material clearly shows TA engages with that style.
-- Formal relationships (a senior colleague, a mentor) usually want *text* or *image*, not *text-play*. Text-play assumes synchronous playfulness the recipient may not have time or inclination for.
+- Formal relationships (a senior colleague, a mentor) usually want *text* or *image*. Highly playful or demanding interactions assume recipient time and inclination; use them only when the intake clearly supports that tone.
 
 ## The "Would TA Want This?" Test
 

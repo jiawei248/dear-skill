@@ -125,7 +125,7 @@ material_inventory:
   chat_excerpts: [...]
   other: [...]
 format_hint:
-  explicit: h5 | image | text | text-play | none
+  explicit: h5 | image | text | none
   suggested: based on material (e.g. lots of photos → leans image; text-heavy → leans text or h5)
 ```
 

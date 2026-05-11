@@ -379,9 +379,9 @@ After the concept is locked, choose the format that best serves it.
 
 Format serves concept. Concept does not serve format.
 
-If `gift_mode` is `hybrid`, decide the output format here: `h5`, `image`, `text`, or `text-play`.
+If `gift_mode` is `hybrid`, decide the output format here: `h5`, `image`, or `text`.
 
-If `gift_mode` is `h5`, `image`, `text`, or `text-play`, confirm that the configured format genuinely serves this concept.
+If `gift_mode` is `h5`, `image`, or `text`, confirm that the configured format genuinely serves this concept.
 
 For format selection, read `{baseDir}/references/gift-format-chooser.md`.
 
@@ -402,9 +402,9 @@ Before finalizing format, verify:
 - Is specific date, name, number, or structured data accuracy required? If yes, must use H5.
 - Is the return primarily visual or atmospheric? If yes, image is fine.
 - Is the return primarily textual or structural (reports, documents, tables, multi-line annotations)? If yes, H5 is the right choice.
-- Does the return depend on live back-and-forth, tiny user choices, or co-created progression? If yes, choose `text-play`.
+- Does the return depend on authored interaction, tiny choices, or paced progression? If yes, choose `h5`.
 
-Image models cannot reliably render: correct dates, correct names, specific Chinese text beyond approximately 20 characters, multiple table rows with distinct content, or handwritten annotations alongside printed text. When the concept is text-precision-critical, H5 can simulate the same borrowed-media aesthetic (paper texture, stamps, handwriting fonts, table layouts) via CSS while guaranteeing every character is correct. When the concept is conversation-precision-critical, prefer direct `text` or bounded `text-play` instead of forcing it into an image shell.
+Image models cannot reliably render: correct dates, correct names, specific Chinese text beyond approximately 20 characters, multiple table rows with distinct content, or handwritten annotations alongside printed text. When the concept is text-precision-critical, H5 can simulate the same borrowed-media aesthetic (paper texture, stamps, handwriting fonts, table layouts) via CSS while guaranteeing every character is correct. When the concept is conversation-precision-critical, prefer direct `text` or an authored H5 interaction instead of forcing it into an image shell.
 
 This check overrides speed convenience. A perfect concept delivered in the wrong format is a failed gift.
 
@@ -422,7 +422,6 @@ Concept quality:
 Format fit:
 - [ ] the format matches the concept and return
 - [ ] the format is not over-concentrated relative to the recent format balance window
-- [ ] if the format is `text-play`, the interaction is bounded, low-friction, and appropriate for a live user-present moment
 - [ ] content-direction balance has been checked against the last `5` gifts, and reflective overuse has been actively corrected when triggered
 
 Assets ready:
@@ -438,5 +437,5 @@ Then continue into the matching local reference:
 
 - `h5` -> `{baseDir}/references/pattern-boundaries.md`
 - `image` -> `{baseDir}/references/image-genre-chooser.md`
-- `text-play` -> `{baseDir}/references/main-flow.md` and `{baseDir}/references/delivery-rules.md`
+- `text` -> `{baseDir}/references/delivery-rules.md`
 

@@ -39,28 +39,6 @@ Keep text short whenever possible. Avoid long paragraphs or dense blocks of Chin
 
 Default to a mobile-friendly `9:16` aspect ratio unless another composition clearly serves the return better.
 
-#### Text-Play Strategy
-
-If the chosen format is `text-play`, enrich the brief with:
-
-- `text_play_type`
-- `turn_limit`
-- `opening_move`
-- `user_input_shape`
-- `ending_payoff`
-
-Use `text-play` when the medium is a live conversational mini-experience rather than a rendered artifact.
-
-The plan should be concrete about:
-
-- what kind of play it is: world-builder, riddle chain, micro-adventure, relay story, role-play micro-theater, or another stable type
-- how the user participates each turn
-- how many turns the interaction should roughly last
-- what counts as a graceful early exit
-- what reveal, reframe, or emotional landing the ending should deliver
-
-Keep the interaction lightweight. Default to one small input at a time and make the agent do most of the creative lifting.
-
 ### User Portrait Integration
 
 If `user_portrait.available` is true in setup state, the synthesis brief may include the user's appearance description when it materially improves the gift.
@@ -178,7 +156,7 @@ If rich gift mode is needed, prepare a richer execution brief rather than trying
 
 Choose the most fitting expressive mode for the already-selected creative concept before generating the final artifact.
 
-If the chosen format is `image`, `text`, or `text-play`, the H5-specific mandatory checklist below is not required in full. Instead, use Stage 3 to choose the format-specific rendering direction, then confirm the relevant brief fields in the `Pre-Visualization Check`.
+If the chosen format is `image` or `text`, the H5-specific mandatory checklist below is not required in full. Instead, use Stage 3 to choose the format-specific rendering direction, then confirm the relevant brief fields in the `Pre-Visualization Check`.
 
 Before choosing a pattern, complete this mandatory checklist:
 
@@ -190,7 +168,7 @@ Before choosing a pattern, complete this mandatory checklist:
 
 If the chosen format is `h5`, do not proceed to Stage 4 without completing steps `1` through `3`. Steps `4` and `5` are mandatory whenever the relevant assets exist.
 
-If the chosen format is `image`, `text`, or `text-play`, still read `{baseDir}/references/gift-mechanics.md` and `{baseDir}/references/pattern-boundaries.md`, but you do not need to force the brief through an H5 pattern card or template unless that reference genuinely helps the chosen concept.
+If the chosen format is `image` or `text`, still read `{baseDir}/references/gift-mechanics.md` and `{baseDir}/references/pattern-boundaries.md`, but you do not need to force the brief through an H5 pattern card or template unless that reference genuinely helps the chosen concept.
 
 When `./user-taste-profile.json` exists, use it during visual strategy only when the current gift brief makes the user's taste or recurring character context directly relevant:
 
@@ -205,13 +183,11 @@ Departure check after reading the pattern and any relevant template:
 - if the chosen format is `h5`, if someone who has seen the template heard this plan, would they say "that is basically the same composition"
 - if the chosen format is `h5` and the honest answer is yes, rethink before continuing
 - if the chosen format is `image`, what single generated frame, genre, and subject treatment will carry the return most clearly
-- if the chosen format is `text-play`, what opening move, turn rhythm, and ending payoff make the interaction feel like a real gift rather than loose chat
 
 Decide:
 
 - which pattern best fits the brief when the chosen format is `h5`
 - which image genre best fits the brief when the chosen format is `image`, after a first-pass check through `{baseDir}/references/image-genre-chooser.md`
-- which `text_play_type` best fits the brief when the chosen format is `text-play`
 - what the planned `output_shape` is, reusing the categories in `{baseDir}/references/editorial-judgment.md` when they fit and defining a new stable high-level label when they do not
 - what the planned `visual_style` label is, such as `dark-terminal`, `dark-cinematic`, `light-warm`, `colorful-playful`, `minimal-poster`, `pixel-retro`, `photographic`, or a stable custom label
 - whether the piece should be code-first, image-first, or hybrid
@@ -419,8 +395,6 @@ Before rendering the final artifact:
 - if the chosen format is `image` and text appears inside the image, confirm the exact wording, language, placement, approximate size, and font feel
 - if the chosen format is `image`, confirm that any text treatment is likely to render naturally rather than producing broken or chaotic typography
 - if the chosen format is `image`, confirm that on-image text is as short as possible, especially for Chinese
-- if the chosen format is `text-play`, confirm the `text_play_type`, `turn_limit`, `user_input_shape`, opening move, and ending payoff
-- if the chosen format is `text-play`, confirm the interaction can still land if the user exits early after `1-2` turns
 - state the asset plan: how many images, if any, need to be generated before rendering, and what each one is for
 - if the asset plan includes generated images, confirm that those generated images genuinely improve the concept over pure code, still-only, or native format rendering
 - state the gift thesis in one sentence, including both anchor and return

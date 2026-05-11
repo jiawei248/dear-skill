@@ -219,7 +219,7 @@ To generate the concept:
    - most world-like, meaning it feels like a small invention with its own rules
    - most distinct from recent gifts both in output shape and concept family
   - most emotionally fitting
-  - realistically achievable in one of the supported formats, including bounded `text-play` when live interaction is the medium
+  - realistically achievable in one of the supported formats
 
 Useful thinking angles:
 

@@ -58,8 +58,7 @@
       "enum": [
         "h5",
         "image",
-        "text",
-        "text-play"
+        "text"
       ]
     },
     "output_shape": {
@@ -114,17 +113,6 @@
     "summary": {
       "type": "string",
       "description": "One-line summary of the gift's concept and anchor."
-    },
-    "text_play_type": {
-      "type": "string",
-      "description": "Subtype for text-play gifts, e.g. worldbuilder, riddle, micro-story, roleplay."
-    },
-    "text_play_turn_count": {
-      "type": "integer",
-      "minimum": 0
-    },
-    "text_play_completed": {
-      "type": "boolean"
     }
   },
   "additionalProperties": true

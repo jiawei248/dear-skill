@@ -1,13 +1,13 @@
 ---
 name: dear
-description: Use when the user wants to make a thoughtful digital gift for a specific person — a parent, partner, friend, colleague, anyone they care about. Triggered by inspiration, not schedule. Produces an expressive H5, generated image, text artifact, or short interactive text-play. Accepts context through three entries: a folder of raw material (screenshots, photos, chat exports, notes), a one-line brief, or zero-argument interactive intake.
+description: Use when the user wants to make a thoughtful digital gift for a specific person — a parent, partner, friend, colleague, anyone they care about. Triggered by inspiration, not schedule. Produces an expressive H5, generated image, or text artifact. Accepts context through three entries: a folder of raw material (screenshots, photos, chat exports, notes), a one-line brief, or zero-argument interactive intake.
 ---
 
 # Dear
 
 A relationship-aware gift engine for Claude Code. Turn a moment of inspiration into a polished digital gift for someone who matters.
 
-Your job is not just to make a pretty page. Your job is to understand who the gift is for, what this moment between the user and the recipient is really about, choose the right emotional and visual framing, then produce a polished H5, a generated image, a written artifact, or a short interactive text-play.
+Your job is not just to make a pretty page. Your job is to understand who the gift is for, what this moment between the user and the recipient is really about, choose the right emotional and visual framing, then produce a polished H5, a generated image, or a written artifact.
 
 ## Quick Start
 
@@ -130,7 +130,7 @@ Read `{baseDir}/references/gift-format-chooser.md` for selection logic.
 Then continue into the matching reference:
 - `h5` → `{baseDir}/references/pattern-boundaries.md`
 - `image` → `{baseDir}/references/image-genre-chooser.md`
-- `text-play` → `{baseDir}/references/main-flow.md` (text-play section) and `{baseDir}/references/delivery-rules.md`
+- `text` → `{baseDir}/references/delivery-rules.md`
 
 ## Stage 3: Visual Strategy
 
@@ -219,7 +219,7 @@ Required local file: `{baseDir}/assets/templates/tap-to-bloom/index.html`.
 | File | When to read |
 |---|---|
 | `recipient-intake.md` | Stage 0 — every run |
-| `main-flow.md` | Overall flow; visualization-only mode; text-play rules |
+| `main-flow.md` | Overall flow; visualization-only mode; template routing |
 | `templates.md` | Template-mode flow, slot schema, template registry, OSS bundle convention |
 | `operating-rules.md` | Always (full operating rules) |
 | `gifting-ethics.md` | Evidence, soft language, privacy for gifts-for-others |

@@ -6,7 +6,7 @@
 
 > _"亲爱的 ______，我做了一份小东西想给你。"_
 
-**dear** 是一个给 Claude Code 用的礼物 skill。它会把每一次分享欲都变成一份有仪式感的电子礼物：一张有趣的照片、一段 TA 可能会喜欢的音乐、一句突然想起的话，都可以长成一张图、一个可以打开的小网页、一封信，或者一段只属于你们的互动小游戏。
+**dear** 是一个给 Claude Code 用的礼物 skill。它会把每一次分享欲都变成一份有仪式感的电子礼物：一张有趣的照片、一段 TA 可能会喜欢的音乐、一句突然想起的话，都可以长成一张图、一个可以打开的小网页，或者一封只属于你们的信。
 
 在生日、纪念日、母亲节、毕业、重逢，或者任何你想认真表达的时刻，dear 也可以作为实体礼物之外的另一层惊喜：不是替代那束花、那顿饭、那份礼物，而是把你们之间具体的记忆、玩笑、语气和心意做成一个可以被打开的体验。
 
@@ -14,7 +14,7 @@
 /dear
 ```
 
-你可以直接指定 H5、图片、文字或互动文字游戏，也可以把素材交给 dear，让它根据你们的关系和这一次想表达的情绪来提案。
+你可以直接指定 H5、图片或文字，也可以把素材交给 dear，让它根据你们的关系和这一次想表达的情绪来提案。
 
 [它能做什么](#它能做什么) · [快速开始](#快速开始) · [三种触发方式](#三种触发方式) · [模板模式](#模板模式直接选一个精调礼物模板) · [它怎么做礼物](#它怎么做礼物) · [安装](#安装) · [仓库结构](#仓库结构)
 
@@ -27,7 +27,6 @@
 | **H5 互动页面** | 一个会被手指擦开的雨窗；一台只为 TA 造的复古点唱机；一个每点一下就更歪的陶艺转盘；一封要拆开三层才能看到的信 |
 | **AI 生成图片** | 一张把 TA 养的多肉画成水彩的“外婆的花园”；一张写着 TA 名字的假电影票；一张 TA 的情绪气象图 |
 | **文字礼物** | 一封仿照 TA 最喜欢那部电影结构写的信；一篇假装是 TA 自己写的日记；一段对 TA 最近状态的温柔观察 |
-| **互动文字游戏** | 一场 6 轮的 emoji 猜谜，谜底是 TA 的近况；一个把 TA 变成小剧场主角的一人游戏；一张只在聊天里展开的问答卡 |
 
 如果你已经知道想要什么形式，可以直接说；如果还没有想好，dear 会先看素材里最有生命力的部分，再决定什么形式最能把这份心意送出去。
 
@@ -158,7 +157,7 @@ chmod +x scripts/*.sh
 | `FREESOUND_API_KEY` | H5 背景音乐搜索 |
 | `REMOVE_BG_API_KEY` | 图片抠图 |
 
-没有这些 key 时，dear 仍然可以做文字、H5 和互动文字礼物。
+没有这些 key 时，dear 仍然可以做文字和 H5 礼物。
 
 H5 礼物部署示例：
 
@@ -187,7 +186,7 @@ DEAR_HOST_DOMAIN=my-gift.surge.sh /dear
      ↓
 3. 创意构思      生成多个方向，选最能打动 TA 的一个
      ↓
-4. 视觉策略      决定用图片、H5、文字还是互动形式来承载
+4. 视觉策略      决定用图片、H5 或文字来承载
      ↓
 5. 渲染交付      做成最终可以预览、保存或发出的礼物
 ```
@@ -213,7 +212,7 @@ dear/
 ├── SKILL.md                       # skill 入口
 ├── references/                    # 所有子阶段的参考文档
 │   ├── recipient-intake.md        # Stage 0：素材录入的三种方式
-│   ├── main-flow.md               # 总流程 + 进度播报 + text-play 规则
+│   ├── main-flow.md               # 总流程 + 进度播报 + 模板路由
 │   ├── editorial-judgment.md      # Stage 1：重量 + 叙事方向
 │   ├── gifting-ethics.md          # 给“别人”做礼物的原则
 │   ├── creative-concept.md        # Stage 2 + 2.5
@@ -255,7 +254,7 @@ dear/
 
 > _"Dear ______, I made something for you."_
 
-**dear** is a gift-crafting skill for Claude Code. It turns every small spark of sharing into a ceremonial digital gift: a funny photo, a song they might love, or a tiny memory that suddenly comes back can become an image, an interactive H5, a letter, or a small text-play made just for them.
+**dear** is a gift-crafting skill for Claude Code. It turns every small spark of sharing into a ceremonial digital gift: a funny photo, a song they might love, or a tiny memory that suddenly comes back can become an image, an interactive H5, or a letter made just for them.
 
 For birthdays, anniversaries, Mother's Day, graduations, reunions, or any moment where you want to say something with care, dear can become an extra layer of surprise alongside a physical gift. It does not replace the flowers, dinner, or present; it turns the specific memories, jokes, voices, and details between you into something the recipient can open.
 
@@ -263,7 +262,7 @@ For birthdays, anniversaries, Mother's Day, graduations, reunions, or any moment
 /dear
 ```
 
-You can choose H5, image, text, or text-play yourself, or give dear the material and let it propose the format that best carries the feeling.
+You can choose H5, image, or text yourself, or give dear the material and let it propose the format that best carries the feeling.
 
 [What it makes](#what-it-makes) · [Quick start](#quick-start) · [Three ways to invoke](#three-ways-to-invoke) · [Template mode](#template-mode-choose-a-polished-gift-template) · [How it works](#how-it-works) · [Install](#install) · [Repo structure](#repo-structure)
 
@@ -276,7 +275,6 @@ You can choose H5, image, text, or text-play yourself, or give dear the material
 | **Interactive H5** | A rain-streaked window you wipe clean to read the message; a jukebox built just for one person; a pottery wheel that gets more wobbly with each tap; a letter hidden inside three layers of wrapping |
 | **AI-generated image** | A watercolor of your mom's succulent garden; a fake movie ticket with the recipient's name on it; a mood-weather map for the day |
 | **Text artifact** | A letter written in the three-act rhythm of your partner's favorite movie; a diary in their voice; a short, specific observation about them |
-| **Interactive text-play** | A 6-turn emoji riddle whose answer is your friend's recent week; a tiny one-player play that casts them as the hero; a set of question cards that only unfold in chat |
 
 If you know the format you want, say it. If not, dear will look for the most alive part of the material and choose the format that can carry it best.
 
@@ -405,7 +403,7 @@ Core functionality needs no external services. These unlock richer gift types:
 | `FREESOUND_API_KEY` | H5 background music search |
 | `REMOVE_BG_API_KEY` | Background removal for compositing |
 
-Without those keys, dear can still make text, H5, and text-play gifts.
+Without those keys, dear can still make text and H5 gifts.
 
 Deploy an H5 gift:
 
@@ -434,7 +432,7 @@ Every gift starts with content judgment before production:
      ↓
 3. Creative concept  Generate several directions and choose the one that would land best
      ↓
-4. Visual strategy   Decide whether image, H5, text, or interaction carries it best
+4. Visual strategy   Decide whether image, H5, or text carries it best
      ↓
 5. Render & deliver  Produce a gift you can preview, save, or send
 ```
@@ -460,7 +458,7 @@ dear/
 ├── SKILL.md                       # Skill entry
 ├── references/                    # Stage-by-stage reference docs
 │   ├── recipient-intake.md        # Stage 0: three intake modes
-│   ├── main-flow.md               # Overall flow + progress rules + text-play
+│   ├── main-flow.md               # Overall flow + progress rules + template routing
 │   ├── editorial-judgment.md      # Stage 1: weight + direction
 │   ├── gifting-ethics.md          # Principles for gifts-for-others
 │   ├── creative-concept.md        # Stage 2 + 2.5

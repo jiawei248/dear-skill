@@ -3,6 +3,8 @@ node_modules/
 .env
 .env.*
 *.log
+__pycache__/
+*.py[cod]
 
 # Template asset bundles fetched at runtime — never commit these.
 assets/templates/*/base/
