@@ -1,4 +1,5 @@
 import json
+import subprocess
 from pathlib import Path
 
 
@@ -25,6 +26,7 @@ def test_bouquet_template_manifest_and_preview_exist():
     assert (TEMPLATE_DIR / "README.md").is_file()
     assert (TEMPLATE_DIR / "RELEASE.md").is_file()
     assert (TEMPLATE_DIR / "base").is_dir()
+    assert (TEMPLATE_DIR / "base" / ".gitkeep").is_file()
 
 
 def test_bouquet_asset_bundle_metadata_matches_phase_one_contract():
@@ -51,9 +53,14 @@ def test_bouquet_bundle_artifact_is_prepared_but_not_expanded_in_repo():
     assert "assets-bouquet-v1" in text
     assert "bouquet-v1.zip" in text
     assert "shasum -a 256" in text
-    assert not (TEMPLATE_DIR / "base" / "flowers").exists()
-    assert not (TEMPLATE_DIR / "base" / "gems").exists()
-    assert not (TEMPLATE_DIR / "base" / "fonts").exists()
+    tracked_base = subprocess.run(
+        ["git", "ls-files", "assets/templates/bouquet/base"],
+        cwd=ROOT,
+        text=True,
+        capture_output=True,
+        check=True,
+    ).stdout.splitlines()
+    assert tracked_base == ["assets/templates/bouquet/base/.gitkeep"]
 
 
 def test_bouquet_spec_describes_ready_scope_and_runtime_builder():

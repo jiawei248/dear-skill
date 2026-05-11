@@ -7,4 +7,5 @@ __pycache__/
 *.py[cod]
 
 # Template asset bundles fetched at runtime — never commit these.
-assets/templates/*/base/
+assets/templates/*/base/*
+!assets/templates/*/base/.gitkeep

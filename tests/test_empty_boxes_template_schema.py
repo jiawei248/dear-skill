@@ -136,8 +136,23 @@ def test_empty_boxes_asset_bundle_metadata_matches_release_contract():
     assert len(bundle["sha256"]) == 64
     assert bundle["size_mb"] == 113
     assert bundle["contents"] == ["boxes/", "stickers/", "fonts/", "figures/", "generated/"]
-    assert not (TEMPLATE_DIR / "base" / "stickers").exists()
-    assert not (TEMPLATE_DIR / "base" / "generated").exists()
+
+
+def test_empty_boxes_base_gitkeep_is_allowed_but_bundle_contents_are_ignored():
+    gitkeep = TEMPLATE_DIR / "base" / ".gitkeep"
+
+    assert gitkeep.is_file()
+    keep_result = subprocess.run(
+        ["git", "check-ignore", "-q", "assets/templates/empty-boxes/base/.gitkeep"],
+        cwd=ROOT,
+    )
+    assert keep_result.returncode == 1
+
+    bundle_result = subprocess.run(
+        ["git", "check-ignore", "-q", "assets/templates/empty-boxes/base/stickers"],
+        cwd=ROOT,
+    )
+    assert bundle_result.returncode == 0
 
 
 def test_empty_boxes_slots_capture_physical_and_content_rules():
