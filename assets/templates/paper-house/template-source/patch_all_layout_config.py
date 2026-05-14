@@ -2,7 +2,7 @@
 from pathlib import Path
 import re
 
-HTML = Path("/Users/liujiawei/Desktop/night-four-assets/night-four-the-turn.html")
+HTML = Path(__file__).resolve().parent / "night-four-the-turn.html"
 html = HTML.read_text(encoding="utf-8")
 
 def add_rot_to_object_literals(block: str) -> str:

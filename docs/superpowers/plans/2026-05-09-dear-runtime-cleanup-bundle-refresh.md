@@ -50,10 +50,10 @@
 
 **Files:**
 - Create: `assets/templates/paper-house/preview.jpg`
-- Source: `/Users/liujiawei/Desktop/preview.png`
+- Source: a local preview screenshot supplied by the maintainer
 - Verify: `assets/templates/paper-house/template.json`
 
-- [ ] Confirm `/Users/liujiawei/Desktop/preview.png` exists.
+- [ ] Confirm the local preview screenshot exists.
 - [ ] Convert/copy it to `assets/templates/paper-house/preview.jpg` so `template.json.preview` resolves.
 - [ ] Add a test or validation command that checks every template `preview` path exists.
 

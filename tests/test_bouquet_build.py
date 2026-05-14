@@ -88,7 +88,7 @@ def sample_phase4_slots():
             "recipient": "亲爱的朋友",
             "message": "把今天做成一束可以慢慢看的花。",
         },
-        "source_path_echo_test": "/Users/liujiawei/Desktop/private-should-not-leak",
+        "source_path_echo_test": "/tmp/private-should-not-leak",
     }
 
 
@@ -202,7 +202,7 @@ def test_bouquet_builder_output_has_no_raw_absolute_desktop_paths(tmp_path):
     out, _, _ = run_bouquet_builder(tmp_path, sample_phase4_slots())
     html_text = out.read_text(encoding="utf-8")
 
-    assert "/Users/liujiawei/Desktop" not in html_text
+    assert "/tmp/private-should-not-leak" not in html_text
     assert "private-should-not-leak" not in html_text
 
 

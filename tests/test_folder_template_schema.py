@@ -131,7 +131,7 @@ def test_folder_asset_bundle_metadata_matches_release_contract():
 
     assert bundle["local_path"] == "base/"
     assert bundle["url"].endswith("/assets-folder-v1/folder-v1.zip")
-    assert bundle["sha256"] == "5e4d030207b7d2529d3ed2c411e9a4ad87c102a1c3a319b9da4c80518cff0f83"
+    assert bundle["sha256"] == "bd79a859e8627b93a5be011ffe5b9a0bc7b15d1835814d631b28745201a35fa8"
     assert len(bundle["sha256"]) == 64
     assert bundle["size_mb"] == 118
     assert bundle["contents"] == ["assets/", "stickers/", "fonts/"]

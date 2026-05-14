@@ -11,7 +11,7 @@ scripts/fetch-asset-bundle.sh --template folder
 - Release tag: `assets-folder-v1`
 - Asset name: `folder-v1.zip`
 - Manifest URL: `https://github.com/jiawei248/dear-skill/releases/download/assets-folder-v1/folder-v1.zip`
-- Manifest sha256: `5e4d030207b7d2529d3ed2c411e9a4ad87c102a1c3a319b9da4c80518cff0f83`
+- Manifest sha256: `bd79a859e8627b93a5be011ffe5b9a0bc7b15d1835814d631b28745201a35fa8`
 - Approx extracted size: `139 MB`
 - Approx zip size: `118 MB`
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 from pathlib import Path
 
-HTML = Path("/Users/liujiawei/Desktop/night-four-assets/night-four-the-turn.html")
+HTML = Path(__file__).resolve().parent / "night-four-the-turn.html"
 html = HTML.read_text(encoding="utf-8")
 
 # Make configured PNG-based sprites behave like 2D layers: order wins over depth.
