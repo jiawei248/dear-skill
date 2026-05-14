@@ -1,0 +1,250 @@
+{
+  "id": "folder",
+  "aliases": ["folder", "file-folder", "archive-folder", "memory folder", "folders"],
+  "name": "Folder — Layered Memory Archive",
+  "description": "A tactile H5 archive of four file folders. Each folder has a physically believable back cover, front cover, and smoothly connected tab, then opens into layered paper, tape, photo, and sticker compositions. Best when a relationship can be organized as chapters: a shared errand, a quiet ritual, a saved quote, a promise, or a small story that deserves to be filed with care.",
+  "preview": "preview.jpg",
+  "best_for": [
+    "anniversary",
+    "partner",
+    "close-friend",
+    "520",
+    "birthday",
+    "memory-archive",
+    "relationship-chapters",
+    "soft-love-letter"
+  ],
+  "tone": [
+    "intimate",
+    "archival",
+    "handmade",
+    "layered",
+    "specific",
+    "warm"
+  ],
+  "format": "h5",
+  "approx_size_mb": 139,
+  "status": "ready",
+  "canonical_html_reference": "template-source/520-folder-gift.html",
+  "spec_doc": "SPEC.md",
+  "slots": [
+    {
+      "id": "recipient_material",
+      "type": "user_context",
+      "required": true,
+      "purpose": "Photos, screenshots, chat excerpts, notes, dates, places, nicknames, repeated phrases, and small story fragments that make each folder feel like a real archive from the relationship.",
+      "accepted_inputs": [
+        "photos",
+        "chat_screenshots",
+        "social_screenshots",
+        "text",
+        "notes",
+        "folder"
+      ],
+      "grounding_rules": [
+        "Every visible folder label, caption, tab, and story note must trace to a concrete detail, quote, habit, place, date, object, or phrase from the user's material.",
+        "Use the language and address form the user naturally uses with the recipient in the final gift copy.",
+        "Never make the archive feel generic by filling it with broad praise, vague romance, or ungrounded birthday-copy."
+      ]
+    },
+    {
+      "id": "folder_story_plan",
+      "type": "ai_text",
+      "required": true,
+      "count_range": [3, 6],
+      "purpose": "A per-folder editorial plan. Each folder gets one larger chapter theme, one memory anchor, and a few concrete details or quotations that can be turned into tabs, captions, and layered paper notes.",
+      "output_fields_per_folder": {
+        "folder_id": "stable runtime id such as row1, row2, row3, row4, or a custom chapter key",
+        "chapter_theme": "the larger idea that holds the folder together, e.g. errands as shorthand, shared quiet, saved words, future plans",
+        "memory_anchor": "the specific source detail this folder preserves",
+        "quoted_or_echoed_detail": "a short quote, nickname, date, food, place, screenshot line, or repeated phrase from the user's material",
+        "visual_motif": "what the photo arrangement, papers, tape, and sticker group should form as one readable image",
+        "tab_title": "short folder tab title in the user's habitual language",
+        "tab_subtitle": "specific subtitle, not a broad mood label"
+      },
+      "rules": [
+        "A folder is a chapter with evidence, not a generic scrapbook page.",
+        "Write tabs, captions, and notes in the user's usual language with the recipient.",
+        "If material is sparse, make fewer folders and let each folder be quieter rather than padding with generic filler."
+      ]
+    },
+    {
+      "id": "folder_physical_contract",
+      "type": "template_notes",
+      "required": true,
+      "purpose": "The non-negotiable physical drawing rules for the folder shell.",
+      "rules": [
+        "Respect common file-folder proportions: a broad body, a tab connected to the shell, and enough visible front cover to read as a folded object.",
+        "Every folder must retain a back cover and a front cover; do not replace the shell with a flat rectangle or isolated tab.",
+        "The tab must connect smoothly to the folder body with matching curvature and side-specific placement.",
+        "Layered papers, photos, and stickers can peek out, but they should feel held by the folder instead of floating unrelated to it."
+      ],
+      "runtime_mapping": {
+        "source": "canonical SVG folder-back, folder-front, folder-lip, and open spread elements in template-source/520-folder-gift.html"
+      }
+    },
+    {
+      "id": "folder_photo_generation",
+      "type": "ai_generated_image",
+      "per_folder": true,
+      "count_per_folder_range": [2, 5],
+      "purpose": "Generated or processed photos that fit the folder's chosen layout: vertical three-strip, four-grid, polaroid, framed photo, mini receipt photo, or open spread image.",
+      "identity_rules": [
+        "When recipient photos are available, preserve recognizable face shape, hair, age, skin tone, and styling across all generated photos.",
+        "When no photos are available, keep a consistent non-specific protagonist design across folders.",
+        "Prefer candid, physical poses that suit paper/photo handling: leaning over a shopping basket, holding a receipt, sharing earphones, sitting near a desk, or being tucked into a polaroid frame."
+      ],
+      "composition_rules": [
+        "Use diverse photo formats across the archive: at least two among vertical three-strip, four-grid, polaroid, framed photo, bordered mini photo, and receipt-like photo.",
+        "Crop faces and hands safely inside the chosen frame. Do not cover key gestures with tapes or sticker clusters.",
+        "Generated photos should leave usable margins for paper shadows, tape overlaps, captions, and tab text.",
+        "The open folder should contain a clear hero photo plus supporting smaller photos, not a grid of equal-weight images everywhere."
+      ],
+      "runtime_mapping": {
+        "output_paths": "folder-work/assets/generated/{folder_id}/{photo_id}.{jpg,png}",
+        "layout_source": "imageReplacements entries in window.FOLDER_GIFT_CONFIG"
+      },
+      "model_hint": "Use an image model that supports identity-preserving multi-image prompts when user photos are provided."
+    },
+    {
+      "id": "folder_base_and_paper_picks",
+      "type": "asset_picks",
+      "per_folder": true,
+      "library_subpaths": [
+        "stickers/base/",
+        "stickers/tapes_papers/"
+      ],
+      "count_range": [3, 9],
+      "placement_zone": "inside-folder-papers-and-open-spread",
+      "purpose": "Use the prepared paper bases, notes, cards, clipboard surfaces, torn scraps, tapes, and textured papers to create depth and writable/photo surfaces. Do not redraw these from scratch unless a needed surface is missing.",
+      "selection_hint": "Choose base papers and tape/paper scraps that support the folder's chapter theme and photo format: lined paper for a quote, grid paper for a record-like chapter, torn notes for a small confession, tapes to physically hold photo edges.",
+      "placement_rules": [
+        "Papers should sit inside the folder bounds or intentionally peek from the folder mouth.",
+        "Layer tapes and paper scraps under or over photos to create believable physical overlap.",
+        "Do not scatter many unrelated papers; group them into 1-3 readable paper stacks."
+      ],
+      "runtime_mapping": {
+        "output_paths": "folder-work/stickers/{folder_id}/papers/{1..9}.png",
+        "layout_source": "selector image replacements plus thumbnail/open/closed layout overrides"
+      }
+    },
+    {
+      "id": "folder_element_picks",
+      "type": "sticker_picks",
+      "per_folder": true,
+      "library_subpaths": [
+        "stickers/decorations/",
+        "stickers/study_utilities/",
+        "stickers/frames/",
+        "stickers/electronic_devices/"
+      ],
+      "count_range": [4, 12],
+      "placement_zone": "inside-folder-collage",
+      "selection_hint": "Pick elements that belong to the chapter's story: clips, labels, frames, charms, devices, study tools, tickets, icons, and small decorative anchors. Element choices should vary across folders rather than repeating the same decorative language.",
+      "placement_rules": [
+        "All stickers should stay inside the folder shell or open spread unless they are intentionally taped to the outside cover.",
+        "Cluster stickers into small semantic groups that combine with papers and photos, such as a receipt corner, a photo held by two clips, or a desk-note stack.",
+        "Avoid isolated, evenly distributed sticker scatter.",
+        "Frames, screens, cards, and other container-like stickers must contain a photo, paper, or text layer."
+      ],
+      "runtime_mapping": {
+        "output_paths": "folder-work/stickers/{folder_id}/elements/{1..12}.png",
+        "layout_source": "selector image replacements plus thumbnail/open/closed layout overrides"
+      }
+    },
+    {
+      "id": "folder_copy",
+      "type": "ai_text",
+      "required": true,
+      "purpose": "Archive title lines, folder tabs, open-folder captions, story heading, and short body copy. This is gift-facing copy, not documentation.",
+      "output_fields": {
+        "archive.titleLines": "up to three short archive header lines",
+        "archive.note": "one short intro sentence",
+        "tabs": "row1-row4 tab title and subtitle pairs",
+        "openedFolder.title": "small opened-folder title",
+        "openedFolder.meta": "date / names / place line",
+        "openedFolder.storyHeading": "specific story heading",
+        "openedFolder.storyBodyHtml": "short rich story body; may use one mark tag for the key quoted detail"
+      },
+      "language_rule": "Use the user's habitual language, writing system, nickname, and warmth level for final gift text.",
+      "specificity_rules": [
+        "Every line should include or clearly echo at least one concrete detail from the recipient material.",
+        "Avoid broad labels such as 'our memories', 'sweet moments', or 'forever' unless the user actually uses those words."
+      ]
+    },
+    {
+      "id": "folder_runtime_overrides",
+      "type": "layout_config",
+      "required": false,
+      "purpose": "Optional precise runtime overrides for thumbnail folders, opened-folder spread, closed preview, text replacements, and image replacements.",
+      "schema_note": "Maps into window.FOLDER_GIFT_CONFIG. Use imageReplacements with CSS selectors for photos/papers/stickers, textReplacements for one-off copy, and layout config objects for positions.",
+      "supported_groups": [
+        "archive",
+        "tabs",
+        "openedFolder",
+        "imageReplacements",
+        "textReplacements",
+        "thumbnailLayoutConfig",
+        "openLayoutConfig",
+        "closedPreviewConfig"
+      ],
+      "bounds_rule": "For each custom visual layer, verify the full rotated bounding box stays within the folder shell or open spread unless it is explicitly an outside cover label."
+    }
+  ],
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-folder-v1/folder-v1.zip",
+    "sha256": "5e4d030207b7d2529d3ed2c411e9a4ad87c102a1c3a319b9da4c80518cff0f83",
+    "size_mb": 118,
+    "contents": [
+      "assets/",
+      "stickers/",
+      "fonts/"
+    ]
+  },
+  "build_script": "template-source/build.py",
+  "build_contract": {
+    "input": "filled-slots.json containing folder copy, selected/generated photos, selector image replacements, and optional layout overrides",
+    "cli": "python3 template-source/build.py --slots <gift-dir>/folder-work/filled-slots.json --workdir <gift-dir>/folder-work --out <gift-dir>/index.html",
+    "output": "single index.html in the gift folder",
+    "single_file": true,
+    "source_policy": "template-source/520-folder-gift.html is canonical and read-only; build.py writes a separate output file.",
+    "runtime_global": "window.FOLDER_GIFT_CONFIG",
+    "supported_runtime_groups": [
+      "archive",
+      "tabs",
+      "openedFolder",
+      "imageReplacements",
+      "textReplacements",
+      "thumbnailLayoutConfig",
+      "openLayoutConfig",
+      "closedPreviewConfig"
+    ]
+  },
+  "activation_disclosure": {
+    "message": "This template downloads a large folder/paper/sticker asset bundle the first time. For the strongest version, it also benefits from identity-preserving image generation for the photos inside each folder.",
+    "show_before": "fetching asset bundle or generating custom photos",
+    "cost_notes": [
+      "Asset bundle download is about 120MB on first use.",
+      "Full personalization may use several AI image generations for archive photos and small scene photos.",
+      "The final gift text should be written in the user's habitual language with the recipient."
+    ],
+    "options": [
+      {
+        "id": "full",
+        "label": "full folder-archive version",
+        "description": "Download the asset bundle, generate folder-fitted photos, pick layered paper/tape/sticker assets, and build the complete interactive H5."
+      },
+      {
+        "id": "asset_only_draft",
+        "label": "asset-only draft",
+        "description": "Use bundled example photos and papers to make a quick draft before custom generation."
+      },
+      {
+        "id": "text_image_fallback",
+        "label": "text/image fallback",
+        "description": "Skip the heavy H5 and make a sendable image or text gift from the same recipient brief."
+      }
+    ]
+  }
+}

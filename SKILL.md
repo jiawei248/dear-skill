@@ -31,6 +31,7 @@ If the user wants to fill an existing pre-designed template instead of designing
 /dear --template bouquet 给妈妈做一束可以拖动的花
 /dear 用 bouquet 模板给朋友做一份生日礼物
 /dear --template empty-boxes 给 TA 做一个零食购物篮回忆盒
+/dear --template folder 给 TA 做一组可以打开的回忆文件夹
 /dear 有什么模板可以用？                                 # browse available templates
 ```
 

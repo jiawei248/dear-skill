@@ -1,0 +1,2359 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>520 Memory Archive</title>
+  <style>
+    @font-face {
+      font-family: "Lakeus";
+      src: url("fonts/851LakeusNightWriting-Regular.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Qingchun";
+      src: url("fonts/平方青春体.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: "Chaohua";
+      src: url("fonts/字体家AI造字朝花.ttf") format("truetype");
+      font-display: swap;
+    }
+
+    :root {
+      --ink: #332b24;
+      --wine: #4b1717;
+      --paper-line: rgba(86, 70, 53, .08);
+      color-scheme: light;
+      letter-spacing: 0;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      margin: 0;
+      min-height: 100%;
+    }
+
+    body {
+      font-family: "Qingchun", "Chaohua", system-ui, sans-serif;
+      color: var(--ink);
+      background: var(--wine);
+      overflow-x: hidden;
+      letter-spacing: 0;
+    }
+
+    button {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    .page {
+      min-height: 100vh;
+      padding: 18px 0 38px;
+      background: var(--wine);
+    }
+
+    .archive {
+      width: 100vw;
+      margin: 0 auto;
+      padding: 0 clamp(14px, 2.2vw, 36px);
+    }
+
+    .archive-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 32px;
+      width: min(1460px, calc(100vw - clamp(28px, 7.3vw, 112px)));
+      min-height: 78px;
+      margin: 0 auto;
+      padding: 6px 0 0;
+      color: #fff6ea;
+    }
+
+    .archive-title {
+      margin: 0;
+      font-family: "Courier New", Courier, Menlo, monospace;
+      font-size: clamp(.78rem, .96vw, .96rem);
+      line-height: 1.23;
+      font-weight: 700;
+      letter-spacing: .13em;
+      text-transform: uppercase;
+      color: rgba(255, 249, 239, .84);
+      text-shadow: 0 0 1px rgba(255,255,255,.28);
+    }
+
+    .archive-title span {
+      display: block;
+      margin-top: 2px;
+    }
+
+    .archive-title span:first-child {
+      margin-top: 0;
+    }
+
+    .archive-note {
+      max-width: 390px;
+      margin: 0;
+      font-family: "Chaohua", "Qingchun", sans-serif;
+      font-size: clamp(1rem, 1.6vw, 1.22rem);
+      line-height: 1.52;
+      text-align: right;
+      color: rgba(255,246,234,.9);
+    }
+
+    .folder-stack {
+      --stack-scale: .9;
+      position: relative;
+      left: 50%;
+      width: 108%;
+      margin-top: -78px;
+      perspective: 1600px;
+      transform: translateX(-50%) scale(var(--stack-scale));
+      transform-origin: top center;
+    }
+
+    .folder {
+      --back: #c7bfab;
+      --front: #f4efe6;
+      --paper: #fff9ef;
+      --edge: rgba(80, 64, 47, .25);
+      --tab-title-x: 19.3%;
+      --folder-front-top: 86px;
+      --folder-paper-top: 303px;
+      position: relative;
+      display: block;
+      width: 100%;
+      height: 1180px;
+      margin-top: -1000px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      text-align: left;
+      cursor: default;
+      transform-style: preserve-3d;
+    }
+
+    .folder:first-child {
+      margin-top: 0;
+      cursor: pointer;
+    }
+
+    .folder:nth-child(1) { z-index: 10; }
+    .folder:nth-child(2) { z-index: 20; }
+    .folder:nth-child(3) { z-index: 30; }
+    .folder:nth-child(4) { z-index: 40; }
+
+    .folder:focus-visible {
+      outline: 3px solid rgba(255,255,255,.85);
+      outline-offset: 5px;
+      border-radius: 22px;
+    }
+
+    .folder[data-side="right"] {
+      --tab-title-x: 80.7%;
+    }
+
+    .folder[data-theme="cream"] {
+      --back: #eadfba;
+      --front: #fff8e8;
+      --paper: #fffdf8;
+    }
+
+    .folder[data-theme="pink"] {
+      --back: #f0c6d4;
+      --front: #fde4ed;
+      --paper: #fff8fa;
+    }
+
+    .folder[data-theme="blue"] {
+      --back: #b9dcea;
+      --front: #def5f9;
+      --paper: #fbffff;
+    }
+
+    .folder[data-theme="sand"] {
+      --back: #edcf97;
+      --front: #ffebbf;
+      --paper: #fffaf0;
+    }
+
+    .folder-svg {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      overflow: visible;
+      pointer-events: none;
+    }
+
+    .folder-back {
+      top: 14px;
+      z-index: 1;
+      height: 1120px;
+      filter: drop-shadow(0 20px 24px rgba(36,27,20,.13));
+    }
+
+    .folder-front {
+      top: var(--folder-front-top);
+      z-index: 9;
+      height: 1048px;
+      filter: drop-shadow(0 24px 28px rgba(34,25,19,.17));
+    }
+
+    .folder-shape {
+      stroke: var(--edge);
+      stroke-width: 1.1;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      filter: url(#paperTexture);
+    }
+
+    .folder-back .folder-shape { fill: var(--back); }
+    .folder-front .folder-shape { fill: var(--front); }
+
+    .inner-paper {
+      position: absolute;
+      left: 2.2%;
+      right: 2.2%;
+      top: var(--folder-paper-top);
+      height: 500px;
+      z-index: 5;
+      border: 1px solid rgba(96, 77, 55, .16);
+      background:
+        radial-gradient(circle at 14% 24%, rgba(117,91,60,.12) 0 1px, transparent 2px),
+        radial-gradient(circle at 74% 38%, rgba(117,91,60,.09) 0 1px, transparent 2px),
+        repeating-linear-gradient(0deg, transparent 0 22px, rgba(86, 70, 53, .13) 23px 24px),
+        linear-gradient(90deg, rgba(255,255,255,.34), transparent 24%, rgba(123,97,66,.06) 78%, transparent),
+        var(--paper);
+      box-shadow:
+        0 -6px 10px rgba(74, 54, 36, .09),
+        inset 0 2px 3px rgba(255,255,255,.7),
+        inset 0 -1px 2px rgba(82,62,43,.08);
+      pointer-events: none;
+    }
+
+    .folder-lip {
+      display: none;
+    }
+
+    .tab-title {
+      position: absolute;
+      left: var(--tab-title-x);
+      top: 212px;
+      z-index: 12;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 252px;
+      height: 64px;
+      color: rgba(47, 40, 34, .82);
+      text-align: center;
+      pointer-events: none;
+      transform: translateX(-50%);
+    }
+
+    .tab-title strong {
+      display: block;
+      font-family: "Qingchun", "Chaohua", sans-serif;
+      font-size: calc(clamp(.96rem, 1.28vw, 1.16rem) * var(--font-scale, 1));
+      line-height: 1.05;
+      font-weight: 400;
+    }
+
+    .tab-title span {
+      display: block;
+      margin-top: 5px;
+      font-family: "Chaohua", "Qingchun", sans-serif;
+      font-size: calc(clamp(.7rem, .88vw, .82rem) * var(--font-scale, 1));
+      line-height: 1.22;
+      color: rgba(52,44,38,.68);
+    }
+
+    .print,
+    .film-strip,
+    .asset,
+    .paper-scrap,
+    .tape {
+      position: absolute;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    .print {
+      z-index: 8;
+      background: #fffdf7;
+      box-shadow: 0 12px 20px rgba(36,25,18,.2);
+      overflow: hidden;
+    }
+
+    .print img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .polaroid {
+      padding: 11px 11px 40px;
+      overflow: visible;
+    }
+
+    .polaroid img {
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .polaroid::after {
+      content: attr(data-caption);
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 9px;
+      font-family: "Lakeus", "Chaohua", cursive;
+      font-size: .95rem;
+      line-height: 1;
+      color: #51443c;
+      text-align: center;
+    }
+
+    .frame-note {
+      border-radius: 7px 3px 9px 4px;
+      background:
+        linear-gradient(90deg, rgba(174,197,186,.32) 0 8px, transparent 8px),
+        #fffdf4;
+    }
+
+    .frame-wide {
+      padding: 10px 12px 34px;
+      border: 1px solid rgba(78,67,55,.09);
+    }
+
+    .frame-square {
+      padding: 12px 12px 32px;
+      border-radius: 10px;
+      background: #fffdf7;
+    }
+
+    .frame-dv {
+      padding: 10px 10px 34px;
+      border-radius: 5px;
+      background:
+        linear-gradient(90deg, rgba(63,75,82,.18) 0 9px, transparent 9px calc(100% - 9px), rgba(63,75,82,.18) calc(100% - 9px)),
+        #fffdf7;
+    }
+
+    .frame-dv::before {
+      content: "REC";
+      position: absolute;
+      right: 14px;
+      top: 12px;
+      z-index: 2;
+      font-family: system-ui, sans-serif;
+      font-size: .58rem;
+      letter-spacing: .08em;
+      color: rgba(150,45,35,.72);
+    }
+
+    .frame-ripped {
+      padding: 14px 12px 34px;
+      border-radius: 12px 4px 11px 5px;
+      clip-path: polygon(1% 7%, 7% 1%, 20% 5%, 33% 1%, 47% 4%, 61% 1%, 80% 4%, 98% 2%, 97% 94%, 84% 98%, 68% 95%, 52% 99%, 36% 96%, 18% 99%, 2% 94%);
+    }
+
+    .frame-postcard {
+      padding: 12px 52px 34px 12px;
+      border: 1px solid rgba(91,75,60,.12);
+      background:
+        linear-gradient(90deg, transparent 0 calc(100% - 48px), rgba(194,172,126,.16) calc(100% - 48px)),
+        #fffdf7;
+    }
+
+    .film-strip {
+      z-index: 8;
+      display: grid;
+      gap: 7px;
+      width: 112px;
+      padding: 11px 13px;
+      border-radius: 4px;
+      background: #202220;
+      box-shadow: 0 14px 22px rgba(31,21,15,.24);
+    }
+
+    .film-strip::before,
+    .film-strip::after {
+      content: "";
+      position: absolute;
+      top: 9px;
+      bottom: 9px;
+      width: 5px;
+      background: repeating-linear-gradient(180deg, #fff4e4 0 5px, transparent 5px 12px);
+    }
+
+    .film-strip::before { left: 4px; }
+    .film-strip::after { right: 4px; }
+
+    .film-strip img {
+      display: block;
+      width: 100%;
+      aspect-ratio: 1 / .74;
+      object-fit: cover;
+      object-position: center 28%;
+    }
+
+    .asset {
+      z-index: 7;
+      display: block;
+      height: auto;
+      filter: drop-shadow(0 9px 9px rgba(32,22,16,.17));
+    }
+
+    .paper-scrap {
+      z-index: 7;
+      display: block;
+      height: auto;
+      opacity: .78;
+      filter: drop-shadow(0 8px 10px rgba(43,31,22,.13));
+      mix-blend-mode: multiply;
+    }
+
+    .tape {
+      z-index: 8;
+      width: 72px;
+      height: 28px;
+      background: rgba(204,164,88,.58);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.22);
+      mix-blend-mode: multiply;
+    }
+
+    .row1 .photo-main {
+      left: 70px;
+      top: 54px;
+      width: 210px;
+      height: 250px;
+      transform: rotate(-6deg);
+    }
+
+    .row1 .photo-main img { object-position: center 22%; }
+
+    .row1 .photo-side {
+      left: 456px;
+      top: 72px;
+      width: 152px;
+      height: 184px;
+      transform: rotate(4deg);
+    }
+
+    .row1 .film-a {
+      right: 82px;
+      top: 58px;
+      width: 116px;
+      transform: rotate(6deg);
+    }
+
+    .row1 .film-a img:nth-child(2) { object-position: center 10%; }
+
+    .row1 .scrap-a {
+      left: 54px;
+      top: 104px;
+      width: 222px;
+      transform: rotate(-8deg);
+    }
+
+    .row1 .scrap-b {
+      left: 392px;
+      top: 118px;
+      width: 162px;
+      transform: rotate(5deg);
+    }
+
+    .row1 .scrap-c {
+      right: 194px;
+      top: 146px;
+      width: 136px;
+      opacity: .62;
+      transform: rotate(-5deg);
+    }
+
+    .row1 .clip-a {
+      left: 462px;
+      top: 30px;
+      width: 74px;
+      z-index: 8;
+      transform: rotate(2deg);
+    }
+
+    .row1 .clip-b {
+      right: 126px;
+      top: 30px;
+      width: 36px;
+      z-index: 8;
+      transform: rotate(-4deg);
+    }
+
+    .row1 .sugar {
+      left: 610px;
+      top: 166px;
+      width: 70px;
+      z-index: 13;
+      transform: rotate(2deg);
+    }
+
+    .row1 .ticket {
+      right: 245px;
+      top: 86px;
+      width: 104px;
+      z-index: 5;
+      transform: rotate(-5deg);
+    }
+
+    .row2 .photo-main {
+      left: 92px;
+      top: 76px;
+      width: 232px;
+      height: 178px;
+      transform: rotate(5deg);
+    }
+
+    .row2 .photo-side {
+      right: 70px;
+      top: 76px;
+      width: 220px;
+      height: 166px;
+      transform: rotate(-3deg);
+    }
+
+    .row2 .scrap-a {
+      left: 64px;
+      top: 118px;
+      width: 196px;
+      transform: rotate(-4deg);
+    }
+
+    .row2 .scrap-b {
+      right: 76px;
+      top: 108px;
+      width: 226px;
+      transform: rotate(5deg);
+    }
+
+    .row2 .scrap-c {
+      left: 338px;
+      top: 162px;
+      width: 118px;
+      opacity: .64;
+      transform: rotate(-10deg);
+    }
+
+    .row2 .clip-a {
+      right: 246px;
+      top: 52px;
+      width: 64px;
+      z-index: 8;
+      transform: rotate(-5deg);
+    }
+
+    .row2 .tape-a {
+      left: 208px;
+      top: 177px;
+      transform: rotate(-12deg);
+    }
+
+    .row3 .film-a {
+      left: 70px;
+      top: 62px;
+      width: 126px;
+      transform: rotate(-7deg);
+    }
+
+    .row3 .photo-main {
+      left: 488px;
+      top: 82px;
+      width: 254px;
+      height: 168px;
+      transform: rotate(4deg);
+    }
+
+    .row3 .scrap-a {
+      left: 94px;
+      top: 116px;
+      width: 150px;
+      transform: rotate(8deg);
+    }
+
+    .row3 .scrap-b {
+      left: 454px;
+      top: 126px;
+      width: 260px;
+      opacity: .68;
+      transform: rotate(-3deg);
+    }
+
+    .row3 .scrap-c {
+      right: 114px;
+      top: 154px;
+      width: 132px;
+      transform: rotate(7deg);
+    }
+
+    .row3 .clip-a {
+      right: 164px;
+      top: 124px;
+      width: 82px;
+      z-index: 13;
+      transform: rotate(3deg);
+    }
+
+    .row3 .ticket {
+      left: 760px;
+      top: 96px;
+      width: 102px;
+      z-index: 5;
+      transform: rotate(-5deg);
+    }
+
+    .row4 .photo-main {
+      left: 142px;
+      top: 86px;
+      width: 230px;
+      height: 172px;
+      transform: rotate(4deg);
+    }
+
+    .row4 .photo-side {
+      right: 70px;
+      top: 92px;
+      width: 218px;
+      height: 160px;
+      transform: rotate(-6deg);
+    }
+
+    .row4 .scrap-a {
+      left: 128px;
+      top: 124px;
+      width: 228px;
+      transform: rotate(-6deg);
+    }
+
+    .row4 .scrap-b {
+      right: 92px;
+      top: 124px;
+      width: 210px;
+      transform: rotate(5deg);
+    }
+
+    .row4 .scrap-c {
+      left: 478px;
+      top: 174px;
+      width: 146px;
+      opacity: .6;
+      transform: rotate(-9deg);
+    }
+
+    .row4 .clip-a {
+      left: 302px;
+      top: 58px;
+      width: 62px;
+      z-index: 8;
+      transform: rotate(10deg);
+    }
+
+    .folder.launching {
+      animation: launchFolder 560ms cubic-bezier(.2,.78,.18,1) forwards;
+    }
+
+    @keyframes launchFolder {
+      0% { transform: translateY(0) scale(1) rotateX(0); opacity: 1; }
+      58% { transform: translateY(22px) scale(.86) rotateX(7deg); opacity: .74; }
+      100% { transform: translateY(56px) scale(.62) rotateX(12deg); opacity: .08; }
+    }
+
+    .memory-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 80;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 280ms ease;
+    }
+
+    .memory-stage.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .stage-backdrop {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(44,24,22,.78), rgba(75,35,39,.85)),
+        linear-gradient(90deg, rgba(255,255,255,.09) 1px, transparent 1px) 0 0 / 66px 66px,
+        linear-gradient(0deg, rgba(255,255,255,.08) 1px, transparent 1px) 0 0 / 66px 66px;
+      backdrop-filter: blur(8px);
+    }
+
+    .close-stage {
+      position: absolute;
+      right: 22px;
+      top: 20px;
+      z-index: 6;
+      display: grid;
+      place-items: center;
+      width: 44px;
+      height: 44px;
+      border: 2px solid rgba(85,64,50,.18);
+      border-radius: 50%;
+      background: rgba(255,250,242,.93);
+      color: #4b382f;
+      cursor: pointer;
+      font-family: system-ui, sans-serif;
+      font-size: 1.45rem;
+      line-height: 1;
+      box-shadow: 0 10px 20px rgba(24,16,12,.2);
+    }
+
+    .open-folder {
+      position: relative;
+      z-index: 2;
+      width: min(780px, 84vw, 68vh);
+      aspect-ratio: 3 / 4;
+      min-height: 0;
+      perspective: 1800px;
+      transform-style: preserve-3d;
+      transform: translateY(170px) scale(.56) rotateX(12deg);
+      opacity: 0;
+      transition: transform 760ms cubic-bezier(.2,.86,.18,1), opacity 260ms ease;
+    }
+
+    .memory-stage.centered .open-folder {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotateX(0deg);
+    }
+
+    .three-folder {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      display: block;
+      width: 100%;
+      height: 100%;
+      opacity: 0;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+
+    .memory-stage.unfolded .three-folder {
+      opacity: .46;
+    }
+
+    .spread {
+      position: absolute;
+      inset: 0;
+      z-index: 4;
+      opacity: 0;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      transition: opacity 180ms ease;
+    }
+
+    .memory-stage.unfolded .spread {
+      opacity: 1;
+    }
+
+    .leaf {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      transform-style: preserve-3d;
+      will-change: top, transform;
+      backface-visibility: visible;
+    }
+
+    .leaf svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 24px 30px rgba(28,20,16,.24));
+    }
+
+    .bottom-leaf svg {
+      transform: rotate(180deg);
+      transform-origin: center center;
+    }
+
+    .leaf .top-open-shape,
+    .leaf .bottom-open-shape {
+      fill: url(#openFolderPaper);
+      filter: url(#openFolderTexture);
+      stroke: rgba(92,70,44,.25);
+      stroke-width: 1.1;
+    }
+
+    .leaf .fold-shadow {
+      fill: url(#openFoldShadow);
+      opacity: .58;
+      stroke: none;
+      mix-blend-mode: multiply;
+    }
+
+    .top-leaf {
+      top: 25%;
+      z-index: 4;
+      transform-origin: center bottom;
+      transform: translateZ(56px) rotateX(0deg);
+    }
+
+    .bottom-leaf {
+      top: 25%;
+      z-index: 3;
+      transform-origin: center top;
+      transform: translateZ(22px) rotateX(0deg);
+    }
+
+    .memory-stage.unfolded .top-leaf {
+      animation: openTopLeaf 1160ms cubic-bezier(.16,.84,.18,1) forwards;
+    }
+
+    .memory-stage.unfolded .bottom-leaf {
+      animation: openBottomLeaf 1160ms cubic-bezier(.16,.84,.18,1) forwards;
+    }
+
+    @keyframes openTopLeaf {
+      0% {
+        top: 25%;
+        transform: translateZ(56px) rotateX(0deg);
+      }
+      48% {
+        top: 9%;
+        transform: translateZ(168px) rotateX(-68deg);
+      }
+      100% {
+        top: 0;
+        transform: translateZ(44px) rotateX(0deg);
+      }
+    }
+
+    @keyframes openBottomLeaf {
+      0% {
+        top: 25%;
+        transform: translateZ(22px) rotateX(0deg);
+      }
+      48% {
+        top: 42%;
+        transform: translateZ(132px) rotateX(58deg);
+      }
+      100% {
+        top: 50%;
+        transform: translateZ(30px) rotateX(0deg);
+      }
+    }
+
+    .hinge-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      z-index: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(95,72,43,.24) 12% 88%, transparent);
+      transform: translateZ(6px);
+      opacity: 0;
+      transition: opacity 360ms ease 760ms;
+    }
+
+    .memory-stage.unfolded .hinge-line {
+      opacity: 1;
+    }
+
+    .open-content {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      opacity: 0;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      clip-path: none;
+      overflow: visible;
+      transition: opacity 560ms ease 80ms;
+    }
+
+    .memory-stage.contents-ready .open-content {
+      z-index: 8;
+      opacity: 1;
+    }
+
+    .open-content-plane {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 100%;
+      opacity: 1;
+      transform-style: preserve-3d;
+      pointer-events: none;
+      will-change: transform, opacity;
+    }
+
+    .top-content-plane {
+      z-index: 2;
+      clip-path: inset(-12% 3% 48% 3% round 24px);
+      transform-origin: center bottom;
+      transform: translateZ(44px) translateY(0) scale(.82) rotateX(-10deg);
+    }
+
+    .bottom-content-plane {
+      z-index: 1;
+      clip-path: inset(48% 3% -10% 3% round 24px);
+      transform-origin: center top;
+      transform: translateZ(34px) translateY(0) scale(.82) rotateX(10deg);
+    }
+
+    .memory-stage.unfolded .top-content-plane {
+      animation: settleTopContentPlane 1160ms cubic-bezier(.16,.84,.18,1) forwards;
+    }
+
+    .memory-stage.unfolded .bottom-content-plane {
+      animation: settleBottomContentPlane 1160ms cubic-bezier(.16,.84,.18,1) forwards;
+    }
+
+    @keyframes settleTopContentPlane {
+      0% {
+        top: 0;
+        height: 100%;
+        opacity: .9;
+        transform: translateZ(42px) translateY(0) scale(.82) rotateX(-10deg);
+      }
+      48% {
+        top: 0;
+        height: 100%;
+        opacity: .96;
+        transform: translateZ(62px) translateY(-10px) scale(.84) rotateX(-24deg);
+      }
+      100% {
+        top: 0;
+        height: 100%;
+        opacity: 1;
+        transform: translateZ(52px) translateY(0) scale(.86) rotateX(0deg);
+      }
+    }
+
+    @keyframes settleBottomContentPlane {
+      0% {
+        top: 0;
+        height: 100%;
+        opacity: .9;
+        transform: translateZ(38px) translateY(0) scale(.82) rotateX(10deg);
+      }
+      48% {
+        top: 0;
+        height: 100%;
+        opacity: .96;
+        transform: translateZ(56px) translateY(10px) scale(.84) rotateX(22deg);
+      }
+      100% {
+        top: 0;
+        height: 100%;
+        opacity: 1;
+        transform: translateZ(48px) translateY(0) scale(.86) rotateX(0deg);
+      }
+    }
+
+    .memory-stage.contents-ready .top-content-plane,
+    .memory-stage.contents-ready .bottom-content-plane {
+      top: 0;
+      height: 100%;
+      opacity: 1;
+      animation: none;
+    }
+
+    .memory-stage.contents-ready .top-content-plane {
+      clip-path: inset(-12% 3% 48% 3% round 24px);
+      transform: translateZ(52px) translateY(0) scale(.86) rotateX(0deg);
+    }
+
+    .memory-stage.contents-ready .bottom-content-plane {
+      clip-path: inset(48% 3% -10% 3% round 24px);
+      transform: translateZ(48px) translateY(0) scale(.86) rotateX(0deg);
+    }
+
+    .open-title {
+      position: absolute;
+      left: 10%;
+      top: 12%;
+      z-index: 6;
+      font-family: "Courier New", Courier, Menlo, monospace;
+      font-size: .76rem;
+      line-height: 1.25;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: rgba(72,55,35,.68);
+      transform: translateZ(90px);
+      opacity: 0;
+      transition: opacity 420ms ease 820ms;
+      pointer-events: none;
+    }
+
+    .open-meta {
+      position: absolute;
+      right: 11%;
+      top: 12%;
+      z-index: 6;
+      font-family: "Courier New", Courier, Menlo, monospace;
+      font-size: .72rem;
+      line-height: 1.3;
+      font-weight: 700;
+      letter-spacing: .07em;
+      text-align: right;
+      text-transform: uppercase;
+      color: rgba(72,55,35,.64);
+      transform: translateZ(90px);
+      opacity: 0;
+      transition: opacity 420ms ease 830ms;
+      pointer-events: none;
+    }
+
+    .memory-stage.unfolded .open-title,
+    .memory-stage.unfolded .open-meta {
+      opacity: 1;
+    }
+
+    .closed-preview {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15%;
+      height: 60%;
+      z-index: 6;
+      transform: translateZ(74px) translateY(12px) scale(.88);
+      transform-style: preserve-3d;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 240ms ease 60ms, transform 520ms cubic-bezier(.2,.86,.18,1);
+    }
+
+    .memory-stage.centered:not(.unfolded) .closed-preview {
+      opacity: 1;
+      transform: translateZ(74px) translateY(0) scale(.9);
+      pointer-events: auto;
+    }
+
+    .memory-stage.unfolded .closed-preview,
+    .memory-stage.contents-ready .closed-preview {
+      opacity: 0;
+      transform: translateZ(24px) translateY(-18px) scale(.78) rotateX(-8deg);
+      transition-duration: 180ms;
+      transition-delay: 0ms;
+    }
+
+    .closed-inner-paper {
+      position: absolute;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 23px, rgba(74,63,48,.1) 24px 25px),
+        linear-gradient(90deg, rgba(166,184,177,.12) 0 10px, transparent 10px),
+        radial-gradient(circle at 18% 26%, rgba(80,62,44,.08) 0 1px, transparent 2px),
+        #fffdf7;
+      box-shadow: 0 12px 22px rgba(36,24,17,.16);
+      border: 1px solid rgba(103,82,55,.12);
+    }
+
+    .closed-paper-peek {
+      position: absolute;
+      left: 6%;
+      right: 6%;
+      top: 35.8%;
+      z-index: 6;
+      height: 46px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateZ(128px) scale(.9);
+      background:
+        repeating-linear-gradient(0deg, transparent 0 17px, rgba(80,66,50,.12) 18px 19px),
+        linear-gradient(90deg, rgba(176,190,184,.13) 0 11px, transparent 11px),
+        #fffdf8;
+      border: 1px solid rgba(112,90,62,.13);
+      border-radius: 8px 8px 2px 2px;
+      box-shadow: 0 10px 16px rgba(36,24,17,.13);
+      transition: opacity 220ms ease 90ms, transform 520ms cubic-bezier(.2,.86,.18,1);
+    }
+
+    .memory-stage.centered:not(.unfolded) .closed-paper-peek {
+      opacity: .92;
+      transform: translateZ(128px) scale(.9);
+    }
+
+    .memory-stage.unfolded .closed-paper-peek,
+    .memory-stage.contents-ready .closed-paper-peek {
+      opacity: 0;
+      transform: translateZ(24px) translateY(-14px) scale(.8) rotateX(-8deg);
+      transition-duration: 180ms;
+      transition-delay: 0ms;
+    }
+
+    .closed-print,
+    .open-mini-photo {
+      position: absolute;
+      box-sizing: border-box;
+      padding: 8px 8px 24px;
+      background: #fffdf8;
+      box-shadow: 0 14px 22px rgba(39,27,20,.2);
+      pointer-events: auto;
+    }
+
+    .closed-print img,
+    .open-mini-photo img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+    }
+
+    .closed-tab-label,
+    .closed-cover-title {
+      position: absolute;
+      font-family: "Qingchun", "Chaohua", sans-serif;
+      color: rgba(62,47,38,.8);
+      line-height: 1.2;
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .closed-back-cover {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15%;
+      height: 60%;
+      z-index: 5;
+      display: block;
+      width: 100%;
+      overflow: visible;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateZ(34px) translateY(-14px) scale(.9);
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 18px 28px rgba(30,20,14,.18));
+      transition: opacity 160ms ease, transform 520ms cubic-bezier(.2,.86,.18,1);
+    }
+
+    .closed-back-cover .back-cover-shape {
+      fill: url(#openFolderPaper);
+      filter: url(#openFolderTexture);
+      stroke: rgba(92,70,44,.22);
+      stroke-width: 1.05;
+    }
+
+    .closed-back-cover .back-cover-shadow {
+      fill: url(#openFoldShadow);
+      opacity: .18;
+      mix-blend-mode: multiply;
+      stroke: none;
+    }
+
+    .memory-stage.centered:not(.unfolded) .closed-back-cover {
+      opacity: .58;
+      transform: translateZ(34px) translateY(-14px) scale(.9);
+    }
+
+    .memory-stage.unfolded .closed-back-cover {
+      opacity: 0;
+      transform: translateZ(18px) translateY(-10px) scale(.86);
+      transition-duration: 120ms;
+      transition-delay: 0ms;
+    }
+
+    .closed-front-cover {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 15%;
+      height: 60%;
+      z-index: 7;
+      display: block;
+      width: 100%;
+      overflow: visible;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateZ(226px) scale(.9);
+      transform-style: preserve-3d;
+      filter: drop-shadow(0 22px 28px rgba(30,20,14,.2));
+      transition: opacity 220ms ease, transform 520ms cubic-bezier(.2,.86,.18,1);
+    }
+
+    .closed-front-cover .front-cover-shape {
+      fill: url(#openFolderPaper);
+      filter: url(#openFolderTexture);
+      stroke: rgba(92,70,44,.25);
+      stroke-width: 1.1;
+    }
+
+    .closed-front-cover .front-cover-shadow {
+      fill: url(#openFoldShadow);
+      opacity: .36;
+      mix-blend-mode: multiply;
+      stroke: none;
+    }
+
+    .memory-stage.centered:not(.unfolded) .closed-front-cover {
+      opacity: 1;
+      transform: translateZ(226px) scale(.9);
+    }
+
+    .memory-stage.unfolded .closed-front-cover {
+      opacity: 0;
+      transform: translateZ(86px) translateY(8px) scale(.86) rotateX(-12deg);
+      transition-duration: 120ms;
+      transition-delay: 0ms;
+    }
+
+    .closed-cover-title {
+      z-index: 9;
+      opacity: 0;
+      transform-style: preserve-3d;
+      transition: opacity 260ms ease 180ms;
+    }
+
+    .memory-stage.centered:not(.unfolded) .closed-cover-title {
+      opacity: 1;
+    }
+
+    .memory-stage.unfolded .closed-cover-title {
+      opacity: 0;
+    }
+
+    .closed-tab-label strong,
+    .closed-cover-title strong {
+      display: block;
+      font-size: 1.08em;
+      font-weight: 400;
+      margin-bottom: 2px;
+    }
+
+    .closed-tab-label span,
+    .closed-cover-title span {
+      display: block;
+      font-size: .66em;
+    }
+
+    .closed-asset {
+      position: absolute;
+      height: auto;
+      filter: drop-shadow(0 10px 12px rgba(34,23,18,.17));
+      pointer-events: none;
+    }
+
+    .open-polaroid {
+      position: absolute;
+      left: 39%;
+      top: 8%;
+      width: 31%;
+      height: 250px;
+      box-sizing: border-box;
+      padding: 10px 10px 32px;
+      background: #fffdf8;
+      box-shadow: 0 16px 22px rgba(40,28,21,.21);
+      transform: rotate(-3deg) translateZ(40px);
+    }
+
+    .open-polaroid img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .print img,
+    .film-strip img,
+    .open-polaroid img,
+    .open-quad img,
+    .open-mini-photo img,
+    .closed-print img {
+      cursor: zoom-in;
+      pointer-events: auto;
+    }
+
+    .open-caption {
+      position: absolute;
+      left: 13px;
+      right: 13px;
+      bottom: 11px;
+      font-family: "Lakeus", "Chaohua", cursive;
+      font-size: 1.28rem;
+      color: #554238;
+      text-align: center;
+    }
+
+    .open-film {
+      left: 7%;
+      top: 17%;
+      width: 132px;
+      transform: rotate(-7deg) translateZ(58px);
+      z-index: 8;
+    }
+
+    .open-quad {
+      position: absolute;
+      right: 3%;
+      top: 22%;
+      width: 25%;
+      min-width: 0;
+      box-sizing: border-box;
+      padding: 8px;
+      background:
+        linear-gradient(90deg, rgba(157,177,172,.2) 0 8px, transparent 8px),
+        #fffaf2;
+      box-shadow: 0 16px 24px rgba(40,28,21,.18);
+      transform: rotate(6deg) translateZ(36px);
+    }
+
+    .open-sheet {
+      position: absolute;
+      z-index: 7;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 18% 26%, rgba(80,62,44,.1) 0 1px, transparent 2px),
+        radial-gradient(circle at 72% 58%, rgba(80,62,44,.08) 0 1px, transparent 2px),
+        linear-gradient(180deg, rgba(255,255,255,.62), transparent 28%),
+        #fffaf0;
+      box-shadow: 0 14px 22px rgba(39,27,20,.16);
+      transform-style: preserve-3d;
+    }
+
+    .open-sheet.grid {
+      background:
+        linear-gradient(90deg, rgba(82,68,50,.08) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(0deg, rgba(82,68,50,.08) 1px, transparent 1px) 0 0 / 18px 18px,
+        radial-gradient(circle at 20% 24%, rgba(83,61,41,.09) 0 1px, transparent 2px),
+        #f5f2e9;
+    }
+
+    .open-sheet.stripe {
+      background:
+        repeating-linear-gradient(90deg, rgba(231,199,83,.38) 0 13px, rgba(255,255,255,.28) 13px 26px),
+        repeating-linear-gradient(0deg, rgba(231,199,83,.18) 0 13px, transparent 13px 26px),
+        #fff4ca;
+    }
+
+    .open-sheet.lined {
+      background:
+        repeating-linear-gradient(0deg, transparent 0 28px, rgba(88,73,55,.11) 29px 30px),
+        radial-gradient(circle at 24% 33%, rgba(80,62,44,.1) 0 1px, transparent 2px),
+        #fffdf7;
+    }
+
+    .quad-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 7px;
+    }
+
+    .quad-grid img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+
+    .quad-caption {
+      margin-top: 8px;
+      font-family: "Lakeus", "Chaohua", cursive;
+      font-size: 1.12rem;
+      color: #564138;
+      text-align: center;
+    }
+
+    .story-paper {
+      position: absolute;
+      left: 20%;
+      bottom: 5%;
+      z-index: 12;
+      width: 58%;
+      min-height: 0;
+      box-sizing: border-box;
+      overflow: hidden;
+      padding: 28px 36px 30px;
+      background:
+        radial-gradient(circle at 22% 20%, rgba(96,76,55,.08) 0 1px, transparent 2px),
+        radial-gradient(circle at 80% 55%, rgba(96,76,55,.06) 0 1px, transparent 2px),
+        repeating-linear-gradient(0deg, transparent 0 31px, rgba(82,67,52,.1) 32px 33px),
+        linear-gradient(90deg, rgba(214,218,228,.22) 0 12px, transparent 12px),
+        linear-gradient(180deg, rgba(255,255,255,.65), transparent 35%),
+        #fffaf1;
+      box-shadow: 0 20px 30px rgba(39,27,20,.2);
+      transform: rotate(.4deg) translateZ(82px);
+    }
+
+    .story-paper::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(circle at 16% 22%, rgba(94,74,52,.09) 0 1px, transparent 2px),
+        radial-gradient(circle at 82% 72%, rgba(94,74,52,.07) 0 1px, transparent 2px);
+      mix-blend-mode: multiply;
+    }
+
+    .story-paper > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .story-paper h2 {
+      margin: 0 0 14px;
+      font-family: "Lakeus", "Chaohua", cursive;
+      font-size: clamp(1.62rem, 2.8vw, 2.4rem);
+      font-weight: 400;
+      line-height: 1;
+      color: #5c4037;
+    }
+
+    .story-paper p {
+      margin: 0;
+      font-family: "Chaohua", "Qingchun", sans-serif;
+      font-size: clamp(1rem, 1.45vw, 1.18rem);
+      line-height: 1.55;
+      color: #4d4038;
+    }
+
+    .story-paper mark {
+      padding: 0 5px;
+      background: rgba(239,198,91,.48);
+      color: inherit;
+    }
+
+    .open-asset {
+      position: absolute;
+      z-index: 11;
+      height: auto;
+      filter: drop-shadow(0 12px 12px rgba(34,23,18,.18));
+      pointer-events: none;
+    }
+
+    .open-clip { left: 49%; top: 4%; width: 10%; transform: rotate(-2deg) translateZ(88px); }
+    .open-ticket { left: 19%; top: 34%; width: 14%; transform: rotate(-10deg) translateZ(76px); }
+    .open-receipt { right: 25%; top: 38%; width: 12%; transform: rotate(8deg) translateZ(66px); }
+    .open-sugar { right: 18%; top: 10%; width: 13%; transform: rotate(9deg) translateZ(74px); }
+    .open-tape-yellow { left: 38%; top: 19%; width: 76px; transform: rotate(12deg) translateZ(90px); }
+    .open-tape-green { right: 34%; top: 18%; width: 96px; transform: rotate(-7deg) translateZ(90px); }
+    .open-sticker { left: 7%; bottom: 14%; width: 11%; transform: rotate(9deg) translateZ(80px); }
+    .open-good { right: 9%; bottom: 31%; width: 10%; transform: rotate(-6deg) translateZ(86px); }
+
+    .photo-lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: grid;
+      place-items: center;
+      padding: 34px;
+      background: rgba(24, 10, 10, .72);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 220ms ease;
+    }
+
+    .photo-lightbox.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .photo-lightbox img {
+      max-width: min(86vw, 980px);
+      max-height: 84vh;
+      object-fit: contain;
+      background: #fffdf8;
+      box-shadow: 0 28px 70px rgba(0,0,0,.42);
+      transform: scale(.96);
+      transition: transform 220ms ease;
+    }
+
+    .photo-lightbox.active img {
+      transform: scale(1);
+    }
+
+    .photo-lightbox-close {
+      position: fixed;
+      top: 22px;
+      right: 26px;
+      z-index: 51;
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,.9);
+      color: #4f1e1e;
+      font: 28px/1 system-ui, sans-serif;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(0,0,0,.2);
+    }
+
+    @media (max-width: 820px) {
+      .page { padding-top: 20px; }
+      .archive { padding: 0 12px; }
+      .archive-head {
+        display: block;
+        min-height: 136px;
+        padding: 4px 6px 0;
+      }
+      .archive-note {
+        max-width: 100%;
+        margin-top: 13px;
+        text-align: left;
+      }
+      .folder {
+        --folder-front-top: 72px;
+        --folder-paper-top: 205px;
+        height: 920px;
+        margin-top: -780px;
+      }
+      .folder-back { top: 12px; height: 860px; }
+      .folder-front { height: 800px; }
+      .inner-paper { height: 380px; }
+      .tab-title,
+      .folder[data-side="right"] .tab-title {
+        top: 166px;
+        width: min(190px, 42vw);
+        height: 52px;
+      }
+      .tab-title { left: 23%; }
+      .folder[data-side="right"] .tab-title { left: 77%; }
+      .row1 .photo-main,
+      .row2 .photo-main,
+      .row3 .photo-main,
+      .row4 .photo-main {
+        left: 48px;
+        width: 158px;
+        top: 82px;
+        height: 190px;
+      }
+      .row1 .photo-side,
+      .row2 .photo-side,
+      .row4 .photo-side,
+      .row1 .ticket,
+      .row3 .ticket {
+        display: none;
+      }
+      .row1 .film-a,
+      .row3 .film-a {
+        right: 16px;
+        left: auto;
+        width: 100px;
+      }
+      .paper-scrap { display: none; }
+      .row1 .scrap-a,
+      .row2 .scrap-a,
+      .row3 .scrap-a,
+      .row4 .scrap-a {
+        display: block;
+        left: 30px;
+        top: 178px;
+        width: 172px;
+        opacity: .58;
+      }
+      .folder[data-side="right"] .scrap-a {
+        left: auto;
+        right: 28px;
+      }
+      .open-folder {
+        width: min(84vw, 58vh);
+        height: auto;
+        min-height: 0;
+        scale: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        transition-duration: .001ms !important;
+        animation-duration: .001ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <svg width="0" height="0" aria-hidden="true" focusable="false">
+    <defs>
+      <filter id="paperTexture" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="12" result="noise"/>
+        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.68 0 0 0 0 0.58 0 0 0 0 0.43 0 0 0 .18 0" result="paper"/>
+        <feComposite in="paper" in2="SourceAlpha" operator="in" result="paperInShape"/>
+        <feBlend in="SourceGraphic" in2="paperInShape" mode="multiply"/>
+      </filter>
+      <filter id="openFolderTexture" x="-8%" y="-8%" width="116%" height="116%">
+        <feTurbulence type="fractalNoise" baseFrequency=".58" numOctaves="4" seed="24" result="noise"/>
+        <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0.67 0 0 0 0 0.52 0 0 0 0 0.31 0 0 0 .2 0" result="paper"/>
+        <feComposite in="paper" in2="SourceAlpha" operator="in" result="paperInShape"/>
+        <feBlend in="SourceGraphic" in2="paperInShape" mode="multiply"/>
+      </filter>
+      <linearGradient id="openFolderPaper" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#f6dda0"/>
+        <stop offset=".56" stop-color="#f3d99a"/>
+        <stop offset="1" stop-color="#f7e1aa"/>
+      </linearGradient>
+      <linearGradient id="openFoldShadow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#6d4b27" stop-opacity="0"/>
+        <stop offset=".78" stop-color="#6d4b27" stop-opacity="0"/>
+        <stop offset=".94" stop-color="#6d4b27" stop-opacity=".2"/>
+        <stop offset="1" stop-color="#6d4b27" stop-opacity=".3"/>
+      </linearGradient>
+    </defs>
+  </svg>
+
+  <main class="page">
+    <section class="archive" aria-label="520 memory archive">
+      <header class="archive-head">
+        <h1 class="archive-title"><span>FILED UNDER: US</span><span>05/20/2026</span><span>LOCATION: SHANGHAI</span></h1>
+        <p class="archive-note">我把一些很小很小、但只要想起来就会发光的瞬间，夹进了四个文件夹里。</p>
+      </header>
+
+      <div class="folder-stack">
+        <button class="folder row1" data-theme="cream" data-side="left" data-open-folder="supermarket" type="button" aria-label="打开第一章，默契">
+          <svg class="folder-svg folder-back" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="inner-paper"></div>
+          <img class="paper-scrap scrap-a" data-layout="scrapA" src="stickers/tapes_papers/010_Download_premium_png_of_Ripped_newspaper_png_clipart_vintage_journal_c.png" alt="">
+          <img class="paper-scrap scrap-b" data-layout="scrapB" src="stickers/tapes_papers/039_25.png" alt="">
+          <img class="paper-scrap scrap-c" data-layout="scrapC" src="stickers/tapes_papers/080_66.png" alt="">
+          <div class="print polaroid frame-polaroid photo-main" data-layout="photoMain" data-caption="supermarket"><img src="assets/generated/supermarket/supermarket-door-couple.jpg" alt=""></div>
+          <div class="print polaroid frame-note photo-side" data-layout="photoSide" data-caption="guess"><img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt=""></div>
+          <div class="film-strip film-a" data-layout="filmA"><img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt=""><img src="assets/generated/supermarket/supermarket-checkout-boy.jpg" alt=""><img src="assets/generated/supermarket/supermarket-candy-still.jpg" alt=""></div>
+          <img class="asset clip-a" data-layout="clipA" src="stickers/study_utilities/082_68.png" alt="">
+          <img class="asset clip-b" data-layout="clipB" src="stickers/decorations/sticker_127.png" alt="">
+          <img class="asset sugar" data-layout="sugar" src="stickers/decorations/sticker_135.png" alt="">
+          <img class="asset ticket" data-layout="ticket" src="stickers/decorations/sticker_103.png" alt="">
+          <svg class="folder-svg folder-front" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="folder-lip"></div>
+          <div class="tab-title" data-layout="tabTitle"><strong>01 默契</strong><span>一整间超市都变成答案</span></div>
+        </button>
+
+        <button class="folder row2" data-theme="pink" data-side="right" type="button" aria-disabled="true" aria-label="第二章，陪伴">
+          <svg class="folder-svg folder-back" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="inner-paper"></div>
+          <img class="paper-scrap scrap-a" data-layout="scrapA" src="stickers/tapes_papers/044_30.png" alt="">
+          <img class="paper-scrap scrap-b" data-layout="scrapB" src="stickers/tapes_papers/078_64.png" alt="">
+          <img class="paper-scrap scrap-c" data-layout="scrapC" src="stickers/tapes_papers/016_Greentape.png" alt="">
+          <img class="paper-scrap scrap-d" data-layout="scrapD" src="stickers/tapes_papers/022_PNG_updated_follow_for_save.png" alt="">
+          <img class="paper-scrap scrap-e" data-layout="scrapE" src="stickers/tapes_papers/088_74.png" alt="">
+          <div class="film-strip film-a" data-layout="filmA"><img src="assets/generated/memory_chapters/companionship-earphones.jpg" alt=""><img src="assets/generated/memory_chapters/companionship-rooftop.jpg" alt=""><img src="assets/generated/memory_chapters/companionship-song.jpg" alt=""></div>
+          <div class="print polaroid frame-wide photo-main" data-layout="photoMain" data-caption="earphones"><img src="assets/generated/memory_chapters/companionship-earphones.jpg" alt=""></div>
+          <div class="print polaroid frame-square photo-side" data-layout="photoSide" data-caption="song"><img src="assets/generated/memory_chapters/companionship-song.jpg" alt=""></div>
+          <span class="tape tape-a" data-layout="tapeA"></span>
+          <img class="asset clip-a" data-layout="clipA" src="stickers/study_utilities/025_Plastic_Clip_-_Navy.png" alt="">
+          <svg class="folder-svg folder-front" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="folder-lip"></div>
+          <div class="tab-title" data-layout="tabTitle"><strong>02 陪伴</strong><span>把一半耳机分给你</span></div>
+        </button>
+
+        <button class="folder row3" data-theme="blue" data-side="left" type="button" aria-disabled="true" aria-label="第三章，安心">
+          <svg class="folder-svg folder-back" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="inner-paper"></div>
+          <img class="paper-scrap scrap-a" data-layout="scrapA" src="stickers/tapes_papers/038_24.png" alt="">
+          <img class="paper-scrap scrap-b" data-layout="scrapB" src="stickers/tapes_papers/060_46.png" alt="">
+          <img class="paper-scrap scrap-c" data-layout="scrapC" src="stickers/tapes_papers/002_5_8_Premiere_Ribbon-Yellow_Gingham.png" alt="">
+          <img class="paper-scrap scrap-d" data-layout="scrapD" src="stickers/tapes_papers/109_Яндекс_Диск_для_фото_облачное_хранилище_фотографий.png" alt="">
+          <img class="paper-scrap scrap-e" data-layout="scrapE" src="stickers/tapes_papers/vjeranski_ Louise Bourgeois Untitled (double sided), 2006 (Louxo's Enjoyables).png" alt="">
+          <div class="film-strip film-a" data-layout="filmA"><img src="assets/generated/memory_chapters/security-karaoke.jpg" alt=""><img src="assets/generated/memory_chapters/security-night-light.jpg" alt=""><img src="assets/generated/memory_chapters/security-couch.jpg" alt=""></div>
+          <div class="print polaroid frame-dv photo-main" data-layout="photoMain" data-caption="karaoke"><img src="assets/generated/memory_chapters/security-karaoke.jpg" alt=""></div>
+          <img class="asset ticket" data-layout="ticket" src="stickers/decorations/sticker_67.png" alt="">
+          <img class="asset clip-a" data-layout="clipA" src="stickers/study_utilities/082_68.png" alt="">
+          <svg class="folder-svg folder-front" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="folder-lip"></div>
+          <div class="tab-title" data-layout="tabTitle"><strong>03 安心</strong><span>晚安被说得很慢</span></div>
+        </button>
+
+        <button class="folder row4" data-theme="sand" data-side="right" type="button" aria-disabled="true" aria-label="第四章，以后">
+          <svg class="folder-svg folder-back" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="inner-paper"></div>
+          <img class="paper-scrap scrap-a" data-layout="scrapA" src="stickers/tapes_papers/059_45.png" alt="">
+          <img class="paper-scrap scrap-b" data-layout="scrapB" src="stickers/tapes_papers/088_74.png" alt="">
+          <img class="paper-scrap scrap-c" data-layout="scrapC" src="stickers/tapes_papers/045_31.png" alt="">
+          <img class="paper-scrap scrap-d" data-layout="scrapD" src="stickers/tapes_papers/010_Download_premium_png_of_Ripped_newspaper_png_clipart_vintage_journal_c.png" alt="">
+          <img class="paper-scrap scrap-e" data-layout="scrapE" src="stickers/tapes_papers/What a Fun Thank You + Free Image.jpeg" alt="">
+          <div class="print polaroid frame-ripped photo-main" data-layout="photoMain" data-caption="home"><img src="assets/generated/memory_chapters/future-chess.jpg" alt=""></div>
+          <div class="print polaroid frame-postcard photo-side" data-layout="photoSide" data-caption="kitchen"><img src="assets/generated/memory_chapters/future-kitchen.jpg" alt=""></div>
+          <div class="print polaroid frame-note photo-extra" data-layout="photoExtra" data-caption="plan"><img src="assets/generated/memory_chapters/future-note.jpg" alt=""></div>
+          <img class="asset clip-a" data-layout="clipA" src="stickers/study_utilities/083_69.png" alt="">
+          <svg class="folder-svg folder-front" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+            <path class="folder-shape" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+          <div class="folder-lip"></div>
+          <div class="tab-title" data-layout="tabTitle"><strong>04 以后</strong><span>把日子放进长期文件</span></div>
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <aside class="memory-stage" id="memoryStage" aria-hidden="true">
+    <div class="stage-backdrop"></div>
+    <button class="close-stage" id="closeStage" type="button" aria-label="关闭展开的文件夹">×</button>
+    <div class="open-folder" role="dialog" aria-modal="true" aria-labelledby="openTitle">
+      <canvas class="three-folder" id="threeFolder" aria-hidden="true"></canvas>
+      <div class="spread">
+        <div class="leaf top-leaf">
+          <svg viewBox="0 120 1000 640" preserveAspectRatio="none" aria-hidden="true">
+            <path class="top-open-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+            <path class="fold-shadow" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+        </div>
+        <div class="leaf bottom-leaf">
+          <svg viewBox="0 120 1000 640" preserveAspectRatio="none" aria-hidden="true">
+            <path class="bottom-open-shape" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+            <path class="fold-shadow" d="M0 212 C0 192 24 178 60 178 H622 C648 178 648 120 696 120 H824 C872 120 872 178 898 178 H942 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+          </svg>
+        </div>
+        <div class="hinge-line"></div>
+      </div>
+
+      <div class="open-title" id="openTitle" data-open-layout="print_left_header">O INICIO<br>CHAPTER 01</div>
+      <div class="open-meta" data-open-layout="print_right_header">MAIO DE 2026<br>JIAWEI / US</div>
+
+      <svg class="closed-back-cover" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+        <path class="back-cover-shape" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+        <path class="back-cover-shadow" d="M0 212 C0 192 24 178 58 178 H102 C128 178 128 120 176 120 H304 C352 120 352 178 378 178 H940 C976 178 1000 192 1000 212 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+      </svg>
+      <div class="closed-preview" aria-hidden="true">
+        <div class="closed-inner-paper" data-closed-layout="closed_inner_lined_paper"></div>
+        <img class="closed-asset" data-closed-layout="closed_newspaper_scrap" src="stickers/tapes_papers/010_Download_premium_png_of_Ripped_newspaper_png_clipart_vintage_journal_c.png" alt="">
+        <img class="closed-asset" data-closed-layout="closed_torn_note" src="stickers/tapes_papers/039_25.png" alt="">
+        <div class="closed-print" data-closed-layout="closed_main_supermarket_photo">
+          <img src="assets/generated/supermarket/supermarket-door-couple.jpg" alt="">
+        </div>
+        <div class="closed-print" data-closed-layout="closed_guess_photo">
+          <img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt="">
+        </div>
+        <div class="film-strip closed-asset" data-closed-layout="closed_film_strip">
+          <img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt="">
+          <img src="assets/generated/supermarket/supermarket-checkout-boy.jpg" alt="">
+          <img src="assets/generated/supermarket/supermarket-candy-still.jpg" alt="">
+        </div>
+        <img class="closed-asset" data-closed-layout="closed_black_binder_clip" src="stickers/study_utilities/082_68.png" alt="">
+        <img class="closed-asset" data-closed-layout="closed_sugar_packet" src="stickers/decorations/sticker_135.png" alt="">
+        <img class="closed-asset" data-closed-layout="closed_ticket_stub" src="stickers/decorations/sticker_103.png" alt="">
+      </div>
+      <div class="closed-paper-peek" aria-hidden="true"></div>
+      <svg class="closed-front-cover" viewBox="0 0 1000 760" preserveAspectRatio="none" aria-hidden="true">
+        <path class="front-cover-shape" d="M0 300 C0 280 24 266 58 266 H102 C128 266 128 208 176 208 H304 C352 208 352 266 378 266 H940 C976 266 1000 280 1000 300 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+        <path class="front-cover-shadow" d="M0 300 C0 280 24 266 58 266 H102 C128 266 128 208 176 208 H304 C352 208 352 266 378 266 H940 C976 266 1000 280 1000 300 V700 C1000 733 973 760 940 760 H60 C27 760 0 733 0 700 Z"/>
+      </svg>
+      <div class="closed-cover-title" data-closed-layout="closed_cover_tab_title"><strong>01 默契</strong><span>一整间超市都变成答案</span></div>
+
+      <div class="open-content">
+        <div class="open-content-plane top-content-plane">
+          <div class="open-sheet grid top-paper-a" data-open-layout="left_grid_paper"></div>
+          <div class="open-sheet stripe top-paper-b" data-open-layout="right_yellow_grid_paper"></div>
+          <div class="open-polaroid" data-open-layout="main_supermarket_polaroid">
+            <img src="assets/generated/supermarket/supermarket-door-couple.jpg" alt="">
+            <div class="open-caption" data-open-layout="main_polaroid_caption">猜中的那一秒</div>
+          </div>
+          <div class="film-strip open-film" data-open-layout="left_film_strip"><img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt=""><img src="assets/generated/supermarket/supermarket-checkout-boy.jpg" alt=""><img src="assets/generated/supermarket/supermarket-candy-still.jpg" alt=""></div>
+          <div class="open-quad" data-open-layout="right_photo_grid">
+            <div class="quad-grid">
+              <img src="assets/generated/supermarket/supermarket-door-couple.jpg" alt="">
+              <img src="assets/generated/supermarket/supermarket-aisle-girl.jpg" alt="">
+              <img src="assets/generated/supermarket/supermarket-checkout-boy.jpg" alt="">
+              <img src="assets/generated/supermarket/supermarket-candy-still.jpg" alt="">
+            </div>
+            <div class="quad-caption" data-open-layout="photo_grid_caption">candy / light / us</div>
+          </div>
+          <img class="open-asset open-clip" data-open-layout="black_binder_clip" src="stickers/study_utilities/082_68.png" alt="">
+          <img class="open-asset open-ticket" data-open-layout="pink_ticket" src="stickers/base/066_52.png" alt="">
+          <div class="open-mini-photo" data-open-layout="middle_receipt_smile_photo">
+            <img src="assets/generated/supermarket/supermarket-receipt-smile.jpg" alt="">
+          </div>
+          <img class="open-asset open-receipt" data-open-layout="torn_quote_receipt" src="stickers/tapes_papers/039_25.png" alt="">
+          <img class="open-asset open-sugar" data-open-layout="sugar_packet" src="stickers/decorations/sticker_135.png" alt="">
+          <img class="open-asset open-good" data-open-layout="blue_good_times_tickets" src="stickers/decorations/sticker_21.png" alt="">
+          <img class="open-asset open-tape-yellow" data-open-layout="vertical_yellow_gingham_tape" src="stickers/tapes_papers/002_5_8_Premiere_Ribbon-Yellow_Gingham.png" alt="">
+          <img class="open-asset open-tape-green" data-open-layout="green_horizontal_tape" src="stickers/tapes_papers/016_Greentape.png" alt="">
+        </div>
+        <div class="open-content-plane bottom-content-plane">
+          <div class="open-sheet lined story-back-a" data-open-layout="story_lined_back_sheet"></div>
+          <div class="open-sheet grid story-back-b" data-open-layout="story_grid_back_sheet"></div>
+          <article class="story-paper" data-open-layout="main_story_paper">
+            <h2 data-open-layout="story_heading">关于默契这件小事</h2>
+            <p data-open-layout="story_body">我一直觉得，真正让人心软的不是隆重的桥段，而是你问“猜猜我现在最想买什么”的时候，我脱口而出的那一个答案。<mark>旺仔 QQ 糖</mark>像一枚小小暗号，提醒我：原来我们连很轻的念头，也会在同一秒落到同一个地方。</p>
+          </article>
+          <img class="open-asset open-sticker" data-open-layout="flower_sticker" src="stickers/decorations/sticker_47.png" alt="">
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <div class="photo-lightbox" id="photoLightbox" aria-hidden="true" role="dialog" aria-label="照片放大查看">
+    <button class="photo-lightbox-close" id="photoLightboxClose" type="button" aria-label="关闭照片">×</button>
+    <img id="photoLightboxImage" alt="">
+  </div>
+
+  <script>
+    const folderRuntimeConfig = window.FOLDER_GIFT_CONFIG || {};
+
+    function isPlainObject(value) {
+      return value && typeof value === "object" && !Array.isArray(value);
+    }
+
+    function deepMerge(base, override) {
+      if (override === undefined) return base;
+      if (Array.isArray(base) || Array.isArray(override)) return override ?? base;
+      if (!isPlainObject(base) || !isPlainObject(override)) return override;
+      const result = { ...base };
+      Object.entries(override).forEach(([key, value]) => {
+        result[key] = key in result ? deepMerge(result[key], value) : value;
+      });
+      return result;
+    }
+
+    function setNodeContent(node, value) {
+      if (!node || value === undefined || value === null) return;
+      if (isPlainObject(value) && value.html !== undefined) {
+        node.innerHTML = value.html;
+        return;
+      }
+      node.textContent = isPlainObject(value) && value.text !== undefined ? value.text : value;
+    }
+
+    function applySelectorTextReplacements(replacements) {
+      if (!replacements) return;
+      const items = Array.isArray(replacements)
+        ? replacements
+        : Object.entries(replacements).map(([selector, value]) => ({ selector, value }));
+      items.forEach((item) => {
+        if (!item || !item.selector) return;
+        document.querySelectorAll(item.selector).forEach((node) => {
+          setNodeContent(node, item.value ?? item.text ?? item);
+        });
+      });
+    }
+
+    function applySelectorImageReplacements(replacements) {
+      if (!replacements) return;
+      const items = Array.isArray(replacements)
+        ? replacements
+        : Object.entries(replacements).map(([selector, src]) => ({ selector, src }));
+      items.forEach((item) => {
+        if (!item || !item.src) return;
+        let targets = [];
+        if (item.selector) {
+          targets = [...document.querySelectorAll(item.selector)];
+        }
+        if (!targets.length && item.from) {
+          targets = [...document.querySelectorAll("img")].filter((image) => {
+            const raw = image.getAttribute("src") || "";
+            return raw === item.from || raw.endsWith(item.from);
+          });
+        }
+        targets.forEach((target) => {
+          const image = target.matches?.("img") ? target : target.querySelector("img");
+          if (!image) return;
+          image.src = item.src;
+          if (item.alt !== undefined) image.alt = item.alt;
+          if (item.objectPosition) image.style.objectPosition = item.objectPosition;
+          if (item.objectFit) image.style.objectFit = item.objectFit;
+        });
+      });
+    }
+
+    function applyFolderRuntimeContent() {
+      const archive = folderRuntimeConfig.archive || {};
+      if (Array.isArray(archive.titleLines)) {
+        document.querySelectorAll(".archive-title span").forEach((node, index) => {
+          if (archive.titleLines[index] !== undefined) setNodeContent(node, archive.titleLines[index]);
+        });
+      }
+      setNodeContent(document.querySelector(".archive-note"), archive.note);
+
+      const tabs = Array.isArray(folderRuntimeConfig.tabs)
+        ? folderRuntimeConfig.tabs
+        : Object.entries(folderRuntimeConfig.tabs || {}).map(([row, value]) => ({ row, ...value }));
+      tabs.forEach((tab, index) => {
+        const row = tab.row || `row${index + 1}`;
+        const title = document.querySelector(`.${row} [data-layout="tabTitle"] strong`);
+        const subtitle = document.querySelector(`.${row} [data-layout="tabTitle"] span`);
+        setNodeContent(title, tab.title);
+        setNodeContent(subtitle, tab.subtitle);
+      });
+
+      const opened = folderRuntimeConfig.openedFolder || {};
+      setNodeContent(document.querySelector("#openTitle"), opened.title);
+      setNodeContent(document.querySelector(".open-meta"), opened.meta);
+      setNodeContent(document.querySelector("[data-closed-layout='closed_cover_tab_title'] strong"), opened.coverTitle);
+      setNodeContent(document.querySelector("[data-closed-layout='closed_cover_tab_title'] span"), opened.coverSubtitle);
+      setNodeContent(document.querySelector("[data-open-layout='main_polaroid_caption']"), opened.mainCaption);
+      setNodeContent(document.querySelector("[data-open-layout='photo_grid_caption']"), opened.gridCaption);
+      setNodeContent(document.querySelector("[data-open-layout='story_heading']"), opened.storyHeading);
+      setNodeContent(document.querySelector("[data-open-layout='story_body']"), opened.storyBodyHtml !== undefined ? { html: opened.storyBodyHtml } : opened.storyBody);
+
+      applySelectorTextReplacements(folderRuntimeConfig.textReplacements);
+      applySelectorImageReplacements(folderRuntimeConfig.imageReplacements);
+    }
+
+    // Edit this object to tune thumbnail positions, sizes, rotations, and layers.
+    const thumbnailLayoutConfig = deepMerge({
+      folderStack: {
+        desktop: { scale: .9 },
+        mobile: { scale: .94 }
+      },
+      desktop: {
+        row1: {
+          tabTitle: { x: "23.3%", y: 263, w: 214, h: 46, z: 12, anchor: "centerX", fontScale: 1.02 },
+          scrapA: { x: 10, y: 166, w: 222, r: -12, z: 7, opacity: .92 },
+          scrapB: { x: 392, y: 138, w: 162, r: 5, z: 7, opacity: .8 },
+          scrapC: { right: 174, y: 206, w: 136, r: -15, z: 17, opacity: .62 },
+          photoMain: { x: 70, y: 92, w: 210, h: 250, r: -10, z: 8, imagePosition: "center 22%" },
+          photoSide: { x: 456, y: 134, w: 152, h: 184, r: 8, z: 8, imagePosition: "center 28%" },
+          filmA: { right: 82, y: 128, w: 116, r: 10, z: 8 },
+          clipA: { x: 462, y: 54, w: 94, r: 2, z: 13 },
+          clipB: { right: 56, y: 106, w: 36, r: -4, z: 13 },
+          sugar: { x: 580, y: 228, w: 130, r: -5, z: 13 },
+          ticket: { right: 195, y: 248, w: 134, r: -5, z: 7 }
+        },
+        row2: {
+          tabTitle: { x: "75.7%", y: 263, w: 214, h: 46, z: 12, anchor: "centerX", fontScale: 1.12 },
+          scrapA: { x: 62, y: 144, w: 212, r: -14, z: 6, opacity: .96 },
+          scrapB: { right: 202, y: 188, w: 244, r: 5, z: 6, opacity: .92 },
+          scrapC: { x: 292, y: 162, w: 134, r: -3, z: 6, opacity: .92 },
+          scrapD: { x: 852, y: 114, w: 148, r: 7, z: 6, opacity: 1 },
+          scrapE: { right: 212, y: 166, w: 136, r: -7, z: 6, opacity: .98 },
+          filmA: { x: 406, y: 156, w: 112, r: 15, z: 8, imagePosition: "center 34%" },
+          photoMain: { x: 134, y: 178, w: 258, h: 194, r: 5, z: 9, imagePosition: "center 32%" },
+          photoSide: { right: 34, y: 152, w: 240, h: 182, r: -3, z: 9, imagePosition: "center 22%" },
+          tapeA: { x: 218, y: 208, w: 76, h: 30, r: -12, z: 11 },
+          clipA: { right: 130, y: 84, w: 126, r: -4, z: 13 }
+        },
+        row3: {
+          tabTitle: { x: "23.3%", y: 263, w: 206, h: 46, z: 12, anchor: "centerX", fontScale: 1.12 },
+          scrapA: { x: 72, y: 156, w: 166, r: 8, z: 6, opacity: 1 },
+          scrapB: { x: 466, y: 164, w: 280, r: -3, z: 6, opacity: 1 },
+          scrapC: { right: 288, y: 192, w: 146, r: 7, z: 6, opacity: 1 },
+          scrapD: { x: 590, y: 168, w: 168, r: -5, z: 6, opacity: 1 },
+          scrapE: { right: 322, y: 138, w: 126, r: 9, z: 6, opacity: 1 },
+          filmA: { x: 662, y: 94, w: 138, r: -7, z: 8, imagePosition: "center 38%" },
+          photoMain: { x: 932, y: 170, w: 276, h: 184, r: 4, z: 9, imagePosition: "center 30%" },
+          ticket: { x: 1200, y: 208, w: 108, r: -5, z: 10 },
+          clipA: { right: 406, y: 96, w: 84, r: 9, z: 13 }
+        },
+        row4: {
+          tabTitle: { x: "75.7%", y: 263, w: 214, h: 46, z: 12, anchor: "centerX", fontScale: 1.12 },
+          scrapA: { x: 126, y: 164, w: 246, r: -6, z: 7, opacity: 1 },
+          scrapB: { right: 86, y: 194, w: 232, r: 5, z: 6, opacity: 1 },
+          scrapC: { x: 532, y: 272, w: 158, r: -9, z: 6, opacity: 1 },
+          scrapD: { x: 532, y: 172, w: 176, r: 6, z: 5, opacity: 1 },
+          scrapE: { right: 266, y: 150, w: 136, r: -8, z: 6, opacity: 1 },
+          photoMain: { x: 648, y: 162, w: 252, h: 188, r: -6, z: 9, imagePosition: "center 34%" },
+          photoSide: { right: 20, y: 154, w: 238, h: 174, r: 6, z: 9, imagePosition: "center 32%" },
+          photoExtra: { x: 50, y: 172, w: 132, h: 178, r: -7, z: 8, imagePosition: "center 28%" },
+          clipA: { x: 1290, y: 122, w: 64, r: 10, z: 13 }
+        }
+      },
+      mobile: {
+        row1: {
+          tabTitle: { x: "23%", y: 206, w: 180, h: 44, fontScale: .76 },
+          photoMain: { x: 48, y: 92, w: 160, h: 190, r: -5 },
+          photoSide: { display: "none" },
+          scrapA: { x: 30, y: 186, w: 172, opacity: .58 },
+          scrapB: { display: "none" },
+          scrapC: { display: "none" },
+          filmA: { right: 16, y: 74, w: 100, r: 5 },
+          ticket: { display: "none" }
+        },
+        row2: {
+          tabTitle: { x: "77%", y: 206, w: 180, h: 44, fontScale: .76 },
+          photoMain: { x: 48, y: 92, w: 160, h: 190, r: 4 },
+          photoSide: { display: "none" },
+          filmA: { right: 16, x: null, y: 74, w: 100, r: 5 },
+          scrapA: { right: 28, x: null, y: 186, w: 172, opacity: .58 },
+          scrapB: { display: "none" },
+          scrapC: { display: "none" },
+          scrapD: { display: "none" },
+          scrapE: { display: "none" }
+        },
+        row3: {
+          tabTitle: { x: "23%", y: 206, w: 180, h: 44, fontScale: .76 },
+          photoMain: { x: 48, y: 92, w: 160, h: 190, r: 4 },
+          scrapA: { x: 30, y: 186, w: 172, opacity: .58 },
+          scrapB: { display: "none" },
+          scrapC: { display: "none" },
+          scrapD: { display: "none" },
+          scrapE: { display: "none" },
+          filmA: { right: 16, x: null, y: 74, w: 100, r: -6 },
+          ticket: { display: "none" }
+        },
+        row4: {
+          tabTitle: { x: "77%", y: 206, w: 180, h: 44, fontScale: .76 },
+          photoMain: { x: 48, y: 92, w: 160, h: 190, r: 4 },
+          photoSide: { display: "none" },
+          photoExtra: { display: "none" },
+          scrapA: { right: 28, x: null, y: 186, w: 172, opacity: .58 },
+          scrapB: { display: "none" },
+          scrapC: { display: "none" },
+          scrapD: { display: "none" },
+          scrapE: { display: "none" }
+        }
+      }
+    }, folderRuntimeConfig.thumbnailLayoutConfig);
+
+    // Edit this object to tune the opened-folder collage elements.
+    // z controls visual stacking. depth controls the subtle 3D lift; keep background papers lower than photos.
+    const openLayoutConfig = deepMerge({
+      print_left_header: { x: "9.5%", y: "10%", z: 24, depth: 146, fontFamily: "\"Courier New\", Courier, Menlo, monospace", fontSize: ".56rem", lineHeight: 1.18 },
+      print_right_header: { right: "9%", y: "10%", z: 24, depth: 146, fontFamily: "\"Courier New\", Courier, Menlo, monospace", fontSize: ".52rem", lineHeight: 1.22 },
+      left_grid_paper: { x: "23%", y: "19%", w: "35%", h: "27%", r: -7, z: 9, depth: 96, opacity: .82 },
+      right_yellow_grid_paper: { x: "60%", y: "15%", w: "27%", h: "31%", r: 8, z: 2, depth: 82, opacity: .86 },
+      story_lined_back_sheet: { x: "13%", y: "57%", w: "72%", h: "24%", r: -2, z: 10, depth: 98, opacity: .66 },
+      story_grid_back_sheet: { x: "15%", y: "61%", w: "69%", h: "23%", r: 1.5, z: 11, depth: 108, opacity: .62 },
+      main_supermarket_polaroid: { x: "35%", y: "10%", w: "42%", h: 132, r: 0, z: 18, depth: 136, imagePosition: "center 28%" },
+      main_polaroid_caption: { x: 10, right: 10, bottom: 8, fontFamily: "\"Lakeus\", \"Chaohua\", cursive", fontSize: ".98rem", lineHeight: 1.1, color: "#554238", textAlign: "center", z: 2 },
+      left_film_strip: { x: "10%", y: "16%", w: 82, r: -6, z: 18, depth: 132, imagePosition: "center 30%" },
+      right_photo_grid: { right: "10%", y: "25%", w: "23%", r: 5, z: 18, depth: 118 },
+      photo_grid_caption: { fontFamily: "\"Lakeus\", \"Chaohua\", cursive", fontSize: ".84rem", lineHeight: 1.1, color: "#564138", textAlign: "center", z: 2 },
+      main_story_paper: { x: "14%", y: "62%", w: "72%", h: "26.5%", r: .2, z: 22, depth: 142, padding: "18px 26px 20px" },
+      story_heading: { fontFamily: "\"Qingchun\", \"Chaohua\", sans-serif", fontSize: "1.62rem", lineHeight: 1.06, color: "#5a4036" },
+      story_body: { fontFamily: "\"Chaohua\", \"Qingchun\", sans-serif", fontSize: ".84rem", lineHeight: 1.46, color: "#4d4038" },
+      black_binder_clip: { x: "48%", y: "5%", w: "9%", r: 0, z: 25, depth: 158 },
+      pink_ticket: { x: "25%", y: "27%", w: "17%", r: -9, z: 20, depth: 132 },
+      middle_receipt_smile_photo: { x: "42.6%", y: "32%", w: "10.2%", h: "16.5%", r: -3, z: 18, depth: 121, padding: "6px 6px 17px", imagePosition: "center 39%" },
+      torn_quote_receipt: { right: "30%", y: "27%", w: "16%", r: 8, z: 19, depth: 120 },
+      sugar_packet: { right: "8%", y: "13%", w: "18%", r: 9, z: 20, depth: 126 },
+      flower_sticker: { x: "5%", bottom: "14%", w: "15%", r: 9, z: 25, depth: 150 },
+      blue_good_times_tickets: { right: "2%", y: "38%", w: "12%", r: -6, z: 23, depth: 138 },
+      vertical_yellow_gingham_tape: { x: "45%", y: "15%", w: 42, h: "27%", r: 90, z: 9, depth: 100 },
+      green_horizontal_tape: { right: "23%", y: "10%", w: 82, r: -7, z: 26, depth: 160 }
+    }, folderRuntimeConfig.openLayoutConfig);
+
+    const closedPreviewConfig = deepMerge({
+      closed_inner_lined_paper: { x: "8%", y: "28%", w: "84%", h: "42%", z: 4, depth: 84, opacity: .94 },
+      closed_newspaper_scrap: { x: "28%", y: "19%", w: "17%", r: 5, z: 5, depth: 94, opacity: .64 },
+      closed_torn_note: { right: "27%", y: "28%", w: "14%", r: -10, z: 12, depth: 114, opacity: .72 },
+      closed_main_supermarket_photo: { x: "9%", y: "11%", w: "23%", h: "27%", r: -7, z: 10, depth: 116, imagePosition: "center 32%" },
+      closed_guess_photo: { x: "39%", y: "10%", w: "22%", h: "26%", r: 4, z: 11, depth: 118, imagePosition: "center 34%" },
+      closed_film_strip: { right: "9%", y: "12%", w: 76, r: 7, z: 13, depth: 122, imagePosition: "center 35%" },
+      closed_black_binder_clip: { x: "45%", y: "6%", w: "10%", r: -2, z: 18, depth: 136 },
+      closed_sugar_packet: { right: "21%", y: "20%", w: "12%", r: 8, z: 14, depth: 124 },
+      closed_ticket_stub: { right: "13%", y: "29%", w: "16%", r: -8, z: 15, depth: 128 },
+      closed_cover_tab_title: { x: "12.4%", y: "34.1%", w: "25%", z: 20, depth: 246, fontSize: ".72rem", lineHeight: 1.12 }
+    }, folderRuntimeConfig.closedPreviewConfig);
+
+    function applyThumbnailLayout() {
+      const mobile = window.matchMedia("(max-width: 820px)").matches;
+      const stackConfig = mobile ? thumbnailLayoutConfig.folderStack.mobile : thumbnailLayoutConfig.folderStack.desktop;
+      document.querySelector(".folder-stack")?.style.setProperty("--stack-scale", stackConfig.scale);
+
+      const rows = thumbnailLayoutConfig.desktop;
+      Object.entries(rows).forEach(([rowName, rowConfig]) => {
+        const row = document.querySelector(`.${rowName}`);
+        if (!row) return;
+        const rowOverride = mobile ? thumbnailLayoutConfig.mobile[rowName] || {} : {};
+        Object.entries(rowConfig).forEach(([itemName, baseConfig]) => {
+          const element = row.querySelector(`[data-layout="${itemName}"]`);
+          if (!element) return;
+          applyLayoutConfig(element, { ...baseConfig, ...(rowOverride[itemName] || {}) });
+        });
+      });
+      applyOpenLayout();
+      applyClosedPreviewLayout();
+    }
+
+    function applyOpenLayout() {
+      Object.entries(openLayoutConfig).forEach(([itemName, config]) => {
+        const element = document.querySelector(`[data-open-layout="${itemName}"]`);
+        if (!element) return;
+        applyLayoutConfig(element, config);
+      });
+    }
+
+    function applyClosedPreviewLayout() {
+      Object.entries(closedPreviewConfig).forEach(([itemName, config]) => {
+        const element = document.querySelector(`[data-closed-layout="${itemName}"]`);
+        if (!element) return;
+        applyLayoutConfig(element, config);
+      });
+    }
+
+    function applyLayoutConfig(element, config) {
+      const toCss = (value) => typeof value === "number" ? `${value}px` : value;
+      const setBoxValue = (prop, value) => {
+        if (value === undefined) return;
+        element.style[prop] = value === null ? "" : toCss(value);
+      };
+
+      ["left", "right", "top", "bottom", "width", "height"].forEach((prop) => {
+        element.style[prop] = "";
+      });
+      element.style.opacity = "";
+      element.style.zIndex = "";
+      element.style.fontFamily = "";
+      element.style.fontSize = "";
+      element.style.lineHeight = "";
+      element.style.letterSpacing = "";
+      element.style.color = "";
+      element.style.textAlign = "";
+      element.style.padding = "";
+      element.style.removeProperty("--font-scale");
+      element.style.display = config.display || "";
+      setBoxValue("left", config.x);
+      setBoxValue("right", config.right);
+      setBoxValue("top", config.y);
+      setBoxValue("bottom", config.bottom);
+      setBoxValue("width", config.w);
+      setBoxValue("height", config.h);
+      if (config.z !== undefined) element.style.zIndex = config.z;
+      if (config.opacity !== undefined) element.style.opacity = config.opacity;
+      if (config.fontScale !== undefined) element.style.setProperty("--font-scale", config.fontScale);
+      if (config.fontFamily !== undefined) element.style.fontFamily = config.fontFamily;
+      if (config.fontSize !== undefined) element.style.fontSize = toCss(config.fontSize);
+      if (config.lineHeight !== undefined) element.style.lineHeight = config.lineHeight;
+      if (config.letterSpacing !== undefined) element.style.letterSpacing = toCss(config.letterSpacing);
+      if (config.color !== undefined) element.style.color = config.color;
+      if (config.textAlign !== undefined) element.style.textAlign = config.textAlign;
+      if (config.padding !== undefined) element.style.padding = toCss(config.padding);
+
+      const transforms = [];
+      const depth = config.depth !== undefined ? config.depth : config.tz;
+      if (config.anchor === "centerX") transforms.push("translateX(-50%)");
+      if (config.r !== undefined) transforms.push(`rotate(${config.r}deg)`);
+      if (depth !== undefined) transforms.push(`translateZ(${depth}px)`);
+      if (config.scale !== undefined) transforms.push(`scale(${config.scale})`);
+      element.style.transform = transforms.join(" ");
+
+      if (config.imagePosition) {
+        element.querySelectorAll("img").forEach((image) => {
+          image.style.objectPosition = config.imagePosition;
+        });
+      }
+    }
+
+    window.folderRuntimeConfig = folderRuntimeConfig;
+    window.thumbnailLayoutConfig = thumbnailLayoutConfig;
+    window.openLayoutConfig = openLayoutConfig;
+    window.closedPreviewConfig = closedPreviewConfig;
+    applyFolderRuntimeContent();
+    applyThumbnailLayout();
+    window.addEventListener("resize", applyThumbnailLayout);
+  </script>
+
+  <script>
+    const stage = document.getElementById("memoryStage");
+    const closeStage = document.getElementById("closeStage");
+    const firstFolder = document.querySelector("[data-open-folder='supermarket']");
+    const photoLightbox = document.getElementById("photoLightbox");
+    const photoLightboxImage = document.getElementById("photoLightboxImage");
+    const photoLightboxClose = document.getElementById("photoLightboxClose");
+    let centerTimer = 0;
+    let unfoldTimer = 0;
+    let contentTimer = 0;
+
+    function openMemory() {
+      window.clearTimeout(centerTimer);
+      window.clearTimeout(unfoldTimer);
+      window.clearTimeout(contentTimer);
+      firstFolder.classList.add("launching");
+      stage.classList.remove("contents-ready");
+      stage.classList.add("active");
+      stage.setAttribute("aria-hidden", "false");
+      window.dispatchEvent(new CustomEvent("folder-open-start"));
+      centerTimer = window.setTimeout(() => stage.classList.add("centered"), 80);
+      unfoldTimer = window.setTimeout(() => {
+        stage.classList.add("unfolded");
+        window.dispatchEvent(new CustomEvent("folder-unfold"));
+        contentTimer = window.setTimeout(() => stage.classList.add("contents-ready"), 1180);
+        closeStage.focus({ preventScroll: true });
+      }, 820);
+    }
+
+    function closeMemory() {
+      window.clearTimeout(centerTimer);
+      window.clearTimeout(unfoldTimer);
+      window.clearTimeout(contentTimer);
+      stage.classList.remove("contents-ready", "unfolded", "centered", "active");
+      stage.setAttribute("aria-hidden", "true");
+      firstFolder.classList.remove("launching");
+      window.dispatchEvent(new CustomEvent("folder-close"));
+      firstFolder.focus({ preventScroll: true });
+    }
+
+    firstFolder.addEventListener("click", openMemory);
+    closeStage.addEventListener("click", closeMemory);
+    stage.addEventListener("click", (event) => {
+      if (event.target === stage || event.target.classList.contains("stage-backdrop")) closeMemory();
+    });
+
+    function openPhotoLightbox(image) {
+      photoLightboxImage.src = image.currentSrc || image.src;
+      photoLightboxImage.alt = image.alt || "放大的照片";
+      photoLightbox.classList.add("active");
+      photoLightbox.setAttribute("aria-hidden", "false");
+      photoLightboxClose.focus({ preventScroll: true });
+    }
+
+    function closePhotoLightbox() {
+      photoLightbox.classList.remove("active");
+      photoLightbox.setAttribute("aria-hidden", "true");
+      photoLightboxImage.removeAttribute("src");
+    }
+
+    document.addEventListener("click", (event) => {
+      const image = event.target.closest(".print img, .film-strip img, .open-polaroid img, .open-quad img, .open-mini-photo img, .closed-print img");
+      if (!image) return;
+      event.preventDefault();
+      event.stopPropagation();
+      openPhotoLightbox(image);
+    }, true);
+
+    photoLightbox.addEventListener("click", (event) => {
+      if (event.target === photoLightbox || event.target === photoLightboxClose) closePhotoLightbox();
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      if (photoLightbox.classList.contains("active")) {
+        closePhotoLightbox();
+        return;
+      }
+      if (stage.classList.contains("active")) closeMemory();
+    });
+  </script>
+
+  <script src="assets/vendor/three-global.js"></script>
+  <script>
+    window.__threeFolderReady = false;
+    const canvas = document.getElementById("threeFolder");
+    let renderer;
+    const probeCanvas = document.createElement("canvas");
+    const THREE = window.THREE;
+    const canUseWebGL = Boolean(THREE && window.WebGLRenderingContext && (probeCanvas.getContext("webgl2") || probeCanvas.getContext("webgl")));
+
+    if (!canUseWebGL) {
+      window.__threeFolderReady = "webgl-unavailable";
+      canvas.hidden = true;
+    } else try {
+      renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+
+      const scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+      camera.position.set(0, 0, 8.1);
+      scene.add(new THREE.AmbientLight(0xffffff, 1.35));
+
+      const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
+      keyLight.position.set(2.5, 4.5, 5);
+      scene.add(keyLight);
+
+      const rimLight = new THREE.DirectionalLight(0xfff0c8, .5);
+      rimLight.position.set(-4, -3, 5);
+      scene.add(rimLight);
+
+      const folder3d = {
+        width: 4,
+        height: 3,
+        segments: 48
+      };
+
+      function createPanel(color, yOffset) {
+        const geometry = new THREE.PlaneGeometry(folder3d.width, folder3d.height, folder3d.segments, 6);
+        const original = new Float32Array(geometry.attributes.position.array);
+        const material = new THREE.MeshStandardMaterial({
+          color,
+          transparent: true,
+          opacity: .26,
+          roughness: .82,
+          metalness: 0,
+          side: THREE.DoubleSide
+        });
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.position.y = yOffset;
+        return { mesh, original };
+      }
+
+      const topGroup = new THREE.Group();
+      const bottomGroup = new THREE.Group();
+      const topPanel = createPanel(0xf4d99b, folder3d.height / 2);
+      const bottomPanel = createPanel(0xf4d99b, -folder3d.height / 2);
+      topGroup.add(topPanel.mesh);
+      bottomGroup.add(bottomPanel.mesh);
+      scene.add(topGroup, bottomGroup);
+
+      let targetOpen = 0;
+      let progress = 0;
+
+      function resize() {
+        const rect = canvas.getBoundingClientRect();
+        const width = Math.max(1, Math.floor(rect.width));
+        const height = Math.max(1, Math.floor(rect.height));
+        renderer.setSize(width, height, false);
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+      }
+
+      function bendPanel(panel, progress, direction) {
+        const positionAttribute = panel.mesh.geometry.attributes.position;
+        const bendStrength = Math.sin(progress * Math.PI) * .54 * direction;
+
+        for (let index = 0; index < positionAttribute.count; index += 1) {
+          const offset = index * 3;
+          const x = panel.original[offset];
+          const y = panel.original[offset + 1];
+          const z = panel.original[offset + 2];
+          const normalizedX = (x / folder3d.width) + .5;
+          const normalizedY = (y / folder3d.height) + .5;
+          const crossCurve = Math.sin(normalizedX * Math.PI);
+          const hingeCurve = Math.sin(normalizedY * Math.PI);
+          positionAttribute.setZ(index, z + crossCurve * hingeCurve * bendStrength);
+        }
+
+        positionAttribute.needsUpdate = true;
+        panel.mesh.geometry.computeVertexNormals();
+      }
+
+      function animate() {
+        progress += (targetOpen - progress) * 0.075;
+        if (Math.abs(targetOpen - progress) < .001) progress = targetOpen;
+
+        const lift = Math.sin(progress * Math.PI) * .7;
+        topGroup.rotation.x = THREE.MathUtils.lerp(THREE.MathUtils.degToRad(-82), 0, progress);
+        bottomGroup.rotation.x = THREE.MathUtils.lerp(THREE.MathUtils.degToRad(76), 0, progress);
+        topGroup.position.z = lift;
+        bottomGroup.position.z = lift * .72;
+        bendPanel(topPanel, progress, 1);
+        bendPanel(bottomPanel, progress, -1);
+        renderer.render(scene, camera);
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener("resize", resize);
+      window.addEventListener("folder-open-start", () => { resize(); targetOpen = 0; progress = 0; });
+      window.addEventListener("folder-unfold", () => { targetOpen = 1; });
+      window.addEventListener("folder-close", () => { targetOpen = 0; });
+      resize();
+      window.__threeFolderReady = true;
+      animate();
+    } catch (error) {
+      window.__threeFolderReady = "webgl-unavailable";
+      canvas.hidden = true;
+    }
+  </script>
+</body>
+</html>

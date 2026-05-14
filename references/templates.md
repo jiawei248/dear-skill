@@ -42,6 +42,10 @@ Available templates:
 🧺 empty-boxes — Tin-Case Memory Loop
    A rotating loop of collectible boxes: fridge shelves, shopping baskets, cardboard boxes, and tin cases become dense grounded memory collages.
    Best for: partners, 520, birthdays, close friends, everyday rituals, snack runs, small reconciliations.
+
+🗂 folder — Layered Memory Archive
+   Four believable file folders open into layered papers, varied photo formats, tapes, stickers, captions, and grounded chapter notes.
+   Best for: partners, 520, birthdays, close friends, relationship chapters, saved quotes, future plans.
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
@@ -57,6 +61,7 @@ Three triggers, all valid:
 /dear --template bouquet 给妈妈做一束可以拖动的花
 /dear 用 bouquet 模板给朋友做一份生日礼物
 /dear --template empty-boxes 给 TA 做一个零食购物篮回忆盒
+/dear --template folder 给 TA 做一组可以打开的回忆文件夹
 ```
 Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
 
@@ -442,5 +447,21 @@ Production + content spec: `{baseDir}/assets/templates/empty-boxes/SPEC.md`. **R
 Preview: `{baseDir}/assets/templates/empty-boxes/preview.jpg`.
 
 Asset bundle: ~113 MB zip with boxes, stickers, fonts, reference figures, and example generated photos, fetched once via `scripts/fetch-asset-bundle.sh --template empty-boxes`. The bundle URL and sha256 live in `template.json.asset_bundle`.
+
+Format: `h5`. Status: ready.
+
+### `folder` — Layered Memory Archive
+
+An interactive archive of four file folders. Each folder keeps a physically believable back cover, front cover, and smoothly connected tab, then layers prepared base papers, tapes, varied photo formats, stickers, captions, and one grounded story note. The lead folder opens into a larger spread with a Three.js folder-opening animation.
+
+Use this template when the relationship material naturally forms chapters: a shared errand, a quiet ritual, a saved quote, a recurring place, a half-finished plan, or a small future promise. The key production rule is physical folder logic: the tab must remain connected to the shell; paper, tape, stickers, and photos should feel held by the folder; photo formats should vary across strips, grids, polaroids, framed photos, and small bordered photos; visible gift copy must use the user's habitual language with the recipient.
+
+Canonical authored HTML: `{baseDir}/assets/templates/folder/template-source/520-folder-gift.html`.
+
+Production + content spec: `{baseDir}/assets/templates/folder/SPEC.md`. **Read this before producing a folder gift.** It contains the folder-shell rules, paper/tape usage rules, sticker-cluster rules, and the language rule.
+
+Preview: `{baseDir}/assets/templates/folder/preview.jpg`.
+
+Asset bundle: ~139 MB extracted with generated examples, vendor JS, stickers, papers, tapes, frames, and fonts, fetched once via `scripts/fetch-asset-bundle.sh --template folder`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
 Format: `h5`. Status: ready.
