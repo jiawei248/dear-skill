@@ -1,0 +1,297 @@
+{
+  "id": "draw-card",
+  "aliases": ["draw_card", "draw card", "gacha-card", "wish-card", "card gacha", "fan card"],
+  "name": "Draw Card — Retro Gacha Wish Machine",
+  "description": "A playful Three.js H5 gift built around a retro card-drawing machine. The page opens on a neon lyric rain and a rotating pixel-photo carousel, then lets the recipient fill a short wish card with a lyric, color, style, and memo. After the wish slides into the machine, turning the side knob reveals a collectible image card that can be saved.",
+  "preview": "preview.jpg",
+  "best_for": [
+    "fan-gift",
+    "concert-memory",
+    "birthday",
+    "close-friend",
+    "playful-confession",
+    "idol-postcard",
+    "inside-joke",
+    "light-love-letter"
+  ],
+  "tone": [
+    "playful",
+    "fandom",
+    "neon",
+    "kinetic",
+    "cute",
+    "card-collecting",
+    "interactive"
+  ],
+  "format": "h5",
+  "approx_size_mb": 31,
+  "status": "ready",
+  "canonical_html_reference": "template-source/retro-gacha-card.html",
+  "spec_doc": "SPEC.md",
+  "slots": [
+    {
+      "id": "recipient_material",
+      "type": "user_context",
+      "required": true,
+      "purpose": "Photos, screenshots, concert notes, fandom jokes, favorite lyrics, colors, nicknames, short phrases, and memo fragments that make the card machine feel made for this recipient instead of a generic fan toy.",
+      "accepted_inputs": [
+        "photos",
+        "chat_screenshots",
+        "social_screenshots",
+        "text",
+        "notes",
+        "folder"
+      ],
+      "grounding_rules": [
+        "Visible copy and default form text should trace to a concrete lyric, joke, date, concert, color, nickname, or detail from the user's material.",
+        "Use the language and address form the user naturally uses with the recipient.",
+        "Do not invent a celebrity preference, concert attendance, or relationship inside joke that the user did not provide."
+      ]
+    },
+    {
+      "id": "draw_card_story_plan",
+      "type": "ai_text",
+      "required": true,
+      "purpose": "A compact editorial plan for what the machine is drawing and why the recipient would care.",
+      "output_fields": {
+        "subject_name": "who or what the card set is about, e.g. Eason, a friend, a fictional mascot, or a shared concert",
+        "recipient_address": "short address form used in UI copy",
+        "occasion": "why this card machine is being sent now",
+        "core_lyric_or_phrase": "the concrete lyric, phrase, or joke that anchors the gift",
+        "visual_language": "the color, card style, and sticker mood",
+        "card_emotion": "what the drawn card should give back: encouragement, hype, comfort, joke, or keepsake"
+      },
+      "rules": [
+        "Make the machine draw one clear emotional object, not a random card pack.",
+        "If the material is fandom-oriented, keep the tone playful and consensual rather than pretending personal intimacy with a public figure.",
+        "If the material is about a real recipient, keep all default wish text grounded in what the user actually gave."
+      ]
+    },
+    {
+      "id": "background_lyrics",
+      "type": "ai_text",
+      "required": false,
+      "lines": "8-18",
+      "purpose": "Lyric-rain lines that fall behind the machine. They may be user-provided lyrics, short quoted phrases, or original lines composed from the gift brief.",
+      "source_priority": [
+        "user_provided_lyrics",
+        "user_provided_quotes_or_chat_lines",
+        "ai_compose_short_original_lines"
+      ],
+      "runtime_mapping": {
+        "filled_slot_keys": ["lyrics", "lyric_lines", "background_lyrics"],
+        "default_bundle_file": "lyrics.txt",
+        "runtime_global": "window.DRAW_CARD_GIFT_CONFIG.lyrics"
+      },
+      "rules": [
+        "Do not paste long copyrighted lyrics. Use short user-provided lines or original lines when needed.",
+        "Keep each line short enough to read while falling across mobile and desktop."
+      ]
+    },
+    {
+      "id": "carousel_photos",
+      "type": "user_image_processed",
+      "count": "3-8",
+      "required": false,
+      "purpose": "Images shown in the gacha machine's pixel-photo carousel. Defaults to the bundled Eason reference set, but can be replaced with user-provided photos, concert photos, or generated/proxy images that match the gift.",
+      "pipeline": [
+        {
+          "step": "crop-to-aspect",
+          "params": {
+            "aspect_ratio": "source-safe",
+            "note": "Faces and gestures must remain crop-safe after the machine pixelates the carousel."
+          }
+        }
+      ],
+      "fallback_when_missing": "default",
+      "runtime_mapping": {
+        "output_paths": "draw-card-work/轮播图/{n}.{jpg,png}",
+        "runtime_global": "window.DRAW_CARD_GIFT_CONFIG.carouselPhotos"
+      }
+    },
+    {
+      "id": "wish_card_photos",
+      "type": "user_image_processed",
+      "count": "4-10",
+      "required": false,
+      "purpose": "Hero photo pool for the generated/saveable cards. The builder can use bundled card_materials or per-gift processed photos.",
+      "pipeline": [
+        {
+          "step": "crop-to-aspect",
+          "params": {
+            "aspect_ratio": "512:486",
+            "note": "Leave enough image area for canvas overlays, paper slips, stickers, and lyric text."
+          }
+        }
+      ],
+      "fallback_when_missing": "default",
+      "runtime_mapping": {
+        "output_paths": "draw-card-work/card_materials/card_photo_{1..10}.{jpg,png}",
+        "runtime_global": "window.DRAW_CARD_GIFT_CONFIG.wishPhotos"
+      }
+    },
+    {
+      "id": "character_sticker_set",
+      "type": "ai_generated_image",
+      "required": false,
+      "count_range": [4, 10],
+      "purpose": "Optional custom circular mascot stickers used on cards. Defaults to the bundled Eason-style sticker set; use this slot only when the user wants a custom person/mascot/fandom character.",
+      "style_rules": [
+        "Flat circular face or mascot disc, thick black rounded doodle lines, transparent PNG, no realistic portrait rendering.",
+        "Keep the sticker set internally consistent across expressions and colors.",
+        "Do not generate a real person's exact identity unless the user provided suitable reference photos and consent context."
+      ],
+      "runtime_mapping": {
+        "output_paths": "draw-card-work/generated_stickers/all/custom_sticker_{1..10}.png",
+        "runtime_global": "window.DRAW_CARD_GIFT_CONFIG.wishStickers",
+        "style_reference": "base/reference/sticker.jpg"
+      },
+      "model_hint": "Use a general image model for custom stickers; bundled stickers require no generation."
+    },
+    {
+      "id": "decor_sticker_picks",
+      "type": "sticker_picks",
+      "required": false,
+      "library_subpaths": [
+        "stickers/decorations/"
+      ],
+      "count_range": [2, 8],
+      "placement_zone": "drawn-card-canvas",
+      "selection_hint": "Pick small stickers that match the user's cue: stage/concert, travel, sweet drink, soft blue night, playful joke, birthday sparkle, or movie-ticket energy.",
+      "placement_rules": [
+        "Decor stickers should support the card style and lyric; avoid unrelated sticker scatter.",
+        "Do not cover the subject's eyes, the main lyric text, or the generated card's saveable center.",
+        "If the card style is quiet or letter-like, use fewer stickers and lower opacity."
+      ],
+      "runtime_mapping": {
+        "output_paths": "draw-card-work/stickers/decorations/{n}.png",
+        "runtime_global": "window.DRAW_CARD_GIFT_CONFIG.decorStickers"
+      }
+    },
+    {
+      "id": "wish_copy",
+      "type": "ai_text",
+      "required": true,
+      "purpose": "Gift-facing UI copy and default wish-card fields. This is part of the gift, not documentation.",
+      "output_fields": {
+        "copy.panelTitle": "short modal title",
+        "copy.lyricLabel": "label for the lyric field",
+        "copy.memoPlaceholder": "example keywords in the user's language",
+        "copy.machineButton": "short text drawn on the 3D machine button",
+        "copy.delivered": "toast after the wish card enters the slot",
+        "wishDefaults.lyric": "default lyric or phrase on the request card",
+        "wishDefaults.themeColor": "hex color",
+        "wishDefaults.easonStyle": "selected style chip label",
+        "wishDefaults.cardStyle": "selected card style chip label",
+        "easonStyleOptions": "style chip labels",
+        "cardStyleOptions": "card style chip labels"
+      },
+      "language_rule": "Use the user's habitual language, writing system, nickname, and warmth level for final gift text.",
+      "specificity_rules": [
+        "Default text should include or echo a concrete lyric, phrase, color, place, date, or joke from the recipient material.",
+        "Avoid broad labels such as 'best wishes', 'happy forever', or 'special memories' unless the user actually uses those words."
+      ]
+    },
+    {
+      "id": "draw_card_runtime_overrides",
+      "type": "layout_config",
+      "required": false,
+      "purpose": "Optional precise runtime overrides for media lists, text copy, style options, card templates, sticker groups, and default form values.",
+      "schema_note": "Maps into window.DRAW_CARD_GIFT_CONFIG. Use carouselPhotos, wishPhotos, wishStickers, decorStickers, decorStickerGroups, easonStyleOptions, cardStyleOptions, wishStyleCandidates, cardTemplates, copy, and wishDefaults.",
+      "supported_groups": [
+        "copy",
+        "lyrics",
+        "carouselPhotos",
+        "wishPhotos",
+        "wishStickers",
+        "decorStickers",
+        "decorStickerGroups",
+        "easonStyleOptions",
+        "cardStyleOptions",
+        "wishStyleCandidates",
+        "cardTemplates",
+        "wishDefaults"
+      ],
+      "bounds_rule": "When replacing card templates, keep lyric, memo, photo, and sticker elements inside the 512x728 saveable card canvas."
+    }
+  ],
+  "asset_bundle": {
+    "local_path": "base/",
+    "url": "https://github.com/jiawei248/dear-skill/releases/download/assets-draw-card-v1/draw-card-v1.zip",
+    "sha256": "385ab18374edae6417f4b524b42d707c8cb956c94cbfc45dfe7a94a5bae074cf",
+    "size_mb": 24,
+    "contents": [
+      "card_materials/",
+      "generated_stickers/",
+      "stickers/",
+      "轮播图/",
+      "reference/",
+      "lyrics.txt",
+      "carousel-photos-data.js"
+    ]
+  },
+  "build_script": "template-source/build.py",
+  "build_contract": {
+    "input": "filled-slots.json containing draw_card_copy/wish_copy, lyrics, selected media lists, custom stickers, and optional runtime overrides",
+    "cli": "python3 template-source/build.py --slots <gift-dir>/draw-card-work/filled-slots.json --workdir <gift-dir>/draw-card-work --out <gift-dir>/index.html",
+    "output": "single index.html in the gift folder",
+    "single_file": true,
+    "source_policy": "template-source/retro-gacha-card.html is canonical and read-only; build.py writes a separate output file.",
+    "runtime_global": "window.DRAW_CARD_GIFT_CONFIG",
+    "supported_runtime_groups": [
+      "copy",
+      "lyrics",
+      "carouselPhotos",
+      "wishPhotos",
+      "wishStickers",
+      "decorStickers",
+      "decorStickerGroups",
+      "easonStyleOptions",
+      "cardStyleOptions",
+      "wishStyleCandidates",
+      "cardTemplates",
+      "wishDefaults"
+    ],
+    "staging_contract": {
+      "gift_dir": "./gifts/<YYYY-MM-DD>-<recipient-slug>/",
+      "workdir": "./gifts/<YYYY-MM-DD>-<recipient-slug>/draw-card-work/",
+      "slots": "draw-card-work/filled-slots.json",
+      "output": "index.html",
+      "default_asset_paths": {
+        "carousel_photos": "draw-card-work/轮播图/{n}.{jpg,png}",
+        "wish_photos": "draw-card-work/card_materials/card_photo_{n}.{jpg,png}",
+        "wish_stickers": "draw-card-work/generated_stickers/all/{n}.png",
+        "decor_stickers": "draw-card-work/stickers/decorations/{n}.png",
+        "lyrics": "draw-card-work/lyrics.txt"
+      }
+    },
+    "inline_strategy": "base64 local image/script paths from filled-slots.json, the workdir, the fetched base bundle, or template-source into the output HTML"
+  },
+  "activation_disclosure": {
+    "message": "这个模板会下载约 24MB 的卡片照片、贴纸和歌词素材；默认能直接做 Eason 风格抽卡机。如果要换成专属人物/角色，可能需要额外图片处理或贴纸生成。",
+    "show_before": "fetching asset bundle or generating custom stickers",
+    "cost_notes": [
+      "Asset bundle download is about 24MB on first use.",
+      "Full custom card sets may use image generation for mascot stickers or replacement card photos.",
+      "The authored H5 uses browser CDN libraries for React, Three.js, GSAP, Tailwind, and Babel; browser verification needs network unless those libraries are vendored later.",
+      "Final gift text should be written in the user's habitual language with the recipient."
+    ],
+    "options": [
+      {
+        "id": "built_in_assets",
+        "label": "built-in Eason card machine",
+        "description": "Download the bundle, use the bundled photos/stickers/lyrics, customize copy and defaults, and build the interactive H5."
+      },
+      {
+        "id": "custom_card_set",
+        "label": "custom card set",
+        "description": "Replace photos, lyrics, style chips, and optionally generate custom mascot stickers before building."
+      },
+      {
+        "id": "text_image_fallback",
+        "label": "text/image fallback",
+        "description": "Skip the heavy H5 path and make a sendable static card or text gift using the same brief."
+      }
+    ]
+  }
+}

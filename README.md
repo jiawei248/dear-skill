@@ -98,6 +98,7 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 /dear --template bouquet 给妈妈做一束可以拖动的花
 /dear --template empty-boxes 给 TA 做一组装满零食和小票的回忆盒子
 /dear --template folder 给 TA 做一组可以打开的回忆文件夹
+/dear --template draw-card 给 TA 做一台可以抽小卡的复古许愿机
 /dear 用 bouquet 模板给朋友做一份生日礼物
 /dear 有什么模板可以用？
 ```
@@ -110,6 +111,7 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 | `bouquet` | 生日、母亲节、感谢、朋友安慰、纪念日 | `assets/templates/bouquet/preview.jpg` | 给妈妈做一张赛博奖杯花束插画，每一朵花都藏着一个你们的故事。 |
 | `empty-boxes` | 伴侣、520、生日、朋友、日常小仪式 | `assets/templates/empty-boxes/preview.jpg` | 把冰箱、购物篮、纸箱和铁盒做成一圈可以翻看的回忆收藏盒。 |
 | `folder` | 伴侣、520、生日、朋友、关系章节 | `assets/templates/folder/preview.jpg` | 把你们的故事夹进四个可以打开的文件夹：照片、纸片、胶带和一句具体的话都各归其位。 |
+| `draw-card` | 粉丝礼物、演唱会回忆、生日、朋友玩笑 | `assets/templates/draw-card/preview.jpg` | 做一台复古抽卡许愿机：填一句歌词和关键词，转动旋钮抽出一张可以保存的小卡。 |
 
 ### 模板 Demo：先看几个已经做好的礼物
 
@@ -136,6 +138,12 @@ dear 会从这句话里读出收礼人、关系、触发瞬间和情绪方向。
 把一段关系整理成四个可以打开的文件夹：每一层都有真实的封壳、标签页、照片、纸片和贴得住的细节。
 
 ![folder demo](assets/templates/folder/demo-preview.png)
+
+#### draw-card
+
+做一台霓虹复古抽卡机：歌词像雨一样落下，填好愿望卡后转动旋钮，就能吐出一张可以保存的收藏小卡。
+
+![draw-card demo](assets/templates/draw-card/demo-preview.png)
 
 ---
 
@@ -360,6 +368,7 @@ If you want to start from a polished template, specify it directly:
 /dear --template bouquet make mom a draggable bouquet
 /dear --template empty-boxes make a snack-run memory box for Ren
 /dear --template folder make a layered memory folder archive for Ren
+/dear --template draw-card make a retro wish-card machine for Ren
 /dear use the bouquet template for a friend's birthday gift
 /dear show me templates
 ```
@@ -372,6 +381,7 @@ Polished templates:
 | `bouquet` | birthdays, Mother's Day, thank-you gifts, friend comfort, anniversaries | `assets/templates/bouquet/preview.jpg` | Makes mom a cyber-trophy bouquet illustration where every flower holds one of your stories. |
 | `empty-boxes` | partners, 520, birthdays, close friends, everyday rituals | `assets/templates/empty-boxes/preview.jpg` | Turns refrigerators, shopping baskets, cardboard boxes, and tin cases into a loop of collectible memory boxes. |
 | `folder` | partners, 520, birthdays, close friends, relationship chapters | `assets/templates/folder/preview.jpg` | Turns shared stories into four openable file folders layered with photos, papers, tapes, stickers, and one concrete line. |
+| `draw-card` | fan gifts, concert memories, birthdays, close friends, playful jokes | `assets/templates/draw-card/preview.jpg` | Builds a retro wish-card gacha machine: fill a lyric and memo, turn the knob, and draw a saveable card. |
 
 ### Template demos: finished gift examples
 
@@ -398,6 +408,12 @@ Turns empty containers into memory boxes: a refrigerator shelf can hold a small 
 Turns a relationship into a tactile folder archive: real folder shells, connected tabs, layered papers, varied photo formats, and grounded chapter notes.
 
 ![Folder demo](assets/templates/folder/demo-preview.png)
+
+#### draw-card
+
+Builds a neon retro card machine: lyric rain falls behind the scene, a wish card slides into the slot, and the knob reveals a saveable collectible card.
+
+![Draw-card demo](assets/templates/draw-card/demo-preview.png)
 
 ---
 

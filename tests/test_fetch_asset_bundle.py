@@ -38,6 +38,27 @@ def make_template(tmp_path: Path, template_id: str, zip_path: Path, digest: str)
     return repo
 
 
+def make_template_with_aliases(tmp_path: Path, template_id: str, aliases: list[str], zip_path: Path, digest: str) -> Path:
+    repo = tmp_path / "repo"
+    template_dir = repo / "assets" / "templates" / template_id
+    template_dir.mkdir(parents=True)
+    (template_dir / "template.json").write_text(
+        json.dumps(
+            {
+                "id": template_id,
+                "aliases": aliases,
+                "asset_bundle": {
+                    "local_path": "base/",
+                    "url": str(zip_path),
+                    "sha256": digest,
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    return repo
+
+
 def run_fetch(repo: Path, *args: str) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [str(SCRIPT), *args, str(repo)],
@@ -56,6 +77,18 @@ def test_template_fetch_writes_sha_marker(tmp_path):
     result = run_fetch(repo, "--template", "paper-house")
 
     base = repo / "assets" / "templates" / "paper-house" / "base"
+    assert result.stdout.strip() == str(base)
+    assert (base / "asset.txt").read_text(encoding="utf-8") == "v1"
+    assert (base / ".bundle-sha256").read_text(encoding="utf-8").strip() == digest
+
+
+def test_template_fetch_resolves_manifest_aliases(tmp_path):
+    zip_path, digest = make_bundle(tmp_path, "bundle", {"asset.txt": "v1"})
+    repo = make_template_with_aliases(tmp_path, "draw-card", ["draw_card"], zip_path, digest)
+
+    result = run_fetch(repo, "--template", "draw_card")
+
+    base = repo / "assets" / "templates" / "draw-card" / "base"
     assert result.stdout.strip() == str(base)
     assert (base / "asset.txt").read_text(encoding="utf-8") == "v1"
     assert (base / ".bundle-sha256").read_text(encoding="utf-8").strip() == digest

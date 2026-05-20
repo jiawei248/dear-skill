@@ -46,6 +46,10 @@ Available templates:
 🗂 folder — Layered Memory Archive
    Four believable file folders open into layered papers, varied photo formats, tapes, stickers, captions, and grounded chapter notes.
    Best for: partners, 520, birthdays, close friends, relationship chapters, saved quotes, future plans.
+
+🎴 draw-card — Retro Gacha Wish Machine
+   A neon 3D card-drawing machine: fill a lyric/memo wish card, slide it into the slot, turn the knob, and save the drawn card.
+   Best for: fan gifts, concert memories, birthdays, close friends, idol-postcard surprises, playful jokes.
 ```
 
 If the user asks for details on one, read the rest of its `template.json` and show `slots` summary.
@@ -62,8 +66,9 @@ Three triggers, all valid:
 /dear 用 bouquet 模板给朋友做一份生日礼物
 /dear --template empty-boxes 给 TA 做一个零食购物篮回忆盒
 /dear --template folder 给 TA 做一组可以打开的回忆文件夹
+/dear --template draw-card 给 TA 做一台可以抽小卡的复古许愿机
 ```
-Skill detects an explicit template id, loads `template.json`, jumps to slot-matching.
+Skill detects an explicit template id or manifest alias, loads `template.json`, jumps to slot-matching.
 
 ### Browse → Pick
 ```
@@ -415,6 +420,22 @@ Canonical authored HTML: `{baseDir}/assets/templates/paper-house/template-source
 Production + content spec (8 production rules, content organization principles, asset manifest, per-gift checklist, failure modes): `{baseDir}/assets/templates/paper-house/SPEC.md`. **Read this end-to-end before attempting to produce a paper-house gift.** The content principles are what keep the gift specific, factual, matched to the user's language style, and not over-romanticized.
 
 Asset bundle: ~149 MB zip / ~156 MB extracted: stickers, fonts, and reference examples, fetched once via `scripts/fetch-asset-bundle.sh --template paper-house`. The bundle URL and sha256 live in `template.json.asset_bundle`.
+
+Format: `h5`. Status: ready.
+
+### `draw-card` — Retro Gacha Wish Machine
+
+A Three.js retro card-drawing machine with neon lyric rain, a pixel-photo carousel, a wish form, a card-slot animation, a draggable knob, and a saveable generated card. It is designed for playful fan gifts, concert memories, birthdays, idol-postcard surprises, close friends, and light confessions where a lyric, color, joke, or memo can become the card's central object.
+
+Use this template when the gift should feel like drawing a collectible card rather than reading a letter or opening an archive. The key production rule is specificity: choose one card thesis, keep lyrics short, make photos crop-safe for pixelation and overlays, select stickers that support the card style, and write visible copy in the user's habitual language with the recipient.
+
+Canonical authored HTML: `{baseDir}/assets/templates/draw-card/template-source/retro-gacha-card.html`.
+
+Production + content spec: `{baseDir}/assets/templates/draw-card/SPEC.md`. **Read this before producing a draw-card gift.** It contains the card-thesis rules, lyric limits, sticker-selection rules, and the language rule.
+
+Preview: `{baseDir}/assets/templates/draw-card/preview.jpg`.
+
+Asset bundle: ~24 MB zip / ~31 MB extracted with card photos, carousel photos, stickers, lyrics, and reference assets, fetched once via `scripts/fetch-asset-bundle.sh --template draw-card`. The bundle URL and sha256 live in `template.json.asset_bundle`.
 
 Format: `h5`. Status: ready.
 

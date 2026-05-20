@@ -10,7 +10,8 @@ set -euo pipefail
 #       Example: fetch-asset-bundle.sh "image-examples/meme-sticker"
 #
 #   fetch-asset-bundle.sh --template <template-id> [base-dir]
-#       ↑ template path; reads assets/templates/<id>/template.json,
+#       ↑ template path; reads assets/templates/<id>/template.json
+#       (or resolves a manifest alias such as draw_card),
 #       downloads asset_bundle.url (verifying optional sha256),
 #       and extracts into assets/templates/<id>/base/.
 #       Example: fetch-asset-bundle.sh --template paper-house
@@ -36,6 +37,34 @@ if [ "${1:-}" = "--template" ] || [ "${1:-}" = "--refresh-template" ]; then
   if [ -z "$BASE_DIR" ]; then
     BASE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
   fi
+
+  TEMPLATE_ID="$(python3 - "$BASE_DIR" "$TEMPLATE_ID" <<'PY'
+import json
+import sys
+from pathlib import Path
+
+base_dir = Path(sys.argv[1])
+requested = sys.argv[2]
+templates_dir = base_dir / "assets" / "templates"
+
+direct = templates_dir / requested / "template.json"
+if direct.is_file():
+    print(requested)
+    raise SystemExit
+
+for manifest_path in sorted(templates_dir.glob("*/template.json")):
+    try:
+        data = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception:
+        continue
+    aliases = data.get("aliases") or []
+    if data.get("id") == requested or requested in aliases:
+        print(manifest_path.parent.name)
+        raise SystemExit
+
+print(requested)
+PY
+)"
 
   TEMPLATE_DIR="$BASE_DIR/assets/templates/$TEMPLATE_ID"
   TEMPLATE_JSON="$TEMPLATE_DIR/template.json"
